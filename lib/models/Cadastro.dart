@@ -19,4 +19,18 @@ class Cadastro {
     required this.senha,
   });
 
+  // Converte um JSON em um objeto Cadastro
+
+  factory Cadastro.fromJson(Map<String, dynamic> json){
+    return Cadastro(
+
+      nome: json["nome"] ?? "",
+      email: json["email"] ?? "",
+      telefone: json["telefone"] ?? "",
+      cpf: json["cpf"] ?? "",
+      nascimento: json["nascimento"] ?? "",
+      senha: json["senha"] ?? "",
+    );
+  }
+
 }
