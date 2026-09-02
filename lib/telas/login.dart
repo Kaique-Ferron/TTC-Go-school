@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import '../widgets/botoes.dart';
 import '../widgets/campos.dart';
 
@@ -114,3 +115,6 @@ class _TelaLoginState extends State<TelaLogin> {
     );
   }
 }
+=======
+
+>>>>>>> cc1d891c33b12a82d82c5f36818855e7caff5cd7
