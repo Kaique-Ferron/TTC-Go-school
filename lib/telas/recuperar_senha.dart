@@ -14,8 +14,14 @@ class TelaRecuperarSenha extends StatefulWidget {
 class _TelaRecuperarSenhaState extends State<TelaRecuperarSenha> {
   String _perfil = 'Responsável';
 
+  static const Color azulResponsavel = Color(0xFF1D58E2);
+  static const Color laranjaMotorista = Color(0xFFFF5C00);
+
   @override
   Widget build(BuildContext context) {
+    final bool isResponsavel = _perfil == 'Responsável';
+    final Color corPerfil = isResponsavel ? azulResponsavel : laranjaMotorista;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
       body: Center(
@@ -49,6 +55,7 @@ class _TelaRecuperarSenhaState extends State<TelaRecuperarSenha> {
                 ),
                 const SizedBox(height: 24),
 
+                // Seletor de Perfil
                 SeletorPerfilTab(
                   perfilSelecionado: _perfil,
                   onChanged: (novoPerfil) => setState(() => _perfil = novoPerfil),
@@ -58,9 +65,11 @@ class _TelaRecuperarSenhaState extends State<TelaRecuperarSenha> {
                 const CampoTextoCustomizado(hintText: 'E-mail ou telefone', prefixIcon: Icons.email_outlined),
                 const SizedBox(height: 20),
 
+                // Botão dinâmico na cor do perfil
                 BotaoPrincipal(
                   texto: 'Enviar link de recuperação',
                   icone: Icons.send_outlined,
+                  cor: corPerfil,
                   onPressed: () {},
                 ),
                 const SizedBox(height: 24),
@@ -71,7 +80,7 @@ class _TelaRecuperarSenhaState extends State<TelaRecuperarSenha> {
                     Text('Lembrou sua senha? ', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
-                      child: const Text('Fazer login', style: TextStyle(color: Color(0xFF1D58E2), fontWeight: FontWeight.bold, fontSize: 13)),
+                      child: Text('Fazer login', style: TextStyle(color: corPerfil, fontWeight: FontWeight.bold, fontSize: 13)),
                     ),
                   ],
                 ),

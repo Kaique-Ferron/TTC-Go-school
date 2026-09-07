@@ -15,8 +15,14 @@ class _TelaLoginState extends State<TelaLogin> {
   bool _lembrarDeMim = false;
   bool _mostrarSenha = false;
 
+  static const Color azulResponsavel = Color(0xFF1D58E2);
+  static const Color laranjaMotorista = Color(0xFFFF5C00);
+
   @override
   Widget build(BuildContext context) {
+    final bool isResponsavel = _perfil == 'Responsável';
+    final Color corPerfil = isResponsavel ? azulResponsavel : laranjaMotorista;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
       body: Center(
@@ -46,6 +52,7 @@ class _TelaLoginState extends State<TelaLogin> {
                 Text('Faça login para acessar sua conta', style: TextStyle(color: Colors.grey[600], fontSize: 14)),
                 const SizedBox(height: 24),
 
+                // Seletor de Perfil
                 SeletorPerfilTab(
                   perfilSelecionado: _perfil,
                   onChanged: (novoPerfil) => setState(() => _perfil = novoPerfil),
@@ -76,28 +83,29 @@ class _TelaLoginState extends State<TelaLogin> {
                         Checkbox(
                           value: _lembrarDeMim,
                           onChanged: (val) => setState(() => _lembrarDeMim = val ?? false),
-                          activeColor: const Color(0xFF1D58E2),
+                          activeColor: corPerfil,
                         ),
                         Text('Lembrar de mim', style: TextStyle(color: Colors.grey[700], fontSize: 13)),
                       ],
                     ),
                     GestureDetector(
                       onTap: () {
-                        // Navega para a tela de recuperar senha
                         Navigator.pushNamed(context, '/recuperar-senha');
                       },
-                      child: const Text(
+                      child: Text(
                         'Esqueceu sua senha?',
-                        style: TextStyle(color: Color(0xFF1D58E2), fontWeight: FontWeight.bold, fontSize: 13),
+                        style: TextStyle(color: corPerfil, fontWeight: FontWeight.bold, fontSize: 13),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
 
+                // Botão Entrar adaptativo à cor do perfil selecionado
                 BotaoPrincipal(
                   texto: 'Entrar',
                   icone: Icons.login,
+                  cor: corPerfil,
                   onPressed: () {},
                 ),
                 const SizedBox(height: 24),
@@ -108,12 +116,11 @@ class _TelaLoginState extends State<TelaLogin> {
                     Text('Ainda não tem uma conta? ', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
                     GestureDetector(
                       onTap: () {
-                        // Navega para a seleção de perfil de cadastro
                         Navigator.pushNamed(context, '/selecao-perfil');
                       },
-                      child: const Text(
+                      child: Text(
                         'Cadastre-se',
-                        style: TextStyle(color: Color(0xFF1D58E2), fontWeight: FontWeight.bold, fontSize: 13),
+                        style: TextStyle(color: corPerfil, fontWeight: FontWeight.bold, fontSize: 13),
                       ),
                     ),
                   ],
