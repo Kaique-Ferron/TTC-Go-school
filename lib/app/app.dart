@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../telas/login.dart';
+import '../telas/selecao_perfil.dart';
 import '../telas/cadastro.dart';
+import '../telas/recuperar_senha.dart';
 
 class GoSchoolApp extends StatelessWidget {
   const GoSchoolApp({super.key});
@@ -18,7 +20,9 @@ class GoSchoolApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const TelaLogin(),
+        '/selecao-perfil': (context) => const TelaSelecaoPerfil(),
         '/cadastro': (context) => const TelaCadastro(),
+        '/recuperar-senha': (context) => const TelaRecuperarSenha(),
       },
     );
   }

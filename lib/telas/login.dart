@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/botoes.dart';
 import '../widgets/campos.dart';
+import '../widgets/logo_goschool.dart';
 
 class TelaLogin extends StatefulWidget {
   const TelaLogin({super.key});
@@ -38,38 +39,19 @@ class _TelaLoginState extends State<TelaLogin> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Logo GoSchool
-                const Text(
-                  'GO SCHOOL',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
-                    fontStyle: FontStyle.italic,
-                    color: Color(0xFF1D58E2),
-                  ),
-                ),
+                const LogoGoSchool(),
                 const SizedBox(height: 16),
-                const Text(
-                  'Bem-vindo de volta!',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
+                const Text('Bem-vindo de volta!', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
-                Text(
-                  'Faça login para acessar sua conta',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                ),
+                Text('Faça login para acessar sua conta', style: TextStyle(color: Colors.grey[600], fontSize: 14)),
                 const SizedBox(height: 24),
 
-                // Seletor Responsável / Motorista
                 SeletorPerfilTab(
                   perfilSelecionado: _perfil,
-                  onChanged: (novoPerfil) {
-                    setState(() => _perfil = novoPerfil);
-                  },
+                  onChanged: (novoPerfil) => setState(() => _perfil = novoPerfil),
                 ),
                 const SizedBox(height: 20),
 
-                // Campos de Entrada
                 const CampoTextoCustomizado(
                   hintText: 'E-mail ou telefone',
                   prefixIcon: Icons.email_outlined,
@@ -80,18 +62,12 @@ class _TelaLoginState extends State<TelaLogin> {
                   prefixIcon: Icons.lock_outline,
                   obscureText: !_mostrarSenha,
                   suffixIcon: IconButton(
-                    icon: Icon(
-                      _mostrarSenha ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                      color: Colors.grey,
-                    ),
-                    onPressed: () {
-                      setState(() => _mostrarSenha = !_mostrarSenha);
-                    },
+                    icon: Icon(_mostrarSenha ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: Colors.grey),
+                    onPressed: () => setState(() => _mostrarSenha = !_mostrarSenha),
                   ),
                 ),
                 const SizedBox(height: 12),
 
-                // Lembrar de mim & Esqueseu senha
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -107,22 +83,18 @@ class _TelaLoginState extends State<TelaLogin> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        // Navegar para recuperação de senha
+                        // Navega para a tela de recuperar senha
+                        Navigator.pushNamed(context, '/recuperar-senha');
                       },
                       child: const Text(
                         'Esqueceu sua senha?',
-                        style: TextStyle(
-                          color: Color(0xFF1D58E2),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
+                        style: TextStyle(color: Color(0xFF1D58E2), fontWeight: FontWeight.bold, fontSize: 13),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
 
-                // Botão Entrar
                 BotaoPrincipal(
                   texto: 'Entrar',
                   icone: Icons.login,
@@ -130,65 +102,18 @@ class _TelaLoginState extends State<TelaLogin> {
                 ),
                 const SizedBox(height: 24),
 
-                // Divisor Social
-                Row(
-                  children: [
-                    Expanded(child: Divider(color: Colors.grey[300])),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Text('ou continue com', style: TextStyle(color: Colors.grey[500], fontSize: 12)),
-                    ),
-                    Expanded(child: Divider(color: Colors.grey[300])),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // Botões de Autenticação Social
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.g_mobiledata, size: 24, color: Colors.red),
-                        label: const Text('Google', style: TextStyle(color: Colors.black87)),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.window, size: 18, color: Colors.blue),
-                        label: const Text('Microsoft', style: TextStyle(color: Colors.black87)),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // Link para Cadastro
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text('Ainda não tem uma conta? ', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
                     GestureDetector(
                       onTap: () {
-                        Navigator.pushNamed(context, '/cadastro');
+                        // Navega para a seleção de perfil de cadastro
+                        Navigator.pushNamed(context, '/selecao-perfil');
                       },
                       child: const Text(
                         'Cadastre-se',
-                        style: TextStyle(
-                          color: Color(0xFF1D58E2),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
+                        style: TextStyle(color: Color(0xFF1D58E2), fontWeight: FontWeight.bold, fontSize: 13),
                       ),
                     ),
                   ],

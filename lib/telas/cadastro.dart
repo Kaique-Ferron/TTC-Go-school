@@ -7,6 +7,9 @@ class TelaCadastro extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Recebe o perfil escolhido enviado pela tela anterior (padrão: 'Responsável')
+    final String perfil = (ModalRoute.of(context)?.settings.arguments as String?) ?? 'Responsável';
+
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
       body: Center(
@@ -21,7 +24,6 @@ class TelaCadastro extends StatelessWidget {
             ),
             child: Column(
               children: [
-                // Voltar
                 Align(
                   alignment: Alignment.centerLeft,
                   child: TextButton.icon(
@@ -32,21 +34,19 @@ class TelaCadastro extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
 
-                // Tag do Perfil
                 Chip(
                   avatar: const Icon(Icons.person, size: 16, color: Color(0xFF1D58E2)),
-                  label: const Text('Responsável', style: TextStyle(color: Color(0xFF1D58E2), fontSize: 12)),
+                  label: Text(perfil, style: const TextStyle(color: Color(0xFF1D58E2), fontSize: 12)),
                   backgroundColor: const Color(0xFF1D58E2).withOpacity(0.1),
                   side: BorderSide.none,
                 ),
                 const SizedBox(height: 8),
 
-                const Text('Cadastro de Responsável', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text('Cadastro de $perfil', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
                 Text('Preencha seus dados para criar sua conta.', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
                 const SizedBox(height: 20),
 
-                // Upload de Foto
                 CircleAvatar(
                   radius: 36,
                   backgroundColor: Colors.grey[200],
@@ -56,7 +56,6 @@ class TelaCadastro extends StatelessWidget {
                 Text('Adicionar foto\n(opcional)', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[500], fontSize: 11)),
                 const SizedBox(height: 20),
 
-                // Inputs
                 const CampoTextoCustomizado(hintText: 'Nome completo', prefixIcon: Icons.person_outline),
                 const SizedBox(height: 10),
                 const CampoTextoCustomizado(hintText: 'CPF', prefixIcon: Icons.badge_outlined),
@@ -72,11 +71,25 @@ class TelaCadastro extends StatelessWidget {
                 const CampoTextoCustomizado(hintText: 'Confirmar senha', prefixIcon: Icons.lock_outline, obscureText: true),
                 const SizedBox(height: 20),
 
-                // Botão de Envio
                 BotaoPrincipal(
                   texto: 'Criar minha conta',
                   icone: Icons.person_add_alt_1,
                   onPressed: () {},
+                ),
+                const SizedBox(height: 16),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Já tem uma conta? ', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                    GestureDetector(
+                      onTap: () {
+                        // Volta para a tela inicial (Login)
+                        Navigator.popUntil(context, ModalRoute.withName('/'));
+                      },
+                      child: const Text('Fazer login', style: TextStyle(color: Color(0xFF1D58E2), fontWeight: FontWeight.bold, fontSize: 13)),
+                    ),
+                  ],
                 ),
               ],
             ),
