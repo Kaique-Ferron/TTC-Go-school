@@ -72,6 +72,7 @@ class SeletorPerfilTab extends StatelessWidget {
       padding: const EdgeInsets.all(4),
       child: Row(
         children: [
+          // Aba Responsável
           Expanded(
             child: GestureDetector(
               onTap: () => onChanged('Responsável'),
@@ -86,7 +87,7 @@ class SeletorPerfilTab extends StatelessWidget {
                   children: [
                     Icon(
                       Icons.person,
-                      color: isResponsavel ? Colors.white : Colors.grey,
+                      color: isResponsavel ? Colors.white : Colors.grey[600],
                       size: 18,
                     ),
                     const SizedBox(width: 6),
@@ -102,6 +103,8 @@ class SeletorPerfilTab extends StatelessWidget {
               ),
             ),
           ),
+          
+          // Aba Motorista (Laranja quando ativo)
           Expanded(
             child: GestureDetector(
               onTap: () => onChanged('Motorista'),
