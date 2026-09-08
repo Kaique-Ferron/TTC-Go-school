@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/botoes.dart';
 import '../widgets/campos.dart';
 import '../widgets/secao_endereco.dart';
+import '../widgets/secao_motorista.dart';
 import '../widgets/indicador_senha.dart';
 
 class TelaCadastro extends StatefulWidget {
@@ -15,12 +16,19 @@ class _TelaCadastroState extends State<TelaCadastro> {
   static const Color azulResponsavel = Color(0xFF1D58E2);
   static const Color laranjaMotorista = Color(0xFFFF5C00);
 
+  // Controllers de Endereço
   final _cepController = TextEditingController();
   final _ruaController = TextEditingController();
   final _numeroController = TextEditingController();
   final _bairroController = TextEditingController();
-  final _senhaController = TextEditingController();
 
+  // Controllers específicos de Motorista
+  final _cnhController = TextEditingController();
+  final _licencaController = TextEditingController();
+  final _placaController = TextEditingController();
+
+  // Controller de Senha
+  final _senhaController = TextEditingController();
   String _senha = '';
 
   @override
@@ -29,6 +37,9 @@ class _TelaCadastroState extends State<TelaCadastro> {
     _ruaController.dispose();
     _numeroController.dispose();
     _bairroController.dispose();
+    _cnhController.dispose();
+    _licencaController.dispose();
+    _placaController.dispose();
     _senhaController.dispose();
     super.dispose();
   }
@@ -51,7 +62,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Topo / Voltar
+                // Voltar
                 Align(
                   alignment: Alignment.centerLeft,
                   child: TextButton.icon(
@@ -94,7 +105,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                 ),
                 const SizedBox(height: 20),
 
-                // Campos Pessoais
+                // Dados Pessoais
                 const CampoTextoCustomizado(hintText: 'Nome completo', prefixIcon: Icons.person_outline),
                 const SizedBox(height: 10),
                 const CampoTextoCustomizado(hintText: 'CPF', prefixIcon: Icons.badge_outlined),
@@ -104,7 +115,17 @@ class _TelaCadastroState extends State<TelaCadastro> {
                 const CampoTextoCustomizado(hintText: 'E-mail', prefixIcon: Icons.email_outlined),
                 const SizedBox(height: 16),
 
-                // WIDGET REUTILIZÁVEL: Seção de Endereço
+                // WIDGET EXCLUSIVO DE MOTORISTA (Se for motorista, exibe os documentos)
+                if (!isResponsavel) ...[
+                  SecaoMotorista(
+                    cnhController: _cnhController,
+                    licencaController: _licencaController,
+                    placaController: _placaController,
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                // WIDGET REUTILIZÁVEL: Endereço
                 SecaoEndereco(
                   cepController: _cepController,
                   ruaController: _ruaController,
@@ -113,7 +134,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                 ),
                 const SizedBox(height: 16),
 
-                // Seção de Senha
+                // Segurança
                 const Text('Segurança da Conta', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1E293B))),
                 const SizedBox(height: 8),
 
@@ -124,7 +145,6 @@ class _TelaCadastroState extends State<TelaCadastro> {
                   obscureText: true,
                 ),
                 
-                // WIDGET REUTILIZÁVEL: Indicador Visual de Senha
                 IndicadorSenha(senha: _senha),
                 const SizedBox(height: 10),
 
@@ -135,7 +155,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                 ),
                 const SizedBox(height: 24),
 
-                // Botão de Criar Conta
+                // Botão de Ação
                 BotaoPrincipal(
                   texto: 'Criar minha conta',
                   icone: Icons.person_add_alt_1,
