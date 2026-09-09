@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../widgets/botoes.dart';
-import '../widgets/campos.dart';
-import '../widgets/secao_endereco.dart';
-import '../widgets/secao_motorista.dart';
-import '../widgets/indicador_senha.dart';
+import '../../widgets/botoes.dart';
+import '../../widgets/campos.dart';
+import '../../widgets/secao_endereco.dart';
+import '../../widgets/secao_motorista.dart';
+import '../../widgets/indicador_senha.dart';
 
 class TelaCadastro extends StatefulWidget {
   const TelaCadastro({super.key});
