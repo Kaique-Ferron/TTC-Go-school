@@ -22,7 +22,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
   final _numeroController = TextEditingController();
   final _bairroController = TextEditingController();
 
-  // Controllers específicos de Motorista
+  // Controllers de Motorista
   final _cnhController = TextEditingController();
   final _licencaController = TextEditingController();
   final _placaController = TextEditingController();
@@ -89,7 +89,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                 Center(child: Text('Preencha seus dados para criar sua conta.', style: TextStyle(color: Colors.grey[600], fontSize: 13))),
                 const SizedBox(height: 20),
 
-                // Foto (Opcional)
+                // Upload Foto
                 Center(
                   child: Column(
                     children: [
@@ -115,7 +115,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                 const CampoTextoCustomizado(hintText: 'E-mail', prefixIcon: Icons.email_outlined),
                 const SizedBox(height: 16),
 
-                // WIDGET EXCLUSIVO DE MOTORISTA (Se for motorista, exibe os documentos)
+                // Seção exclusiva para Motorista
                 if (!isResponsavel) ...[
                   SecaoMotorista(
                     cnhController: _cnhController,
@@ -125,7 +125,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                   const SizedBox(height: 16),
                 ],
 
-                // WIDGET REUTILIZÁVEL: Endereço
+                // Seção de Endereço com Busca Automática por CEP
                 SecaoEndereco(
                   cepController: _cepController,
                   ruaController: _ruaController,
@@ -138,13 +138,25 @@ class _TelaCadastroState extends State<TelaCadastro> {
                 const Text('Segurança da Conta', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1E293B))),
                 const SizedBox(height: 8),
 
-                CampoTextoCustomizado(
-                  controller: _senhaController,
-                  hintText: 'Senha',
-                  prefixIcon: Icons.lock_outline,
-                  obscureText: true,
+                // Campo Senha
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFAFBFCF).withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: TextField(
+                    controller: _senhaController,
+                    obscureText: true,
+                    onChanged: (val) => setState(() => _senha = val),
+                    decoration: InputDecoration(
+                      hintText: 'Senha',
+                      prefixIcon: Icon(Icons.lock_outline, color: Colors.grey[600]),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+                    ),
+                  ),
                 ),
-                
+
                 IndicadorSenha(senha: _senha),
                 const SizedBox(height: 10),
 
@@ -155,7 +167,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                 ),
                 const SizedBox(height: 24),
 
-                // Botão de Ação
+                // Botão de Criar Conta
                 BotaoPrincipal(
                   texto: 'Criar minha conta',
                   icone: Icons.person_add_alt_1,
