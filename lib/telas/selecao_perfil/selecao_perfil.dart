@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../widgets/card_perfil.dart';
-import '../widgets/box_seguranca.dart';
-import '../widgets/botoes.dart';
-import '../widgets/logo_goschool.dart';
+import '../../widgets/card_perfil.dart';
+import '../../widgets/box_seguranca.dart';
+import '../../widgets/botoes.dart';
+import '../../widgets/logo_goschool.dart';
 
 class TelaSelecaoPerfil extends StatefulWidget {
   const TelaSelecaoPerfil({super.key});
