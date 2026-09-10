@@ -1,88 +1,103 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/telas/landpage/widgets/footer_icons.dart';
-import 'package:flutter_application_1/telas/landpage/widgets/hero_section.dart';
-import 'package:flutter_application_1/telas/landpage/widgets/image_showcase.dart';
-import 'package:flutter_application_1/telas/landpage/widgets/nav_chips.dart';
+import 'widgets/header-landpage.dart';
+import 'logica-landpage.dart';
 
-import '../../widgets/logo_goschool.dart'; 
-
-import 'widgets/nav_chips.dart';
-import 'widgets/hero_section.dart';
-import 'widgets/image_showcase.dart';
-import 'widgets/footer_icons.dart';
-
-class LandpageTela extends StatelessWidget {
+class LandpageTela extends StatefulWidget {
   const LandpageTela({super.key});
+
+  @override
+  State<LandpageTela> createState() => _LandpageTelaState();
+}
+
+class _LandpageTelaState extends State<LandpageTela> {
+  int _abaSelecionada = 0;
+  final List<String> _menus = ['Início', 'Serviços', 'Galeria', 'Contato'];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F5F7),
-      body: SafeArea(
-        // 1. Centraliza tudo na tela (útil para Web/Desktop)
-        child: Center(
-          // 2. Trava a largura máxima no tamanho de um celular (ex: 450px)
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 450),
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    
-                    // HEADER
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Ad',
-                          style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF888888)),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 450),
+          child: Column(
+            children: [
+              const HeaderLandpage(),
+              const SizedBox(height: 20),
+
+              // Menu superior de navegação
+              SizedBox(
+                height: 40,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount: _menus.length,
+                  itemBuilder: (context, index) {
+                    bool isSelected = _abaSelecionada == index;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: ChoiceChip(
+                        label: Text(
+                          _menus[index],
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : const Color(0xFF1D58E2),
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        const LogoGoSchool(fontSize: 22.0),
-                        IconButton(
-                          icon: const Icon(Icons.close, color: Color(0xFF888888)),
-                          onPressed: () {
-                            print('Fechar Landing Page');
-                          },
+                        selected: isSelected,
+                        selectedColor: const Color(0xFF1D58E2),
+                        backgroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          side: BorderSide(
+                            color: isSelected ? Colors.transparent : const Color(0xFF1D58E2),
+                          ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-
-                    // NAV CHIPS
-                    const NavChips(),
-                    const SizedBox(height: 40),
-
-                    // HERO SECTION
-                    const HeroSection(),
-                    const SizedBox(height: 40),
-
-                    // IMAGEM
-                    const ImageShowcase(),
-                    const SizedBox(height: 32),
-
-                    // ÍCONES
-                    const FooterIcons(),
-                    const SizedBox(height: 24),
-
-                    // TEXTO FINAL
-                    const Text(
-                      'CONHEÇA NOSSAS ROTAS',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF333333),
+                        onSelected: (bool selected) {
+                          setState(() {
+                            _abaSelecionada = index;
+                          });
+                        },
                       ),
-                    ),
-                    const SizedBox(height: 32),
-                  ],
+                    );
+                  },
                 ),
               ),
-            ),
+
+              const SizedBox(height: 24),
+
+              // Corpo dinâmico alterado pelo clique do botão ou menu
+              Expanded(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: _construirConteudoDaAba(),
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _construirConteudoDaAba() {
+    switch (_abaSelecionada) {
+      case 0:
+        return AbaInicio(
+          key: const ValueKey(0),
+          aoClicarEncontrar: () {
+            setState(() {
+              _abaSelecionada = 1; // Muda instantaneamente o front para a ListView de motoristas
+            });
+          },
+        );
+      case 1:
+        return const AbaMotoristas(key: ValueKey(1));
+      default:
+        return Center(
+          key: ValueKey(_abaSelecionada),
+          child: const Text('Conteúdo em construção...', style: TextStyle(color: Colors.grey)),
+        );
+    }
   }
 }
