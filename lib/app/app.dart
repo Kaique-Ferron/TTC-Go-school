@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../telas/login/login.dart';
+import '../telas/auth/login/login.dart';
 import '../telas/selecao_perfil/selecao_perfil.dart';
-import '../telas/cadastro/cadastro.dart';
+import '../telas/auth/cadastro/cadastro.dart';
 import '../telas/recuperar_senha/recuperar_senha.dart';
 import '../telas/landpage/landpage-tela.dart';
 
