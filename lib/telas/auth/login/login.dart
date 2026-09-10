@@ -106,7 +106,10 @@ class _TelaLoginState extends State<TelaLogin> {
                   texto: 'Entrar',
                   icone: Icons.login,
                   cor: corPerfil,
-                  onPressed: () {},
+                  onPressed: () {
+                    // Redireciona diretamente para a tela de Meu Perfil do Responsável
+    Navigator.pushReplacementNamed(context, '/meu-perfil');
+                  },
                 ),
                 const SizedBox(height: 24),
 
