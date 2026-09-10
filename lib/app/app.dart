@@ -4,6 +4,8 @@ import '../telas/selecao_perfil/selecao_perfil.dart';
 import '../telas/cadastro/cadastro.dart';
 import '../telas/recuperar_senha/recuperar_senha.dart';
 import '../telas/landpage/landpage-tela.dart';
+import '../telas/meu_perfil/meu_perfil.dart';
+
 
 class GoSchoolApp extends StatelessWidget {
   const GoSchoolApp({super.key});
@@ -25,6 +27,7 @@ class GoSchoolApp extends StatelessWidget {
         '/cadastro': (context) => const TelaCadastro(),
         '/recuperar-senha': (context) => const TelaRecuperarSenha(),
         '/landpage': (context) => const LandpageTela(),
+        '/meu-perfil': (context) => const TelaMeuPerfil(),
       },
     );
   }
