@@ -2,11 +2,48 @@ import 'package:flutter/material.dart';
 import '../../widgets/navbar_responsavel.dart';
 import '../../widgets/card_filho.dart';
 import '../../widgets/card_cartao.dart';
+import '../../widgets/modal_info_filho.dart'; // 1. IMPORT ADICIONADO
 
 class TelaMeuPerfil extends StatelessWidget {
   const TelaMeuPerfil({super.key});
 
   static const Color azulPrincipal = Color(0xFF1D58E2);
+
+  // 2. FUNÇÃO ADICIONADA PARA ABRIR O MODAL DE DETALHES
+  void _abrirModalDetalhes(
+    BuildContext context, {
+    required String nome,
+    required String idadeEAno,
+    required String escola,
+    required String periodo,
+    required String tipoSanguineo,
+    required String alergias,
+  }) {
+    showDialog(
+      context: context,
+      builder: (context) => ModalInfoFilho(
+        nome: nome,
+        idadeEAno: idadeEAno,
+        escola: escola,
+        periodo: periodo,
+        tipoSanguineo: tipoSanguineo,
+        alergias: alergias,
+        onEditar: () {
+          Navigator.pop(context);
+          Navigator.pushNamed(context, '/meus-filhos');
+        },
+        onExcluir: () {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Perfil do filho removido!'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -109,34 +146,61 @@ class TelaMeuPerfil extends StatelessWidget {
                     children: [
                       const Text('Meus filhos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          // 3. NAVEGAÇÃO PARA A TELA MEUS FILHOS
+                          Navigator.pushNamed(context, '/meus-filhos');
+                        },
                         child: const Text('Ver todos', style: TextStyle(color: azulPrincipal)),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  const CardFilho(
+
+                  // CARDS CONECTADOS AO MODAL VIA onTap
+                  CardFilho(
                     nome: 'João Silva',
                     idadeEAno: '9 anos • 4º ano',
                     escola: 'ETEC Albert Einstein',
                     turno: 'Manhã',
                     horario: '07:00 - 12:00',
+                    onTap: () => _abrirModalDetalhes(
+                      context,
+                      nome: 'João Silva',
+                      idadeEAno: '9 anos • 4º ano',
+                      escola: 'ETEC Albert Einstein',
+                      periodo: 'Manhã (07:00 - 12:00)',
+                      tipoSanguineo: 'O+',
+                      alergias: 'Nenhuma',
+                    ),
                   ),
-                  const CardFilho(
+                  CardFilho(
                     nome: 'Maria Silva',
                     idadeEAno: '12 anos • 7º ano',
                     escola: 'Colégio Objetivo',
                     turno: 'Tarde',
                     horario: '13:00 - 18:00',
+                    onTap: () => _abrirModalDetalhes(
+                      context,
+                      nome: 'Maria Silva',
+                      idadeEAno: '12 anos • 7º ano',
+                      escola: 'Colégio Objetivo',
+                      periodo: 'Tarde (13:00 - 18:00)',
+                      tipoSanguineo: 'A+',
+                      alergias: 'Poeira, Lactose',
+                    ),
                   ),
                   const SizedBox(height: 8),
+
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size(double.infinity, 45),
                       side: const BorderSide(color: azulPrincipal),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      // 3. NAVEGAÇÃO PARA A TELA MEUS FILHOS (CADASTRAR NOVO)
+                      Navigator.pushNamed(context, '/meus-filhos');
+                    },
                     icon: const Icon(Icons.add, color: azulPrincipal),
                     label: const Text('Adicionar filho', style: TextStyle(color: azulPrincipal, fontWeight: FontWeight.bold)),
                   ),
