@@ -5,6 +5,7 @@ import '../telas/auth/cadastro/cadastro.dart';
 import '../telas/recuperar_senha/recuperar_senha.dart';
 import '../telas/landpage/landpage-tela.dart';
 import '../telas/meu_perfil/meu_perfil.dart';
+import '../telas/meus_filhos/meus_filhos.dart';
 
 
 class GoSchoolApp extends StatelessWidget {
@@ -28,6 +29,7 @@ class GoSchoolApp extends StatelessWidget {
         '/recuperar-senha': (context) => const TelaRecuperarSenha(),
         '/landpage': (context) => const LandpageTela(),
         '/meu-perfil': (context) => const TelaMeuPerfil(),
+        '/meus-filhos': (context) => const TelaMeusFilhos(),
       },
     );
   }
