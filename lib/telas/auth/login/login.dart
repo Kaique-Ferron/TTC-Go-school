@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../widgets/botoes.dart';
-import '../../widgets/campos.dart';
-import '../../widgets/logo_goschool.dart';
+import '../../../widgets/botoes.dart';
+import '../../../widgets/campos.dart';
+import '../../../widgets/logo_goschool.dart';
 
 class TelaLogin extends StatefulWidget {
   const TelaLogin({super.key});
