@@ -108,7 +108,7 @@ class _TelaLoginState extends State<TelaLogin> {
                   cor: corPerfil,
                   onPressed: () {
                     // Redireciona diretamente para a tela de Meu Perfil do Responsável
-    Navigator.pushReplacementNamed(context, '/meu-perfil');
+    Navigator.pushReplacementNamed(context, '/landpage');
                   },
                 ),
                 const SizedBox(height: 24),
