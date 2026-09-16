@@ -8,6 +8,8 @@ environment:
 
 dependencies:
   firebase_core: ^4.14.0
+  firebase_auth: ^6.2.0
+  cloud_firestore: ^6.1.0
   flutter:
     sdk: flutter
   http: ^1.2.0
@@ -22,3 +24,5 @@ dependency_overrides:
 
 flutter:
   uses-material-design: true
+  assets:
+    - lib/widgets/imagens/fake-map.jpg

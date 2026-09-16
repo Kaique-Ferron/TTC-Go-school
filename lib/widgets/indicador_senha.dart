@@ -59,11 +59,13 @@ class IndicadorSenha extends StatelessWidget {
             color: atendido ? Colors.green : Colors.grey,
           ),
           const SizedBox(width: 6),
-          Text(
-            texto,
-            style: TextStyle(
-              fontSize: 11,
-              color: atendido ? Colors.green[700] : Colors.grey[600],
+          Expanded(
+            child: Text(
+              texto,
+              style: TextStyle(
+                fontSize: 11,
+                color: atendido ? Colors.green[700] : Colors.grey[600],
+              ),
             ),
           ),
         ],

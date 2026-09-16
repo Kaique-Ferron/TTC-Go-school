@@ -13,6 +13,9 @@ class SecaoMotorista extends StatelessWidget {
     required this.placaController,
   });
 
+  static String? _obrigatorio(String? valor) =>
+      (valor == null || valor.trim().isEmpty) ? 'Campo obrigatório' : null;
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -29,6 +32,7 @@ class SecaoMotorista extends StatelessWidget {
           controller: cnhController,
           hintText: 'Número da CNH (Cat. D/E com EAR)',
           prefixIcon: Icons.badge_outlined,
+          validator: _obrigatorio,
         ),
         const SizedBox(height: 10),
 
@@ -37,6 +41,7 @@ class SecaoMotorista extends StatelessWidget {
           controller: licencaController,
           hintText: 'Nº da Licença / Alvará de Transporte Escolar',
           prefixIcon: Icons.verified_user_outlined,
+          validator: _obrigatorio,
         ),
         const SizedBox(height: 10),
 
@@ -45,6 +50,7 @@ class SecaoMotorista extends StatelessWidget {
           controller: placaController,
           hintText: 'Placa da Van / Ônibus (ex: ABC-1234)',
           prefixIcon: Icons.directions_bus_outlined,
+          validator: _obrigatorio,
         ),
       ],
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 import 'logo_goschool.dart';
 
 class NavbarResponsavel extends StatelessWidget {
@@ -167,12 +168,19 @@ class NavbarResponsavel extends StatelessWidget {
             fontSize: 14.5,
           ),
         ),
-        onTap: () {
+        onTap: () async {
           Navigator.pop(context); // Fecha o Drawer
           if (isSair) {
-            Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+            await AuthService.instance.sair();
+            if (context.mounted) {
+              Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+            }
+          } else if (rota == '/meu-perfil' || rota == '/meus-filhos') {
+            Navigator.pushNamed(context, rota);
           } else {
-            // Navega para a rota correspondente se necessário
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Em breve!')),
+            );
           }
         },
       ),

@@ -70,11 +70,16 @@ class _SecaoEnderecoState extends State<SecaoEndereco> {
             color: const Color(0xFFAFBFCF).withOpacity(0.08),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: TextField(
+          child: TextFormField(
             controller: widget.cepController,
             keyboardType: TextInputType.number,
             maxLength: 9,
             onChanged: _buscarEPreencherEndereco,
+            validator: (valor) {
+              final digitos = (valor ?? '').replaceAll(RegExp(r'[^0-9]'), '');
+              if (digitos.length != 8) return 'CEP inválido';
+              return null;
+            },
             decoration: InputDecoration(
               counterText: '',
               hintText: 'CEP (ex: 01310-100)',
@@ -116,6 +121,7 @@ class _SecaoEnderecoState extends State<SecaoEndereco> {
                 controller: widget.ruaController,
                 hintText: 'Rua / Avenida',
                 prefixIcon: Icons.map_outlined,
+                validator: _obrigatorio,
               ),
             ),
             const SizedBox(width: 8),
@@ -125,6 +131,7 @@ class _SecaoEnderecoState extends State<SecaoEndereco> {
                 controller: widget.numeroController,
                 hintText: 'Nº',
                 prefixIcon: Icons.home_outlined,
+                validator: _obrigatorio,
               ),
             ),
           ],
@@ -135,8 +142,12 @@ class _SecaoEnderecoState extends State<SecaoEndereco> {
           controller: widget.bairroController,
           hintText: 'Bairro / Cidade',
           prefixIcon: Icons.location_city_outlined,
+          validator: _obrigatorio,
         ),
       ],
     );
   }
+
+  String? _obrigatorio(String? valor) =>
+      (valor == null || valor.trim().isEmpty) ? 'Campo obrigatório' : null;
 }
