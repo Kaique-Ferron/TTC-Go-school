@@ -1,0 +1,63 @@
+class Usuario {
+  final String nome;
+  final String email;
+  final String telefone;
+  final String cpf;
+  final String perfil; // 'Responsável' ou 'Motorista'
+  final String cep;
+  final String rua;
+  final String numero;
+  final String bairro;
+  final String cnh;
+  final String licenca;
+  final String placa;
+
+  const Usuario({
+    required this.nome,
+    required this.email,
+    required this.telefone,
+    required this.cpf,
+    required this.perfil,
+    this.cep = '',
+    this.rua = '',
+    this.numero = '',
+    this.bairro = '',
+    this.cnh = '',
+    this.licenca = '',
+    this.placa = '',
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'nome': nome,
+      'email': email,
+      'telefone': telefone,
+      'cpf': cpf,
+      'perfil': perfil,
+      'cep': cep,
+      'rua': rua,
+      'numero': numero,
+      'bairro': bairro,
+      'cnh': cnh,
+      'licenca': licenca,
+      'placa': placa,
+    };
+  }
+
+  factory Usuario.fromMap(Map<String, dynamic> map) {
+    return Usuario(
+      nome: map['nome'] ?? '',
+      email: map['email'] ?? '',
+      telefone: map['telefone'] ?? '',
+      cpf: map['cpf'] ?? '',
+      perfil: map['perfil'] ?? 'Responsável',
+      cep: map['cep'] ?? '',
+      rua: map['rua'] ?? '',
+      numero: map['numero'] ?? '',
+      bairro: map['bairro'] ?? '',
+      cnh: map['cnh'] ?? '',
+      licenca: map['licenca'] ?? '',
+      placa: map['placa'] ?? '',
+    );
+  }
+}

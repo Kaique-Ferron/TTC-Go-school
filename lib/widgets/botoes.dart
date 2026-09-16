@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 class BotaoPrincipal extends StatelessWidget {
   final String texto;
   final IconData? icone;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final Color cor;
+  final bool carregando;
 
   const BotaoPrincipal({
     super.key,
@@ -12,6 +13,7 @@ class BotaoPrincipal extends StatelessWidget {
     required this.onPressed,
     this.icone,
     this.cor = const Color(0xFF1D58E2),
+    this.carregando = false,
   });
 
   @override
@@ -27,24 +29,33 @@ class BotaoPrincipal extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
         ),
-        onPressed: onPressed,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (icone != null) ...[
-              Icon(icone, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-            ],
-            Text(
-              texto,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+        onPressed: carregando ? null : onPressed,
+        child: carregando
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.4,
+                  color: Colors.white,
+                ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (icone != null) ...[
+                    Icon(icone, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                  ],
+                  Text(
+                    texto,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }

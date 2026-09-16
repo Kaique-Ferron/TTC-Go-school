@@ -11,7 +11,9 @@ class LandpageTela extends StatefulWidget {
 
 class _LandpageTelaState extends State<LandpageTela> {
   int _abaSelecionada = 0;
-  final List<String> _menus = ['Início', 'Serviços', 'Galeria', 'Contato'];
+  final List<String> _menus = ['Início', 'Serviços'];
+
+  static const Color azulPrincipal = Color(0xFF1D58E2);
 
   @override
   Widget build(BuildContext context) {
@@ -25,42 +27,50 @@ class _LandpageTelaState extends State<LandpageTela> {
               const HeaderLandpage(),
               const SizedBox(height: 20),
 
-              // Menu superior de navegação
-              SizedBox(
-                height: 40,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: _menus.length,
-                  itemBuilder: (context, index) {
-                    bool isSelected = _abaSelecionada == index;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 12),
-                      child: ChoiceChip(
-                        label: Text(
-                          _menus[index],
-                          style: TextStyle(
-                            color: isSelected ? Colors.white : const Color(0xFF1D58E2),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        selected: isSelected,
-                        selectedColor: const Color(0xFF1D58E2),
-                        backgroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          side: BorderSide(
-                            color: isSelected ? Colors.transparent : const Color(0xFF1D58E2),
-                          ),
-                        ),
-                        onSelected: (bool selected) {
-                          setState(() {
-                            _abaSelecionada = index;
-                          });
-                        },
+              // Seletor de abas em formato pill, centralizado
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.grey.shade200),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.03),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
-                    );
-                  },
+                    ],
+                  ),
+                  child: Row(
+                    children: List.generate(_menus.length, (index) {
+                      final bool isSelected = _abaSelecionada == index;
+                      return Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => _abaSelecionada = index),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: isSelected ? azulPrincipal : Colors.transparent,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              _menus[index],
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: isSelected ? Colors.white : Colors.grey[600],
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
                 ),
               ),
 
@@ -92,12 +102,8 @@ class _LandpageTelaState extends State<LandpageTela> {
           },
         );
       case 1:
-        return const AbaMotoristas(key: ValueKey(1));
       default:
-        return Center(
-          key: ValueKey(_abaSelecionada),
-          child: const Text('Conteúdo em construção...', style: TextStyle(color: Colors.grey)),
-        );
+        return const AbaMotoristas(key: ValueKey(1));
     }
   }
 }

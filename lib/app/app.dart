@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../telas/auth/login/login.dart';
 import '../telas/selecao_perfil/selecao_perfil.dart';
 import '../telas/auth/cadastro/cadastro.dart';
 import '../telas/recuperar_senha/recuperar_senha.dart';
 import '../telas/landpage/landpage-tela.dart';
 import '../telas/meu_perfil/meu_perfil.dart';
 import '../telas/meus_filhos/meus_filhos.dart';
+import 'auth_gate.dart';
 
 
 class GoSchoolApp extends StatelessWidget {
@@ -21,9 +21,8 @@ class GoSchoolApp extends StatelessWidget {
         useMaterial3: true,
         fontFamily: 'Roboto',
       ),
-      initialRoute: '/',
+      home: const AuthGate(),
       routes: {
-        '/': (context) => const TelaLogin(),
         '/selecao-perfil': (context) => const TelaSelecaoPerfil(),
         '/cadastro': (context) => const TelaCadastro(),
         '/recuperar-senha': (context) => const TelaRecuperarSenha(),
