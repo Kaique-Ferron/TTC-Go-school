@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 // import '../../../services/auth_service.dart'; // Auth temporariamente desativado para testes de navegação
+import '../../../theme/cores.dart';
 import '../../../widgets/botoes.dart';
 import '../../../widgets/campos.dart';
 import '../../../widgets/logo_goschool.dart';
@@ -20,9 +21,6 @@ class _TelaLoginState extends State<TelaLogin> {
   bool _lembrarDeMim = false;
   bool _mostrarSenha = false;
   // bool _carregando = false; // usado apenas pela chamada real de login (desativada)
-
-  static const Color azulResponsavel = Color(0xFF1D58E2);
-  static const Color laranjaMotorista = Color(0xFFFF5C00);
 
   @override
   void dispose() {
@@ -47,7 +45,7 @@ class _TelaLoginState extends State<TelaLogin> {
   //     if (!mounted) return;
   //     ScaffoldMessenger.of(context).showSnackBar(
   //       SnackBar(
-  //         content: Text(AuthService.instance.descreverErro(e)),
+  //         content: Text(AuthService.descreverErro(e)),
   //         backgroundColor: Colors.red,
   //       ),
   //     );
@@ -64,8 +62,7 @@ class _TelaLoginState extends State<TelaLogin> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isResponsavel = _perfil == 'Responsável';
-    final Color corPerfil = isResponsavel ? azulResponsavel : laranjaMotorista;
+    final Color corPerfil = AppCores.porPerfil(_perfil);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),

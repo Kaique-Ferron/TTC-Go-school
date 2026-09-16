@@ -35,7 +35,8 @@ class AuthService {
   }
 
   /// Converte erros do Firebase em mensagens amigáveis para exibir ao usuário.
-  String descreverErro(Object erro) {
+  /// Estático: não depende de _auth, então pode ser testado sem inicializar o Firebase.
+  static String descreverErro(Object erro) {
     if (erro is FirebaseAuthException) {
       switch (erro.code) {
         case 'user-not-found':

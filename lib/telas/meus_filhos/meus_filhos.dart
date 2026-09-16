@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/filho.dart';
-import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
+import '../../services/sessao_provider.dart';
 import '../../widgets/navbar_responsavel.dart';
 import '../../widgets/card_filho.dart';
 import '../../widgets/modal_info_filho.dart';
@@ -132,8 +133,8 @@ class _TelaMeusFilhosState extends State<TelaMeusFilhos> {
   Widget build(BuildContext context) {
     // Guarda de sessão real (temporariamente desativada — login/cadastro
     // estão em modo de teste e não autenticam de verdade no Firebase):
-    // final uid = AuthService.instance.uidAtual;
-    final uid = AuthService.instance.uidAtual ?? 'usuario-teste';
+    // final logado = context.watch<SessaoProvider>().logado;
+    final uid = context.watch<SessaoProvider>().uidEfetivo;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),

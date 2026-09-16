@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/filho.dart';
 import '../../models/usuario.dart';
-import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
+import '../../services/sessao_provider.dart';
 import '../../widgets/navbar_responsavel.dart';
 import '../../widgets/card_filho.dart';
 import '../../widgets/card_cartao.dart';
@@ -49,8 +50,8 @@ class TelaMeuPerfil extends StatelessWidget {
   Widget build(BuildContext context) {
     // Guarda de sessão real (temporariamente desativada — login/cadastro
     // estão em modo de teste e não autenticam de verdade no Firebase):
-    // final uid = AuthService.instance.uidAtual;
-    // if (uid == null) {
+    // final logado = context.watch<SessaoProvider>().logado;
+    // if (!logado) {
     //   return Scaffold(
     //     backgroundColor: const Color(0xFFF8FAFC),
     //     body: Center(
@@ -61,7 +62,7 @@ class TelaMeuPerfil extends StatelessWidget {
     //     ),
     //   );
     // }
-    final uid = AuthService.instance.uidAtual ?? 'usuario-teste';
+    final uid = context.watch<SessaoProvider>().uidEfetivo;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -145,7 +146,7 @@ class TelaMeuPerfil extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      _buildItemInfo(Icons.email_outlined, usuario?.email ?? AuthService.instance.emailAtual ?? '—'),
+                      _buildItemInfo(Icons.email_outlined, usuario?.email ?? context.watch<SessaoProvider>().email ?? '—'),
                       const SizedBox(height: 8),
                       _buildItemInfo(
                         Icons.phone_outlined,

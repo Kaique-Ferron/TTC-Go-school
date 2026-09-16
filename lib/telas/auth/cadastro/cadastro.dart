@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 // import '../../../models/usuario.dart';
 // import '../../../services/auth_service.dart';
 // import '../../../services/firestore_service.dart';
+import '../../../theme/cores.dart';
 import '../../../widgets/botoes.dart';
 import '../../../widgets/campos.dart';
 import '../../../widgets/secao_endereco.dart';
@@ -17,9 +18,6 @@ class TelaCadastro extends StatefulWidget {
 }
 
 class _TelaCadastroState extends State<TelaCadastro> {
-  static const Color azulResponsavel = Color(0xFF1D58E2);
-  static const Color laranjaMotorista = Color(0xFFFF5C00);
-
   final _formKey = GlobalKey<FormState>();
 
   // Controllers de Dados Pessoais
@@ -109,7 +107,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
   //   } catch (e) {
   //     if (!mounted) return;
   //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text(AuthService.instance.descreverErro(e)), backgroundColor: Colors.red),
+  //       SnackBar(content: Text(AuthService.descreverErro(e)), backgroundColor: Colors.red),
   //     );
   //   } finally {
   //     if (mounted) setState(() => _carregando = false);
@@ -138,7 +136,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
   Widget build(BuildContext context) {
     final String perfil = (ModalRoute.of(context)?.settings.arguments as String?) ?? 'Responsável';
     final bool isResponsavel = perfil == 'Responsável';
-    final Color corPerfil = isResponsavel ? azulResponsavel : laranjaMotorista;
+    final Color corPerfil = AppCores.porPerfil(perfil);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
