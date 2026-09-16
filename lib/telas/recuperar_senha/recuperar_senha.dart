@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
+import '../../theme/cores.dart';
 import '../../widgets/botoes.dart';
 import '../../widgets/campos.dart';
 import '../../widgets/box_seguranca.dart';
@@ -17,9 +18,6 @@ class _TelaRecuperarSenhaState extends State<TelaRecuperarSenha> {
   final _emailController = TextEditingController();
   String _perfil = 'Responsável';
   bool _carregando = false;
-
-  static const Color azulResponsavel = Color(0xFF1D58E2);
-  static const Color laranjaMotorista = Color(0xFFFF5C00);
 
   @override
   void dispose() {
@@ -43,7 +41,7 @@ class _TelaRecuperarSenhaState extends State<TelaRecuperarSenha> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AuthService.instance.descreverErro(e)), backgroundColor: Colors.red),
+        SnackBar(content: Text(AuthService.descreverErro(e)), backgroundColor: Colors.red),
       );
     } finally {
       if (mounted) setState(() => _carregando = false);
@@ -52,8 +50,7 @@ class _TelaRecuperarSenhaState extends State<TelaRecuperarSenha> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isResponsavel = _perfil == 'Responsável';
-    final Color corPerfil = isResponsavel ? azulResponsavel : laranjaMotorista;
+    final Color corPerfil = AppCores.porPerfil(_perfil);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),

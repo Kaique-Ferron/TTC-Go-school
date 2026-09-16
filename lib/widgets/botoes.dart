@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/cores.dart';
 
 class BotaoPrincipal extends StatelessWidget {
   final String texto;
@@ -12,7 +13,7 @@ class BotaoPrincipal extends StatelessWidget {
     required this.texto,
     required this.onPressed,
     this.icone,
-    this.cor = const Color(0xFF1D58E2),
+    this.cor = AppCores.azulPrincipal,
     this.carregando = false,
   });
 
@@ -90,7 +91,7 @@ class SeletorPerfilTab extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: isResponsavel ? const Color(0xFF1D58E2) : Colors.transparent,
+                  color: isResponsavel ? AppCores.azulPrincipal : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -122,7 +123,7 @@ class SeletorPerfilTab extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: !isResponsavel ? const Color(0xFFFF5C00) : Colors.transparent,
+                  color: !isResponsavel ? AppCores.laranjaMotorista : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -130,14 +131,14 @@ class SeletorPerfilTab extends StatelessWidget {
                   children: [
                     Icon(
                       Icons.directions_bus,
-                      color: !isResponsavel ? Colors.white : const Color(0xFFFF5C00),
+                      color: !isResponsavel ? Colors.white : AppCores.laranjaMotorista,
                       size: 18,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       'Motorista',
                       style: TextStyle(
-                        color: !isResponsavel ? Colors.white : const Color(0xFFFF5C00),
+                        color: !isResponsavel ? Colors.white : AppCores.laranjaMotorista,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
