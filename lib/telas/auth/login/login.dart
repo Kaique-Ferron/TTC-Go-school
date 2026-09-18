@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-// import '../../../services/auth_service.dart'; // Auth temporariamente desativado para testes de navegação
+import '../../../services/auth_service.dart';
 import '../../../theme/cores.dart';
 import '../../../widgets/botoes.dart';
 import '../../../widgets/campos.dart';
@@ -20,7 +20,7 @@ class _TelaLoginState extends State<TelaLogin> {
   String _perfil = 'Responsável';
   bool _lembrarDeMim = false;
   bool _mostrarSenha = false;
-  // bool _carregando = false; // usado apenas pela chamada real de login (desativada)
+  bool _carregando = false;
 
   @override
   void dispose() {
@@ -29,35 +29,28 @@ class _TelaLoginState extends State<TelaLogin> {
     super.dispose();
   }
 
-  // ===== Login real com Firebase Auth (temporariamente desativado para testes) =====
-  // Future<void> _entrar() async {
-  //   if (!_formKey.currentState!.validate()) return;
-  //
-  //   setState(() => _carregando = true);
-  //   try {
-  //     await AuthService.instance.entrar(
-  //       email: _emailController.text.trim(),
-  //       senha: _senhaController.text,
-  //     );
-  //     // Login bem-sucedido: o AuthGate detecta a mudança de estado
-  //     // de autenticação e troca a tela automaticamente.
-  //   } catch (e) {
-  //     if (!mounted) return;
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text(AuthService.descreverErro(e)),
-  //         backgroundColor: Colors.red,
-  //       ),
-  //     );
-  //   } finally {
-  //     if (mounted) setState(() => _carregando = false);
-  //   }
-  // }
+  Future<void> _entrar() async {
+    if (!_formKey.currentState!.validate()) return;
 
-  // Login "fake" apenas para navegação durante os testes de tela
-  // (sem checar credenciais nem chamar o Firebase).
-  void _entrar() {
-    Navigator.pushReplacementNamed(context, '/landpage');
+    setState(() => _carregando = true);
+    try {
+      await AuthService.instance.entrar(
+        email: _emailController.text.trim(),
+        senha: _senhaController.text,
+      );
+      // Login bem-sucedido: o AuthGate detecta a mudança de estado
+      // de autenticação e troca a tela automaticamente.
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AuthService.descreverErro(e)),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _carregando = false);
+    }
   }
 
   @override
@@ -66,9 +59,9 @@ class _TelaLoginState extends State<TelaLogin> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20.0),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
+        child: Center(
           child: Container(
             constraints: const BoxConstraints(maxWidth: 420),
             padding: const EdgeInsets.all(24.0),
@@ -159,6 +152,7 @@ class _TelaLoginState extends State<TelaLogin> {
                     texto: 'Entrar',
                     icone: Icons.login,
                     cor: corPerfil,
+                    carregando: _carregando,
                     onPressed: _entrar,
                   ),
                   const SizedBox(height: 24),

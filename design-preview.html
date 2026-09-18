@@ -1,0 +1,719 @@
+<title>Redesign GoSchool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;0,900;1,400&display=swap">
+<style>
+  :root{
+    --bg:#F4F6F9;
+    --surface:#FFFFFF;
+    --ink:#1E293B;
+    --ink-dim:#64748B;
+    --azul:#1D58E2;
+    --azul-tint:#E8F0FE;
+    --laranja:#FF5C00;
+    --amarelo:#FFC107;
+    --sucesso:#16A34A;
+    --sucesso-tint:#DCFCE7;
+    --linha:#E2E8F0;
+    --sombra: 0 20px 45px -22px rgba(29,88,226,.28);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0A0F1C;
+      --surface:#121A2C;
+      --ink:#E7ECF5;
+      --ink-dim:#93A2BD;
+      --azul:#5B8CFF;
+      --azul-tint:rgba(91,140,255,.16);
+      --laranja:#FF8A4C;
+      --amarelo:#FFCF4D;
+      --sucesso:#34D399;
+      --sucesso-tint:rgba(52,211,153,.14);
+      --linha:#233150;
+      --sombra: 0 20px 45px -22px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0A0F1C;
+    --surface:#121A2C;
+    --ink:#E7ECF5;
+    --ink-dim:#93A2BD;
+    --azul:#5B8CFF;
+    --azul-tint:rgba(91,140,255,.16);
+    --laranja:#FF8A4C;
+    --amarelo:#FFCF4D;
+    --sucesso:#34D399;
+    --sucesso-tint:rgba(52,211,153,.14);
+    --linha:#233150;
+    --sombra: 0 20px 45px -22px rgba(0,0,0,.6);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1100px 500px at 14% -10%, color-mix(in srgb, var(--azul) 10%, transparent), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'Roboto', -apple-system, 'Segoe UI', sans-serif;
+  }
+
+  .pagina{
+    max-width:1180px;
+    margin:0 auto;
+    padding:52px 28px 80px;
+  }
+
+  header.topo{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-bottom:44px;
+    max-width:640px;
+  }
+  .eyebrow{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--azul);
+  }
+  .eyebrow::before{
+    content:"";
+    width:7px;height:7px;border-radius:50%;
+    background:var(--azul);
+  }
+  h1{
+    margin:0;
+    font-size:clamp(26px,4vw,36px);
+    font-weight:900;
+    letter-spacing:-0.01em;
+    text-wrap:balance;
+  }
+  .sub{
+    margin:0;
+    color:var(--ink-dim);
+    font-size:15px;
+    line-height:1.6;
+    max-width:56ch;
+  }
+
+  .legenda{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px 22px;
+    margin-top:18px;
+  }
+  .legenda span{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    font-size:12.5px;
+    color:var(--ink-dim);
+    font-weight:500;
+  }
+  .ponto{
+    width:9px;height:9px;border-radius:3px;flex-shrink:0;
+  }
+  .ponto.azul{background:var(--azul);}
+  .ponto.verde{background:var(--sucesso);}
+  .ponto.laranja{background:var(--laranja);}
+
+  .vitrine{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:flex-start;
+    gap:56px;
+  }
+
+  .peca{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+    width:320px;
+  }
+  .peca__titulo{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .peca__titulo h2{
+    margin:0;
+    font-size:16px;
+    font-weight:700;
+  }
+  .peca__titulo p{
+    margin:2px 0 0;
+    font-size:12.5px;
+    color:var(--ink-dim);
+  }
+  .tag-tela{
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:.04em;
+    color:var(--ink-dim);
+    background:var(--linha);
+    padding:3px 9px;
+    border-radius:100px;
+    white-space:nowrap;
+  }
+
+  /* ---------- Telefone ---------- */
+  .telefone{
+    width:320px;
+    border-radius:46px;
+    padding:11px;
+    background:linear-gradient(160deg,#1b2233,#05070c);
+    box-shadow:var(--sombra), inset 0 0 0 1px rgba(255,255,255,.06);
+  }
+  .tela{
+    position:relative;
+    background:var(--bg);
+    border-radius:36px;
+    overflow:hidden;
+    height:672px;
+    display:flex;
+    flex-direction:column;
+  }
+  .notch{
+    position:absolute;
+    top:8px; left:50%; transform:translateX(-50%);
+    width:84px; height:18px;
+    background:#05070c;
+    border-radius:100px;
+    z-index:5;
+  }
+  .barra-status{
+    flex-shrink:0;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:14px 22px 4px;
+    font-size:12px;
+    font-weight:700;
+    color:var(--ink);
+  }
+  .barra-status svg{display:block;}
+
+  .conteudo-tela{
+    flex:1;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+
+  /* Novo badge */
+  .novo{
+    position:absolute;
+    display:flex;
+    align-items:center;
+    gap:4px;
+    background:var(--azul);
+    color:#fff;
+    font-size:9.5px;
+    font-weight:800;
+    letter-spacing:.05em;
+    padding:3px 7px 3px 6px;
+    border-radius:100px;
+    box-shadow:0 4px 10px -3px rgba(0,0,0,.4);
+    z-index:4;
+  }
+  .novo svg{width:9px;height:9px;}
+
+  /* ---------- App bar (Perfil) ---------- */
+  .appbar{
+    flex-shrink:0;
+    padding:6px 18px 12px;
+    background:var(--surface);
+    border-bottom:1px solid var(--linha);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .appbar h3{margin:0;font-size:16.5px;font-weight:700;}
+
+  .scroll{
+    flex:1;
+    padding:16px 16px 10px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    overflow:hidden;
+  }
+
+  /* Identidade */
+  .card{
+    background:var(--surface);
+    border:1px solid var(--linha);
+    border-radius:18px;
+    padding:18px;
+  }
+  .identidade{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:9px;
+    position:relative;
+  }
+  .avatar{
+    width:60px;height:60px;border-radius:50%;
+    background:var(--azul-tint);
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
+  }
+  .avatar svg{width:30px;height:30px;color:var(--azul);}
+  .avatar .lapis{
+    position:absolute; right:-2px; bottom:-2px;
+    width:20px;height:20px;border-radius:50%;
+    background:var(--surface);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 2px 6px rgba(0,0,0,.15);
+  }
+  .avatar .lapis svg{width:11px;height:11px;color:var(--ink-dim);}
+  .nome-linha{display:flex;align-items:center;gap:7px;}
+  .nome-linha strong{font-size:16px;font-weight:700;}
+  .pill{
+    font-size:10.5px;font-weight:700;
+    padding:3px 9px;border-radius:100px;
+  }
+  .pill.perfil{background:var(--azul-tint);color:var(--azul);}
+  .verificado{
+    display:flex;align-items:center;gap:5px;
+    background:var(--sucesso-tint);
+    color:var(--sucesso);
+    font-size:11px;font-weight:700;
+    padding:5px 11px 5px 8px;
+    border-radius:100px;
+    margin-top:2px;
+  }
+  .verificado svg{width:13px;height:13px;}
+
+  /* Atalhos rápidos */
+  .atalhos{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:6px;
+  }
+  .atalho{
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+  }
+  .atalho .circ{
+    width:44px;height:44px;border-radius:16px;
+    background:var(--surface);
+    border:1px solid var(--linha);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .atalho .circ svg{width:19px;height:19px;color:var(--azul);}
+  .atalho span{font-size:9.5px;font-weight:600;color:var(--ink-dim);text-align:center;line-height:1.2;}
+
+  .card-linha{
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .card-linha h4{margin:0;font-size:13.5px;font-weight:700;}
+  .card-linha .ver{font-size:11.5px;font-weight:700;color:var(--azul);}
+  .filho{
+    display:flex;align-items:center;gap:10px;
+    padding:9px 0;
+    border-top:1px solid var(--linha);
+    margin-top:9px;
+  }
+  .filho .av{
+    width:34px;height:34px;border-radius:50%;
+    background:var(--azul-tint);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .filho .av svg{width:16px;height:16px;color:var(--azul);}
+  .filho .info strong{display:block;font-size:12px;font-weight:700;}
+  .filho .info span{font-size:10.5px;color:var(--ink-dim);}
+
+  /* Lista de configurações (novo padrão) */
+  .lista-config{
+    display:flex;
+    flex-direction:column;
+    position:relative;
+  }
+  .linha-config{
+    display:flex;align-items:center;gap:12px;
+    padding:11px 2px;
+    border-bottom:1px solid var(--linha);
+  }
+  .linha-config:last-of-type{border-bottom:none;}
+  .linha-config .ic{
+    width:26px;height:26px;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--ink-dim);flex-shrink:0;
+  }
+  .linha-config .ic svg{width:17px;height:17px;}
+  .linha-config span{
+    flex:1;font-size:13px;font-weight:500;color:var(--ink);
+  }
+  .linha-config .seta{width:15px;height:15px;color:var(--ink-dim);flex-shrink:0;}
+  .linha-config.sair span{color:#DC2626;font-weight:700;}
+  .linha-config.sair .ic{color:#DC2626;}
+
+  /* Bottom nav */
+  .nav-inferior{
+    flex-shrink:0;
+    display:flex;
+    background:var(--surface);
+    border-top:1px solid var(--linha);
+    padding:9px 6px 14px;
+  }
+  .nav-item{
+    flex:1;
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    color:var(--ink-dim);
+  }
+  .nav-item svg{width:21px;height:21px;}
+  .nav-item span{font-size:9.5px;font-weight:600;}
+  .nav-item.ativo{color:var(--azul);}
+  .nav-item.ativo span{font-weight:800;}
+
+  /* ---------- Tela Início / mapa ---------- */
+  .header-gradiente{
+    flex-shrink:0;
+    background:linear-gradient(135deg,#0F2B7A,#1D58E2);
+    padding:16px 18px 20px;
+    border-radius:0 0 26px 26px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .marca{display:flex;align-items:center;gap:8px;}
+  .marca .selo{
+    width:26px;height:26px;border-radius:9px;
+    background:rgba(255,255,255,.16);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .marca .selo svg{width:14px;height:14px;color:#fff;}
+  .marca b{color:#fff;font-size:14px;font-weight:900;font-style:italic;letter-spacing:.01em;}
+  .header-gradiente .sair-ic{width:19px;height:19px;color:#fff;opacity:.9;}
+
+  .abas-pill{
+    margin:14px 16px 0;
+    display:flex;
+    background:var(--surface);
+    border:1px solid var(--linha);
+    border-radius:13px;
+    padding:4px;
+  }
+  .abas-pill .aba{
+    flex:1;text-align:center;padding:7px 0;border-radius:9px;
+    font-size:11.5px;font-weight:700;
+  }
+  .abas-pill .aba.ativa{background:var(--azul);color:#fff;}
+  .abas-pill .aba:not(.ativa){color:var(--ink-dim);}
+
+  .inicio-scroll{
+    flex:1;overflow:hidden;
+    padding:16px 16px 10px;
+    display:flex;flex-direction:column;gap:13px;
+    align-items:center;text-align:center;
+  }
+  .chip-confianca{
+    display:flex;align-items:center;gap:6px;
+    background:var(--azul-tint);color:var(--azul);
+    font-size:10.5px;font-weight:700;
+    padding:5px 11px;border-radius:100px;
+  }
+  .chip-confianca svg{width:12px;height:12px;}
+  .headline{
+    margin:0;font-size:18px;font-weight:900;line-height:1.25;
+  }
+  .cta{
+    display:flex;align-items:center;gap:7px;
+    background:var(--amarelo);color:#1E293B;
+    font-size:12.5px;font-weight:800;
+    padding:10px 20px;border-radius:13px;
+  }
+  .cta svg{width:15px;height:15px;}
+
+  .mapa{
+    width:100%;
+    height:150px;
+    border-radius:20px;
+    position:relative;
+    overflow:hidden;
+    background:#EAF0FB;
+    flex-shrink:0;
+  }
+  .mapa svg.malha{position:absolute;inset:0;width:100%;height:100%;}
+  .balao{
+    position:absolute; top:9px; right:9px;
+    display:flex;align-items:center;gap:4px;
+    background:var(--surface);
+    font-size:9.5px;font-weight:700;
+    padding:5px 9px;border-radius:100px;
+    box-shadow:0 4px 10px -3px rgba(0,0,0,.18);
+  }
+  .balao svg{width:10px;height:10px;color:var(--laranja);}
+  .balao.eta{
+    top:auto;bottom:9px;left:9px;right:auto;
+    color:var(--sucesso);
+  }
+  .balao.eta svg{color:var(--sucesso);}
+  .credito-mapa{
+    position:absolute;bottom:6px;right:10px;
+    font-size:7.5px;color:var(--ink-dim);opacity:.7;font-weight:500;
+  }
+
+  .stats{
+    width:100%;
+    display:flex;
+    background:var(--surface);
+    border:1px solid var(--linha);
+    border-radius:16px;
+    padding:12px 4px;
+  }
+  .stats .item{flex:1;display:flex;flex-direction:column;gap:2px;}
+  .stats .item b{font-size:14px;font-weight:900;color:var(--azul);}
+  .stats .item span{font-size:8.5px;color:var(--ink-dim);line-height:1.2;}
+  .stats .div{width:1px;background:var(--linha);margin:2px 0;}
+
+  footer.rodape{
+    margin-top:60px;
+    padding-top:22px;
+    border-top:1px solid var(--linha);
+    color:var(--ink-dim);
+    font-size:12px;
+  }
+
+  @media (max-width:700px){
+    .vitrine{justify-content:center;}
+    .peca{width:100%;max-width:320px;}
+  }
+</style>
+
+<div class="pagina">
+  <header class="topo">
+    <div class="eyebrow">Prévia visual · GoSchool</div>
+    <h1>Perfil, navegação e mapa da tela Início</h1>
+    <p class="sub">
+      Mockup das três mudanças combinadas: selo de verificação + lista de configurações
+      no Meu Perfil, barra de navegação inferior fixa, e um mapa real (estilo
+      OpenStreetMap, gratuito) substituindo a imagem estática da tela Início.
+    </p>
+    <div class="legenda">
+      <span><i class="ponto azul"></i>Elemento novo</span>
+      <span><i class="ponto verde"></i>Selo de verificação</span>
+      <span><i class="ponto laranja"></i>Dado ilustrativo (mock)</span>
+    </div>
+  </header>
+
+  <div class="vitrine">
+
+    <!-- ============ TELA 1: MEU PERFIL ============ -->
+    <div class="peca">
+      <div class="peca__titulo">
+        <div>
+          <h2>Meu Perfil</h2>
+          <p>Identidade + atalhos + lista de configurações</p>
+        </div>
+        <span class="tag-tela">Responsável</span>
+      </div>
+
+      <div class="telefone">
+        <div class="tela">
+          <div class="notch"></div>
+          <div class="barra-status">
+            <span>9:41</span>
+            <svg viewBox="0 0 24 12" fill="none"><rect x="1" y="2" width="16" height="8" rx="2" stroke="currentColor" stroke-width="1.3"/><rect x="2.5" y="3.5" width="11" height="5" rx="1" fill="currentColor"/><rect x="18.5" y="4" width="1.8" height="4" rx="0.5" fill="currentColor"/></svg>
+          </div>
+
+          <div class="conteudo-tela">
+            <div class="appbar">
+              <h3>Meu Perfil</h3>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-6 8-6s6.5 2 8 6"/></svg>
+            </div>
+
+            <div class="scroll">
+              <div class="card identidade">
+                <span class="novo" style="top:-8px;right:-8px;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+                  NOVO
+                </span>
+                <div class="avatar">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-6 8-6s6.5 2 8 6"/></svg>
+                  <div class="lapis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
+                </div>
+                <div class="nome-linha">
+                  <strong>Marcos Silva</strong>
+                  <span class="pill perfil">Responsável</span>
+                </div>
+                <div class="verificado">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 4 5v6c0 5 3.4 9 8 11 4.6-2 8-6 8-11V5l-8-3Zm-1.1 14.2-3.6-3.6 1.4-1.4 2.2 2.2 5.2-5.2 1.4 1.4-6.6 6.6Z"/></svg>
+                  Identidade verificada
+                </div>
+              </div>
+
+              <div class="atalhos">
+                <div class="atalho">
+                  <div class="circ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 20v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                  <span>Filhos</span>
+                </div>
+                <div class="atalho">
+                  <div class="circ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/></svg></div>
+                  <span>Pagamento</span>
+                </div>
+                <div class="atalho">
+                  <div class="circ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/></svg></div>
+                  <span>Segurança</span>
+                </div>
+                <div class="atalho">
+                  <div class="circ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.3c-.9.4-1.4 1-1.4 2"/><circle cx="12" cy="16.3" r=".3" fill="currentColor"/></svg></div>
+                  <span>Ajuda</span>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-linha"><h4>Meus filhos</h4><span class="ver">Ver todos</span></div>
+                <div class="filho">
+                  <div class="av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-6 8-6s6.5 2 8 6"/></svg></div>
+                  <div class="info"><strong>João Silva</strong><span>9 anos · ETEC Albert Einstein</span></div>
+                </div>
+              </div>
+
+              <div class="card lista-config" style="position:relative;">
+                <span class="novo" style="top:-8px;left:12px;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+                  NOVA LISTA
+                </span>
+                <div class="linha-config" style="padding-top:14px;">
+                  <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
+                  <span>Notificações</span>
+                  <svg class="seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                </div>
+                <div class="linha-config">
+                  <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.3c-.9.4-1.4 1-1.4 2"/><circle cx="12" cy="16.3" r=".3" fill="currentColor"/></svg></div>
+                  <span>Ajuda e suporte</span>
+                  <svg class="seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                </div>
+                <div class="linha-config">
+                  <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5"/><circle cx="12" cy="8" r=".3" fill="currentColor"/></svg></div>
+                  <span>Sobre o GoSchool</span>
+                  <svg class="seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                </div>
+                <div class="linha-config sair">
+                  <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></div>
+                  <span>Sair</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="nav-inferior" style="position:relative;">
+              <span class="novo" style="top:-11px;left:50%;transform:translateX(-50%);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+                NOVA BARRA
+              </span>
+              <div class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
+                <span>Início</span>
+              </div>
+              <div class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 20v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>Filhos</span>
+              </div>
+              <div class="nav-item ativo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-6 8-6s6.5 2 8 6"/></svg>
+                <span>Perfil</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ TELA 2: INÍCIO COM MAPA ============ -->
+    <div class="peca">
+      <div class="peca__titulo">
+        <div>
+          <h2>Início</h2>
+          <p>Mapa real substitui a imagem estática</p>
+        </div>
+        <span class="tag-tela">Landpage</span>
+      </div>
+
+      <div class="telefone">
+        <div class="tela">
+          <div class="notch"></div>
+          <div class="barra-status">
+            <span style="color:#fff;">9:41</span>
+            <svg viewBox="0 0 24 12" fill="none"><rect x="1" y="2" width="16" height="8" rx="2" stroke="#fff" stroke-width="1.3"/><rect x="2.5" y="3.5" width="11" height="5" rx="1" fill="#fff"/><rect x="18.5" y="4" width="1.8" height="4" rx="0.5" fill="#fff"/></svg>
+          </div>
+
+          <div class="conteudo-tela">
+            <div class="header-gradiente">
+              <div class="marca">
+                <div class="selo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M22 10 12 4 2 10l10 6 10-6Z"/><path d="M6 12v5c2 1.5 10 1.5 12 0v-5"/></svg></div>
+                <b>GO SCHOOL</b>
+              </div>
+              <svg class="sair-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+            </div>
+
+            <div class="abas-pill">
+              <div class="aba ativa">Início</div>
+              <div class="aba">Serviços</div>
+            </div>
+
+            <div class="inicio-scroll">
+              <span class="chip-confianca">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 4 5v6c0 5 3.4 9 8 11 4.6-2 8-6 8-11V5l-8-3Z"/></svg>
+                Motoristas 100% Verificados
+              </span>
+              <h3 class="headline">A segurança do seu filho<br>na palma da sua mão</h3>
+              <div class="cta">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="2" y="7" width="20" height="11" rx="3"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/><path d="M2 12h20"/></svg>
+                Encontrar uma Van
+              </div>
+
+              <div class="mapa" style="position:relative;">
+                <span class="novo" style="top:-9px;left:50%;transform:translateX(-50%);z-index:6;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+                  MAPA REAL (OSM)
+                </span>
+                <svg class="malha" viewBox="0 0 320 150" preserveAspectRatio="none">
+                  <rect width="320" height="150" fill="#EAF0FB"/>
+                  <path d="M0 40 L320 55" stroke="#D5E0F5" stroke-width="10"/>
+                  <path d="M0 100 L320 88" stroke="#D5E0F5" stroke-width="14"/>
+                  <path d="M60 0 L75 150" stroke="#D5E0F5" stroke-width="9"/>
+                  <path d="M230 0 L215 150" stroke="#D5E0F5" stroke-width="9"/>
+                  <rect x="90" y="15" width="46" height="30" rx="4" fill="#DCE6FA"/>
+                  <rect x="150" y="105" width="55" height="34" rx="4" fill="#DCE6FA"/>
+                  <rect x="240" y="20" width="40" height="28" rx="4" fill="#DCE6FA"/>
+                  <path d="M40 118 C 90 60, 190 100, 268 42" fill="none" stroke="#1D58E2" stroke-width="3" stroke-dasharray="1 8" stroke-linecap="round"/>
+                  <circle cx="40" cy="118" r="6" fill="#1D58E2"/>
+                  <circle cx="40" cy="118" r="6" fill="#1D58E2" opacity=".25"><animate attributeName="r" values="6;13;6" dur="2.4s" repeatCount="indefinite"/><animate attributeName="opacity" values=".3;0;.3" dur="2.4s" repeatCount="indefinite"/></circle>
+                  <g transform="translate(268,42)">
+                    <path d="M-11 4h22v-8a4 4 0 0 0-4-4h-14a4 4 0 0 0-4 4Z" fill="#FF5C00"/>
+                    <circle cx="-5" cy="6" r="3" fill="#1E293B"/><circle cx="5" cy="6" r="3" fill="#1E293B"/>
+                  </g>
+                  <g transform="translate(155,88)">
+                    <path d="M0 0 C0 12 -9 16 -9 24 C-9 30 0 36 0 36 C0 36 9 30 9 24 C9 16 0 12 0 0Z" fill="#1D58E2"/>
+                    <circle cx="0" cy="14" r="4.5" fill="#fff"/>
+                  </g>
+                </svg>
+                <span class="balao"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="9" r="2.4"/><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Z"/></svg>GPS Ativo</span>
+                <span class="balao eta"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>Chegada em 8 min</span>
+                <span class="credito-mapa">© OpenStreetMap</span>
+              </div>
+
+              <div class="stats">
+                <div class="item"><b>50+</b><span>Motoristas<br>verificados</span></div>
+                <div class="div"></div>
+                <div class="item"><b>500+</b><span>Famílias<br>atendidas</span></div>
+                <div class="div"></div>
+                <div class="item"><b>4.9 ★</b><span>Avaliação<br>média</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="rodape">
+    Preview estático — o mapa real usa <strong>flutter_map</strong> + tiles do OpenStreetMap (gratuito, sem chave de API) no app; aqui está representado como ilustração.
+  </footer>
+</div>

@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/filho.dart';
 import '../../models/usuario.dart';
+import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
 import '../../services/sessao_provider.dart';
-import '../../widgets/navbar_responsavel.dart';
 import '../../widgets/card_filho.dart';
 import '../../widgets/card_cartao.dart';
 import '../../widgets/modal_info_filho.dart';
+import '../../widgets/nav_inferior_responsavel.dart';
 
 class TelaMeuPerfil extends StatelessWidget {
   const TelaMeuPerfil({super.key});
@@ -48,21 +49,19 @@ class TelaMeuPerfil extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Guarda de sessão real (temporariamente desativada — login/cadastro
-    // estão em modo de teste e não autenticam de verdade no Firebase):
-    // final logado = context.watch<SessaoProvider>().logado;
-    // if (!logado) {
-    //   return Scaffold(
-    //     backgroundColor: const Color(0xFFF8FAFC),
-    //     body: Center(
-    //       child: TextButton(
-    //         onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false),
-    //         child: const Text('Sessão expirada. Toque para fazer login novamente.'),
-    //       ),
-    //     ),
-    //   );
-    // }
-    final uid = context.watch<SessaoProvider>().uidEfetivo;
+    final logado = context.watch<SessaoProvider>().logado;
+    if (!logado) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        body: Center(
+          child: TextButton(
+            onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false),
+            child: const Text('Sessão expirada. Toque para fazer login novamente.'),
+          ),
+        ),
+      );
+    }
+    final uid = context.watch<SessaoProvider>().uid!;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -72,12 +71,15 @@ class TelaMeuPerfil extends StatelessWidget {
         foregroundColor: Colors.black,
         elevation: 0,
       ),
-      drawer: const NavbarResponsavel(itemSelecionado: 'Meu Perfil'),
+      bottomNavigationBar: const NavInferiorResponsavel(abaSelecionada: 'Perfil'),
       body: StreamBuilder<Usuario?>(
         stream: FirestoreService.instance.usuarioStream(uid),
         builder: (context, snapshotUsuario) {
           if (snapshotUsuario.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshotUsuario.hasError) {
+            return const Center(child: Text('Erro ao carregar dados do perfil.'));
           }
           final usuario = snapshotUsuario.data;
 
@@ -112,13 +114,16 @@ class TelaMeuPerfil extends StatelessWidget {
                           Positioned(
                             bottom: 0,
                             right: 0,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
+                            child: GestureDetector(
+                              onTap: () => _editarNome(context, uid, usuario?.nome ?? ''),
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.edit_outlined, size: 16, color: Colors.grey),
                               ),
-                              child: const Icon(Icons.edit_outlined, size: 16, color: Colors.grey),
                             ),
                           ),
                         ],
@@ -284,12 +289,73 @@ class TelaMeuPerfil extends StatelessWidget {
                     ],
                   ),
                 ),
+                const SizedBox(height: 20),
+
+                // Lista de configurações — itens de baixa prioridade sem
+                // destaque de card, só divisórias, estilo iOS/Android Settings.
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: Column(
+                    children: [
+                      _linhaConfig(context, icone: Icons.notifications_outlined, texto: 'Notificações'),
+                      _linhaConfig(context, icone: Icons.help_outline, texto: 'Ajuda e suporte'),
+                      _linhaConfig(context, icone: Icons.info_outline, texto: 'Sobre o GoSchool'),
+                      _linhaConfig(context, icone: Icons.settings_outlined, texto: 'Configurações'),
+                      _linhaConfig(
+                        context,
+                        icone: Icons.logout,
+                        texto: 'Sair',
+                        cor: Colors.red,
+                        ultimo: true,
+                        onTap: () => _sair(context),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           );
         },
       ),
     );
+  }
+
+  Future<void> _editarNome(BuildContext context, String uid, String nomeAtual) async {
+    final controller = TextEditingController(text: nomeAtual);
+    final novoNome = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Editar nome'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'Nome completo'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, controller.text.trim()),
+            child: const Text('Salvar'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+
+    if (novoNome != null && novoNome.isNotEmpty) {
+      await FirestoreService.instance.atualizarUsuario(uid, {'nome': novoNome});
+    }
+  }
+
+  Future<void> _sair(BuildContext context) async {
+    await AuthService.instance.sair();
+    if (context.mounted) {
+      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+    }
   }
 
   Widget _buildItemInfo(IconData icone, String texto) {
@@ -299,6 +365,39 @@ class TelaMeuPerfil extends StatelessWidget {
         const SizedBox(width: 10),
         Text(texto, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
       ],
+    );
+  }
+
+  Widget _linhaConfig(
+    BuildContext context, {
+    required IconData icone,
+    required String texto,
+    Color? cor,
+    bool ultimo = false,
+    VoidCallback? onTap,
+  }) {
+    final Color corEfetiva = cor ?? Colors.grey[800]!;
+    return InkWell(
+      onTap: onTap ?? () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Em breve!'))),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+        decoration: BoxDecoration(
+          border: ultimo ? null : Border(bottom: BorderSide(color: Colors.grey.shade100)),
+        ),
+        child: Row(
+          children: [
+            Icon(icone, size: 20, color: cor ?? Colors.grey[600]),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                texto,
+                style: TextStyle(fontSize: 14, fontWeight: cor != null ? FontWeight.bold : FontWeight.w500, color: corEfetiva),
+              ),
+            ),
+            if (cor == null) Icon(Icons.chevron_right, size: 18, color: Colors.grey[400]),
+          ],
+        ),
+      ),
     );
   }
 }

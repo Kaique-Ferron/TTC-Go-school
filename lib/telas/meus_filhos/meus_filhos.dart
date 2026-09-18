@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/filho.dart';
 import '../../services/firestore_service.dart';
 import '../../services/sessao_provider.dart';
-import '../../widgets/navbar_responsavel.dart';
+import '../../widgets/nav_inferior_responsavel.dart';
 import '../../widgets/card_filho.dart';
 import '../../widgets/modal_info_filho.dart';
 import '../../widgets/campos.dart';
@@ -131,10 +131,7 @@ class _TelaMeusFilhosState extends State<TelaMeusFilhos> {
 
   @override
   Widget build(BuildContext context) {
-    // Guarda de sessão real (temporariamente desativada — login/cadastro
-    // estão em modo de teste e não autenticam de verdade no Firebase):
-    // final logado = context.watch<SessaoProvider>().logado;
-    final uid = context.watch<SessaoProvider>().uidEfetivo;
+    final logado = context.watch<SessaoProvider>().logado;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -144,11 +141,20 @@ class _TelaMeusFilhosState extends State<TelaMeusFilhos> {
         foregroundColor: Colors.black,
         elevation: 0,
       ),
-      drawer: const NavbarResponsavel(itemSelecionado: 'Meus filhos'),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: _exibindoFormulario ? _buildFormularioFilho(uid) : _buildListaFilhos(uid),
-      ),
+      bottomNavigationBar: const NavInferiorResponsavel(abaSelecionada: 'Meus Filhos'),
+      body: !logado
+          ? Center(
+              child: TextButton(
+                onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false),
+                child: const Text('Sessão expirada. Toque para fazer login novamente.'),
+              ),
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20.0),
+              child: _exibindoFormulario
+                  ? _buildFormularioFilho(context.read<SessaoProvider>().uid!)
+                  : _buildListaFilhos(context.read<SessaoProvider>().uid!),
+            ),
     );
   }
 

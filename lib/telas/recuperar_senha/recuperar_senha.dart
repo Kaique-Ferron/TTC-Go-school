@@ -54,9 +54,9 @@ class _TelaRecuperarSenhaState extends State<TelaRecuperarSenha> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20.0),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
+        child: Center(
           child: Container(
             constraints: const BoxConstraints(maxWidth: 420),
             padding: const EdgeInsets.all(24.0),
