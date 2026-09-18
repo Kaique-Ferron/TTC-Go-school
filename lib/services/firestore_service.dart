@@ -15,7 +15,16 @@ class FirestoreService {
       _usuarios.doc(uid).collection('filhos');
 
   Future<void> salvarUsuario(String uid, Usuario usuario) {
-    return _usuarios.doc(uid).set(usuario.toMap());
+    return _usuarios.doc(uid).set({
+      ...usuario.toMap(),
+      'uid': uid,
+      'criadoEm': FieldValue.serverTimestamp(),
+    });
+  }
+
+  /// Atualiza campos específicos do usuário sem sobrescrever o documento inteiro.
+  Future<void> atualizarUsuario(String uid, Map<String, dynamic> dados) {
+    return _usuarios.doc(uid).update(dados);
   }
 
   Stream<Usuario?> usuarioStream(String uid) {

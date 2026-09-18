@@ -3,7 +3,7 @@ class Usuario {
   final String email;
   final String telefone;
   final String cpf;
-  final String perfil; // 'Responsável' ou 'Motorista'
+  final String perfil; // 'Responsável' ou 'Motorista' (exibição)
   final String cep;
   final String rua;
   final String numero;
@@ -27,13 +27,20 @@ class Usuario {
     this.placa = '',
   });
 
+  /// Valor normalizado do perfil para gravar no Firestore
+  /// (campo 'tipoPerfil'): 'responsavel' ou 'motorista'.
+  String get tipoPerfil => perfil == 'Responsável' ? 'responsavel' : 'motorista';
+
+  static String _exibirPerfil(String tipoPerfil) =>
+      tipoPerfil == 'motorista' ? 'Motorista' : 'Responsável';
+
   Map<String, dynamic> toMap() {
     return {
       'nome': nome,
       'email': email,
       'telefone': telefone,
       'cpf': cpf,
-      'perfil': perfil,
+      'tipoPerfil': tipoPerfil,
       'cep': cep,
       'rua': rua,
       'numero': numero,
@@ -50,7 +57,7 @@ class Usuario {
       email: map['email'] ?? '',
       telefone: map['telefone'] ?? '',
       cpf: map['cpf'] ?? '',
-      perfil: map['perfil'] ?? 'Responsável',
+      perfil: _exibirPerfil(map['tipoPerfil'] ?? 'responsavel'),
       cep: map['cep'] ?? '',
       rua: map['rua'] ?? '',
       numero: map['numero'] ?? '',

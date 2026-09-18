@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import '../../repositories/motorista_repository.dart';
+import '../../widgets/motorista_card.dart';
 
 // ============================================================================
 // CONTEÚDO DA ABA 0: INÍCIO (Com o botão que muda o front inteiro)
@@ -55,47 +59,8 @@ class AbaInicio extends StatelessWidget {
           ),
           const SizedBox(height: 32),
 
-          // Cartão com o mapa ilustrativo
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                height: 200,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(28),
-                  color: const Color(0xFFFFF7D6),
-                  image: const DecorationImage(
-                    image: AssetImage('lib/widgets/imagens/fake-map.jpg'),
-                    fit: BoxFit.cover,
-                  ),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 16, offset: const Offset(0, 8)),
-                  ],
-                ),
-              ),
-              Positioned(
-                top: 14,
-                right: 14,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.all(Radius.circular(20)),
-                    boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.location_on, color: Color(0xFFFF5722), size: 16),
-                      SizedBox(width: 4),
-                      Text('GPS Ativo', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+          // Cartão com o mapa real (OpenStreetMap, sem chave de API)
+          const _MapaTrajeto(),
 
           const SizedBox(height: 28),
 
@@ -143,6 +108,108 @@ class AbaInicio extends StatelessWidget {
 }
 
 // ============================================================================
+// MAPA REAL (OpenStreetMap via flutter_map — gratuito, sem chave de API)
+// Mostra o trajeto ilustrativo entre a casa do responsável e a escola.
+// ============================================================================
+class _MapaTrajeto extends StatelessWidget {
+  const _MapaTrajeto();
+
+  static const LatLng _casa = LatLng(-23.5610, -46.6560);
+  static const LatLng _escola = LatLng(-23.5505, -46.6333);
+  static const LatLng _van = LatLng(-23.5570, -46.6440);
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(28),
+      child: SizedBox(
+        height: 200,
+        width: double.infinity,
+        child: Stack(
+          children: [
+            FlutterMap(
+              options: const MapOptions(
+                initialCenter: _van,
+                initialZoom: 13.5,
+                interactionOptions: InteractionOptions(flags: InteractiveFlag.none),
+              ),
+              children: [
+                TileLayer(
+                  // Tiles da CARTO (base em dados do OpenStreetMap) — gratuito, sem
+                  // chave de API, e com CORS liberado (o servidor cru do OSM não
+                  // libera CORS de forma confiável para apps rodando no navegador).
+                  urlTemplate: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+                  subdomains: const ['a', 'b', 'c', 'd'],
+                  userAgentPackageName: 'com.example.flutter_application_1',
+                ),
+                PolylineLayer(
+                  polylines: [
+                    Polyline(points: const [_casa, _van, _escola], strokeWidth: 3, color: const Color(0xFF1D58E2)),
+                  ],
+                ),
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: _casa,
+                      width: 30,
+                      height: 30,
+                      child: const Icon(Icons.home_rounded, color: Color(0xFF1D58E2), size: 26),
+                    ),
+                    Marker(
+                      point: _escola,
+                      width: 30,
+                      height: 30,
+                      child: const Icon(Icons.school_rounded, color: Color(0xFF1D58E2), size: 26),
+                    ),
+                    Marker(
+                      point: _van,
+                      width: 34,
+                      height: 34,
+                      child: const Icon(Icons.directions_bus_rounded, color: Color(0xFFFF5C00), size: 30),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            Positioned(
+              top: 14,
+              right: 14,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.all(Radius.circular(20)),
+                  boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.location_on, color: Color(0xFFFF5722), size: 16),
+                    SizedBox(width: 4),
+                    Text('GPS Ativo', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 10,
+              left: 10,
+              child: Container(
+                padding: const EdgeInsets.only(right: 4),
+                child: const Text(
+                  '© OpenStreetMap · © CARTO',
+                  style: TextStyle(fontSize: 9, color: Color(0xFF64748B), fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================================
 // CONTEÚDO DA ABA 1: SERVIÇOS (ListView Completa dos Motoristas)
 // ============================================================================
 class AbaMotoristas extends StatelessWidget {
@@ -150,13 +217,7 @@ class AbaMotoristas extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> motoristas = [
-      {'nome': 'Carlos Silva', 'corridas': '1.240', 'tempo': '3 anos', 'crm': '48392-SP'},
-      {'nome': 'Mariana Souza', 'corridas': '811', 'tempo': '1 ano', 'crm': '19455-SP'},
-      {'nome': 'Roberto Alves', 'corridas': '3.450', 'tempo': '2.5 anos', 'crm': '98561-SP'},
-      {'nome': 'Leticia Lopes', 'corridas': '1.234', 'tempo': '12 anos', 'crm': '95321-SP'},
-      {'nome': 'Felipe Alcantra', 'corridas': '2.240', 'tempo': '1 anos', 'crm': '95421-SP'},
-    ];
+    final motoristas = MotoristaRepository.obterMotoristas();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -175,73 +236,11 @@ class AbaMotoristas extends StatelessWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: motoristas.length,
-            itemBuilder: (context, index) {
-              final mot = motoristas[index];
-              return Container(
-                margin: const EdgeInsets.only(bottom: 14),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: Colors.grey.shade100),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12, offset: const Offset(0, 4)),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 28,
-                      backgroundColor: const Color(0xFFE8EEFC),
-                      child: const Icon(Icons.person, size: 30, color: Color(0xFF1D58E2)),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(mot['nome'], style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                          const SizedBox(height: 6),
-                          Wrap(
-                            spacing: 12,
-                            runSpacing: 4,
-                            children: [
-                              _buildDetalhe(Icons.check_circle, Colors.green, '${mot['corridas']} corridas'),
-                              _buildDetalhe(Icons.access_time_filled, const Color(0xFFFFC107), mot['tempo']),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          _buildDetalhe(Icons.badge, const Color(0xFF1D58E2), 'Registro ${mot['crm']}', destaque: true),
-                        ],
-                      ),
-                    ),
-                    const Icon(Icons.chevron_right, color: Colors.grey),
-                  ],
-                ),
-              );
-            },
+            itemBuilder: (context, index) => MotoristaCard(motorista: motoristas[index]),
           ),
           const SizedBox(height: 20),
         ],
       ),
-    );
-  }
-
-  Widget _buildDetalhe(IconData icone, Color cor, String texto, {bool destaque = false}) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icone, size: 13, color: cor),
-        const SizedBox(width: 4),
-        Text(
-          texto,
-          style: TextStyle(
-            fontSize: 11.5,
-            color: destaque ? cor : Colors.grey[600],
-            fontWeight: destaque ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-      ],
     );
   }
 }

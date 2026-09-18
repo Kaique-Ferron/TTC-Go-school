@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'widgets/header-landpage.dart';
 import 'logica-landpage.dart';
+import '../../widgets/nav_inferior_responsavel.dart';
 
 class LandpageTela extends StatefulWidget {
   const LandpageTela({super.key});
@@ -19,6 +20,7 @@ class _LandpageTelaState extends State<LandpageTela> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F5F7),
+      bottomNavigationBar: const NavInferiorResponsavel(abaSelecionada: 'Início'),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 450),

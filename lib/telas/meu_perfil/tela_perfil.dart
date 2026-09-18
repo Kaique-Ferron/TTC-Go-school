@@ -1,7 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/filho.dart';
-import '../../models/usuario.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
 import '../../services/sessao_provider.dart';
@@ -9,9 +10,12 @@ import '../../widgets/card_filho.dart';
 import '../../widgets/card_cartao.dart';
 import '../../widgets/modal_info_filho.dart';
 import '../../widgets/nav_inferior_responsavel.dart';
+import 'editar_perfil_tela.dart';
 
-class TelaMeuPerfil extends StatelessWidget {
-  const TelaMeuPerfil({super.key});
+/// Tela de Perfil do Responsável — atualiza em tempo real via StreamBuilder
+/// ouvindo diretamente o documento do usuário no Firestore.
+class TelaPerfil extends StatelessWidget {
+  const TelaPerfil({super.key});
 
   static const Color azulPrincipal = Color(0xFF1D58E2);
 
@@ -36,15 +40,19 @@ class TelaMeuPerfil extends StatelessWidget {
           await FirestoreService.instance.excluirFilho(uid, filho.id!);
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Perfil do filho removido!'),
-                backgroundColor: Colors.red,
-              ),
+              const SnackBar(content: Text('Perfil do filho removido!'), backgroundColor: Colors.red),
             );
           }
         },
       ),
     );
+  }
+
+  Future<void> _sair(BuildContext context) async {
+    await AuthService.instance.sair();
+    if (context.mounted) {
+      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+    }
   }
 
   @override
@@ -61,7 +69,7 @@ class TelaMeuPerfil extends StatelessWidget {
         ),
       );
     }
-    final uid = context.watch<SessaoProvider>().uid!;
+    final uid = FirebaseAuth.instance.currentUser!.uid;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -72,16 +80,21 @@ class TelaMeuPerfil extends StatelessWidget {
         elevation: 0,
       ),
       bottomNavigationBar: const NavInferiorResponsavel(abaSelecionada: 'Perfil'),
-      body: StreamBuilder<Usuario?>(
-        stream: FirestoreService.instance.usuarioStream(uid),
-        builder: (context, snapshotUsuario) {
-          if (snapshotUsuario.connectionState == ConnectionState.waiting) {
+      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        stream: FirebaseFirestore.instance.collection('usuarios').doc(uid).snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (snapshotUsuario.hasError) {
+          if (snapshot.hasError) {
             return const Center(child: Text('Erro ao carregar dados do perfil.'));
           }
-          final usuario = snapshotUsuario.data;
+
+          final dados = snapshot.data?.data();
+          final nome = (dados?['nome'] as String?)?.trim();
+          final telefone = (dados?['telefone'] as String?)?.trim();
+          final endereco = (dados?['endereco'] as String?)?.trim();
+          final email = (dados?['email'] as String?) ?? FirebaseAuth.instance.currentUser?.email;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20.0),
@@ -115,14 +128,14 @@ class TelaMeuPerfil extends StatelessWidget {
                             bottom: 0,
                             right: 0,
                             child: GestureDetector(
-                              onTap: () => _editarNome(context, uid, usuario?.nome ?? ''),
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => EditarPerfilTela(dadosAtuais: dados)),
+                              ),
                               child: Container(
                                 padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.edit_outlined, size: 16, color: Colors.grey),
+                                decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                                child: const Icon(Icons.edit, size: 16, color: Colors.grey),
                               ),
                             ),
                           ),
@@ -133,35 +146,26 @@ class TelaMeuPerfil extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            usuario != null && usuario.nome.isNotEmpty ? usuario.nome : 'Sem nome cadastrado',
+                            nome != null && nome.isNotEmpty ? nome : 'Sem nome cadastrado',
                             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE8F0FE),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              usuario?.perfil ?? 'Responsável',
-                              style: const TextStyle(color: azulPrincipal, fontSize: 11, fontWeight: FontWeight.bold),
+                            decoration: BoxDecoration(color: const Color(0xFFE8F0FE), borderRadius: BorderRadius.circular(12)),
+                            child: const Text(
+                              'Responsável',
+                              style: TextStyle(color: azulPrincipal, fontSize: 11, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 16),
-                      _buildItemInfo(Icons.email_outlined, usuario?.email ?? context.watch<SessaoProvider>().email ?? '—'),
+                      _buildItemInfo(Icons.email_outlined, email ?? '—'),
                       const SizedBox(height: 8),
-                      _buildItemInfo(
-                        Icons.phone_outlined,
-                        usuario != null && usuario.telefone.isNotEmpty ? usuario.telefone : 'Não informado',
-                      ),
+                      _buildItemInfo(Icons.phone_outlined, telefone != null && telefone.isNotEmpty ? telefone : 'Não informado'),
                       const SizedBox(height: 8),
-                      _buildItemInfo(
-                        Icons.location_on_outlined,
-                        usuario != null && usuario.bairro.isNotEmpty ? usuario.bairro : 'Endereço não informado',
-                      ),
+                      _buildItemInfo(Icons.location_on_outlined, endereco != null && endereco.isNotEmpty ? endereco : 'Endereço não informado'),
                     ],
                   ),
                 ),
@@ -182,9 +186,7 @@ class TelaMeuPerfil extends StatelessWidget {
                         children: [
                           const Text('Meus filhos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                           TextButton(
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/meus-filhos');
-                            },
+                            onPressed: () => Navigator.pushNamed(context, '/meus-filhos'),
                             child: const Text('Ver todos', style: TextStyle(color: azulPrincipal)),
                           ),
                         ],
@@ -204,10 +206,7 @@ class TelaMeuPerfil extends StatelessWidget {
                           if (filhos.isEmpty) {
                             return Padding(
                               padding: const EdgeInsets.symmetric(vertical: 12),
-                              child: Text(
-                                'Nenhum filho cadastrado ainda.',
-                                style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                              ),
+                              child: Text('Nenhum filho cadastrado ainda.', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
                             );
                           }
                           return Column(
@@ -236,9 +235,7 @@ class TelaMeuPerfil extends StatelessWidget {
                           side: const BorderSide(color: azulPrincipal),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/meus-filhos');
-                        },
+                        onPressed: () => Navigator.pushNamed(context, '/meus-filhos'),
                         icon: const Icon(Icons.add, color: azulPrincipal),
                         label: const Text('Adicionar filho', style: TextStyle(color: azulPrincipal, fontWeight: FontWeight.bold)),
                       ),
@@ -262,19 +259,12 @@ class TelaMeuPerfil extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text('Método de pagamento', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                          TextButton(
-                            onPressed: () {},
-                            child: const Text('Editar', style: TextStyle(color: azulPrincipal)),
-                          ),
+                          TextButton(onPressed: () {}, child: const Text('Editar', style: TextStyle(color: azulPrincipal))),
                         ],
                       ),
                       Text('Gerencie seu método de pagamento.', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
                       const SizedBox(height: 16),
-                      const CardCartao(
-                        ultimosDigitos: '1234',
-                        validade: '08/28',
-                        titular: 'Marcos Silva',
-                      ),
+                      const CardCartao(ultimosDigitos: '1234', validade: '08/28', titular: 'Marcos Silva'),
                       const SizedBox(height: 12),
                       OutlinedButton.icon(
                         style: OutlinedButton.styleFrom(
@@ -324,40 +314,6 @@ class TelaMeuPerfil extends StatelessWidget {
     );
   }
 
-  Future<void> _editarNome(BuildContext context, String uid, String nomeAtual) async {
-    final controller = TextEditingController(text: nomeAtual);
-    final novoNome = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Editar nome'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(hintText: 'Nome completo'),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancelar')),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, controller.text.trim()),
-            child: const Text('Salvar'),
-          ),
-        ],
-      ),
-    );
-    controller.dispose();
-
-    if (novoNome != null && novoNome.isNotEmpty) {
-      await FirestoreService.instance.atualizarUsuario(uid, {'nome': novoNome});
-    }
-  }
-
-  Future<void> _sair(BuildContext context) async {
-    await AuthService.instance.sair();
-    if (context.mounted) {
-      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-    }
-  }
-
   Widget _buildItemInfo(IconData icone, String texto) {
     return Row(
       children: [
@@ -381,9 +337,7 @@ class TelaMeuPerfil extends StatelessWidget {
       onTap: onTap ?? () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Em breve!'))),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-        decoration: BoxDecoration(
-          border: ultimo ? null : Border(bottom: BorderSide(color: Colors.grey.shade100)),
-        ),
+        decoration: BoxDecoration(border: ultimo ? null : Border(bottom: BorderSide(color: Colors.grey.shade100))),
         child: Row(
           children: [
             Icon(icone, size: 20, color: cor ?? Colors.grey[600]),

@@ -1,0 +1,1 @@
+Coloque aqui o arquivo logo.png (logo do GoSchool). Enquanto o arquivo não existir, o app usa automaticamente um logo em texto como fallback — nada quebra.
