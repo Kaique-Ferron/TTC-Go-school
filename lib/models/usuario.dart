@@ -11,6 +11,7 @@ class Usuario {
   final String cnh;
   final String licenca;
   final String placa;
+  final String veiculo; // 1. Declaração do campo
 
   const Usuario({
     required this.nome,
@@ -25,6 +26,7 @@ class Usuario {
     this.cnh = '',
     this.licenca = '',
     this.placa = '',
+    this.veiculo = '', // 2. Parâmetro no construtor
   });
 
   /// Valor normalizado do perfil para gravar no Firestore
@@ -48,6 +50,7 @@ class Usuario {
       'cnh': cnh,
       'licenca': licenca,
       'placa': placa,
+      'veiculo': veiculo, // 3. Adicionado ao toMap
     };
   }
 
@@ -65,6 +68,7 @@ class Usuario {
       cnh: map['cnh'] ?? '',
       licenca: map['licenca'] ?? '',
       placa: map['placa'] ?? '',
+      veiculo: map['veiculo'] ?? '', // 4. Adicionado ao fromMap
     );
   }
 }
