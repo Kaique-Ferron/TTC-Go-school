@@ -13,6 +13,7 @@ import '../../widgets/nav_inferior_responsavel.dart';
 import '../../widgets/pulsante.dart';
 import '../../theme/cores.dart';
 import 'editar_perfil_tela.dart';
+import 'mapa_casa_tela.dart';
 
 /// Tela de Perfil do Responsável — atualiza em tempo real via StreamBuilder
 /// ouvindo diretamente o documento do usuário no Firestore.
@@ -97,6 +98,8 @@ class TelaPerfil extends StatelessWidget {
           final telefone = (dados?['telefone'] as String?)?.trim();
           final endereco = (dados?['endereco'] as String?)?.trim();
           final email = (dados?['email'] as String?) ?? FirebaseAuth.instance.currentUser?.email;
+          final casaLat = (dados?['casa_lat'] as num?)?.toDouble();
+          final casaLng = (dados?['casa_lng'] as num?)?.toDouble();
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20.0),
@@ -186,6 +189,26 @@ class TelaPerfil extends StatelessWidget {
                         Icons.location_on_outlined,
                         endereco != null && endereco.isNotEmpty ? endereco : 'Endereço não informado',
                         AppCores.laranjaMotorista,
+                      ),
+                      const SizedBox(height: 10),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => MapaCasaTela(latitudeAtual: casaLat, longitudeAtual: casaLng)),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _buildItemInfo(
+                                Icons.home_work_outlined,
+                                casaLat != null ? 'Localização da casa marcada no mapa' : 'Marcar localização da casa no mapa',
+                                AppCores.ciano,
+                              ),
+                            ),
+                            Icon(Icons.chevron_right, size: 18, color: Colors.grey[400]),
+                          ],
+                        ),
                       ),
                     ],
                   ),

@@ -1,8 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../repositories/motorista_repository.dart';
 import '../../widgets/motorista_card.dart';
+import '../meu_perfil/mapa_casa_tela.dart';
 
 // ============================================================================
 // CONTEÚDO DA ABA 0: INÍCIO (Com o botão que muda o front inteiro)
@@ -57,7 +60,12 @@ class AbaInicio extends StatelessWidget {
             icon: const Icon(Icons.directions_bus_rounded, size: 20),
             label: const Text('Encontrar uma Van', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
+
+          // Card com a localização da casa cadastrada (ou convite pra definir)
+          const _CardLocalizacaoCasa(),
+
+          const SizedBox(height: 24),
 
           // Cartão com o mapa real (OpenStreetMap, sem chave de API)
           const _MapaTrajeto(),
@@ -103,6 +111,79 @@ class AbaInicio extends StatelessWidget {
           style: TextStyle(fontSize: 10.5, color: Colors.grey[600], height: 1.3),
         ),
       ],
+    );
+  }
+}
+
+// ============================================================================
+// CARD DE LOCALIZAÇÃO DA CASA — atualiza em tempo real via StreamBuilder.
+// ============================================================================
+class _CardLocalizacaoCasa extends StatelessWidget {
+  const _CardLocalizacaoCasa();
+
+  @override
+  Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return const SizedBox.shrink();
+
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance.collection('usuarios').doc(uid).snapshots(),
+      builder: (context, snapshot) {
+        final dados = snapshot.data?.data();
+        final enderecoCasa = (dados?['casa_endereco'] as String?)?.trim();
+        final casaLat = (dados?['casa_lat'] as num?)?.toDouble();
+        final casaLng = (dados?['casa_lng'] as num?)?.toDouble();
+        final temCasa = enderecoCasa != null && enderecoCasa.isNotEmpty;
+
+        return InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => MapaCasaTela(latitudeAtual: casaLat, longitudeAtual: casaLng)),
+          ),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: Colors.grey.shade100),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4)),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: const BoxDecoration(color: Color(0xFFE8EEFC), shape: BoxShape.circle),
+                  child: const Icon(Icons.home, color: Color(0xFF1D58E2)),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        temCasa ? 'Casa' : 'Localização da casa',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E293B)),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        temCasa ? 'Casa: $enderecoCasa' : 'Definir localização da casa',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right, color: Colors.grey[400]),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
