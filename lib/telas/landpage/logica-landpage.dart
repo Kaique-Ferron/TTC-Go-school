@@ -135,11 +135,11 @@ class _MapaTrajeto extends StatelessWidget {
               ),
               children: [
                 TileLayer(
-                  // Tiles da CARTO (base em dados do OpenStreetMap) — gratuito, sem
-                  // chave de API, e com CORS liberado (o servidor cru do OSM não
-                  // libera CORS de forma confiável para apps rodando no navegador).
-                  urlTemplate: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-                  subdomains: const ['a', 'b', 'c', 'd'],
+                  // Tiles do Wikimedia Maps — dados do OpenStreetMap, servidos pela
+                  // infraestrutura da Wikimedia (mesmo servidor usado nos mapas da
+                  // Wikipédia). Gratuito, sem chave de API, e com CORS liberado de
+                  // verdade para apps rodando no navegador.
+                  urlTemplate: 'https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png',
                   userAgentPackageName: 'com.example.flutter_application_1',
                 ),
                 PolylineLayer(
@@ -197,7 +197,7 @@ class _MapaTrajeto extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.only(right: 4),
                 child: const Text(
-                  '© OpenStreetMap · © CARTO',
+                  '© OpenStreetMap contributors',
                   style: TextStyle(fontSize: 9, color: Color(0xFF64748B), fontWeight: FontWeight.w600),
                 ),
               ),
