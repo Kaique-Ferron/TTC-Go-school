@@ -195,97 +195,128 @@ class _CardLocalizacaoCasa extends StatelessWidget {
 class _MapaTrajeto extends StatelessWidget {
   const _MapaTrajeto();
 
-  static const LatLng _casa = LatLng(-23.5610, -46.6560);
+  static const LatLng _casaPadrao = LatLng(-23.5610, -46.6560);
   static const LatLng _escola = LatLng(-23.5505, -46.6333);
   static const LatLng _van = LatLng(-23.5570, -46.6440);
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(28),
-      child: SizedBox(
-        height: 200,
-        width: double.infinity,
-        child: Stack(
-          children: [
-            FlutterMap(
-              options: const MapOptions(
-                initialCenter: _van,
-                initialZoom: 13.5,
-                interactionOptions: InteractionOptions(flags: InteractiveFlag.none),
-              ),
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: uid == null
+          ? null
+          : FirebaseFirestore.instance.collection('usuarios').doc(uid).snapshots(),
+      builder: (context, snapshot) {
+        final dados = snapshot.data?.data();
+        final casaLat = (dados?['casa_lat'] as num?)?.toDouble();
+        final casaLng = (dados?['casa_lng'] as num?)?.toDouble();
+        // Usa a localização real da casa quando o responsável já a definiu;
+        // senão, mantém a posição ilustrativa como exemplo.
+        final casa = (casaLat != null && casaLng != null) ? LatLng(casaLat, casaLng) : _casaPadrao;
+
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: SizedBox(
+            height: 200,
+            width: double.infinity,
+            child: Stack(
               children: [
-                TileLayer(
-                  // Tiles do Wikimedia Maps — dados do OpenStreetMap, servidos pela
-                  // infraestrutura da Wikimedia (mesmo servidor usado nos mapas da
-                  // Wikipédia). Gratuito, sem chave de API, e com CORS liberado de
-                  // verdade para apps rodando no navegador.
-                  urlTemplate: 'https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'com.example.flutter_application_1',
+                // Mapa clicável: toca em qualquer ponto pra abrir a tela cheia,
+                // interativa, de verdade (marcar/mover a casa, zoom, GPS).
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => MapaCasaTela(latitudeAtual: casaLat, longitudeAtual: casaLng)),
+                  ),
+                  child: AbsorbPointer(
+                    child: FlutterMap(
+                      options: MapOptions(
+                        initialCenter: casa,
+                        initialZoom: 13.5,
+                        interactionOptions: const InteractionOptions(flags: InteractiveFlag.none),
+                      ),
+                      children: [
+                        TileLayer(
+                          // Tiles do Wikimedia Maps — dados do OpenStreetMap, servidos pela
+                          // infraestrutura da Wikimedia (mesmo servidor usado nos mapas da
+                          // Wikipédia). Gratuito, sem chave de API, e com CORS liberado de
+                          // verdade para apps rodando no navegador.
+                          urlTemplate: 'https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png',
+                          userAgentPackageName: 'com.example.flutter_application_1',
+                        ),
+                        PolylineLayer(
+                          polylines: [
+                            Polyline(points: [casa, _van, _escola], strokeWidth: 3, color: const Color(0xFF1D58E2)),
+                          ],
+                        ),
+                        MarkerLayer(
+                          markers: [
+                            Marker(
+                              point: casa,
+                              width: 30,
+                              height: 30,
+                              child: const Icon(Icons.home_rounded, color: Color(0xFF1D58E2), size: 26),
+                            ),
+                            Marker(
+                              point: _escola,
+                              width: 30,
+                              height: 30,
+                              child: const Icon(Icons.school_rounded, color: Color(0xFF1D58E2), size: 26),
+                            ),
+                            Marker(
+                              point: _van,
+                              width: 34,
+                              height: 34,
+                              child: const Icon(Icons.directions_bus_rounded, color: Color(0xFFFF5C00), size: 30),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                PolylineLayer(
-                  polylines: [
-                    Polyline(points: const [_casa, _van, _escola], strokeWidth: 3, color: const Color(0xFF1D58E2)),
-                  ],
+                Positioned(
+                  top: 14,
+                  right: 14,
+                  child: IgnorePointer(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.all(Radius.circular(20)),
+                        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.open_in_full, color: Color(0xFF1D58E2), size: 14),
+                          SizedBox(width: 4),
+                          Text('Toque para abrir', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: _casa,
-                      width: 30,
-                      height: 30,
-                      child: const Icon(Icons.home_rounded, color: Color(0xFF1D58E2), size: 26),
+                Positioned(
+                  bottom: 10,
+                  left: 10,
+                  child: IgnorePointer(
+                    child: Container(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: const Text(
+                        '© OpenStreetMap contributors',
+                        style: TextStyle(fontSize: 9, color: Color(0xFF64748B), fontWeight: FontWeight.w600),
+                      ),
                     ),
-                    Marker(
-                      point: _escola,
-                      width: 30,
-                      height: 30,
-                      child: const Icon(Icons.school_rounded, color: Color(0xFF1D58E2), size: 26),
-                    ),
-                    Marker(
-                      point: _van,
-                      width: 34,
-                      height: 34,
-                      child: const Icon(Icons.directions_bus_rounded, color: Color(0xFFFF5C00), size: 30),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
-            Positioned(
-              top: 14,
-              right: 14,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.all(Radius.circular(20)),
-                  boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.location_on, color: Color(0xFFFF5722), size: 16),
-                    SizedBox(width: 4),
-                    Text('GPS Ativo', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 10,
-              left: 10,
-              child: Container(
-                padding: const EdgeInsets.only(right: 4),
-                child: const Text(
-                  '© OpenStreetMap contributors',
-                  style: TextStyle(fontSize: 9, color: Color(0xFF64748B), fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
