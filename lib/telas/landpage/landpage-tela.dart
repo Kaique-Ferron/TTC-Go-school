@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'widgets/header-landpage.dart';
 import 'logica-landpage.dart';
+import '../../services/firestore_service.dart';
+import '../../services/sessao_provider.dart';
 import '../../widgets/nav_inferior_responsavel.dart';
 
 class LandpageTela extends StatefulWidget {
@@ -15,6 +18,26 @@ class _LandpageTelaState extends State<LandpageTela> {
   final List<String> _menus = ['Início', 'Serviços'];
 
   static const Color azulPrincipal = Color(0xFF1D58E2);
+
+  // Ao clicar em "Encontrar uma Van": se o responsável ainda não cadastrou
+  // nenhum filho, manda ele cadastrar primeiro em vez de mostrar a lista
+  // de motoristas (não faz sentido contratar transporte sem um filho).
+  Future<void> _aoClicarEncontrarVan() async {
+    final uid = context.read<SessaoProvider>().uid;
+    if (uid == null) {
+      setState(() => _abaSelecionada = 1);
+      return;
+    }
+
+    final filhos = await FirestoreService.instance.filhosStream(uid).first;
+    if (!mounted) return;
+
+    if (filhos.isEmpty) {
+      Navigator.pushNamed(context, '/meus-filhos');
+    } else {
+      setState(() => _abaSelecionada = 1);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -97,11 +120,7 @@ class _LandpageTelaState extends State<LandpageTela> {
       case 0:
         return AbaInicio(
           key: const ValueKey(0),
-          aoClicarEncontrar: () {
-            setState(() {
-              _abaSelecionada = 1; // Muda instantaneamente o front para a ListView de motoristas
-            });
-          },
+          aoClicarEncontrar: _aoClicarEncontrarVan,
         );
       case 1:
       default:

@@ -31,6 +31,15 @@ class Usuario {
   /// (campo 'tipoPerfil'): 'responsavel' ou 'motorista'.
   String get tipoPerfil => perfil == 'Responsável' ? 'responsavel' : 'motorista';
 
+  /// Endereço combinado em uma única string (rua, número - bairro), usado
+  /// pela TelaPerfil/EditarPerfilTela, que leem o campo 'endereco' pronto.
+  String get enderecoCompleto {
+    final partes = <String>[];
+    if (rua.isNotEmpty) partes.add(numero.isNotEmpty ? '$rua, $numero' : rua);
+    if (bairro.isNotEmpty) partes.add(bairro);
+    return partes.join(' - ');
+  }
+
   static String _exibirPerfil(String tipoPerfil) =>
       tipoPerfil == 'motorista' ? 'Motorista' : 'Responsável';
 
@@ -41,6 +50,7 @@ class Usuario {
       'telefone': telefone,
       'cpf': cpf,
       'tipoPerfil': tipoPerfil,
+      'endereco': enderecoCompleto,
       'cep': cep,
       'rua': rua,
       'numero': numero,

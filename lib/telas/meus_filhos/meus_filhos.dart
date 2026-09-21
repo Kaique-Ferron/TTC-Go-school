@@ -3,11 +3,13 @@ import 'package:provider/provider.dart';
 import '../../models/filho.dart';
 import '../../services/firestore_service.dart';
 import '../../services/sessao_provider.dart';
+import '../../theme/cores.dart';
 import '../../widgets/nav_inferior_responsavel.dart';
 import '../../widgets/card_filho.dart';
 import '../../widgets/modal_info_filho.dart';
 import '../../widgets/campos.dart';
 import '../../widgets/botoes.dart';
+import '../../widgets/pulsante.dart';
 
 class TelaMeusFilhos extends StatefulWidget {
   const TelaMeusFilhos({super.key});
@@ -179,40 +181,44 @@ class _TelaMeusFilhosState extends State<TelaMeusFilhos> {
               );
             }
             final filhos = snapshot.data ?? [];
-            if (filhos.isEmpty) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Text('Nenhum filho cadastrado ainda.', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
-              );
-            }
+
             return Column(
-              children: filhos
-                  .map(
-                    (filho) => CardFilho(
-                      nome: filho.nome,
-                      idadeEAno: filho.idadeEAno,
-                      escola: filho.escola,
-                      turno: filho.turno,
-                      horario: filho.horario,
-                      status: filho.status,
-                      onTap: () => _abrirModalDetalhes(uid, filho),
-                    ),
+              children: [
+                if (filhos.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Text('Nenhum filho cadastrado ainda.', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
                   )
-                  .toList(),
+                else
+                  ...filhos.asMap().entries.map(
+                        (entrada) => CardFilho(
+                          nome: entrada.value.nome,
+                          idadeEAno: entrada.value.idadeEAno,
+                          escola: entrada.value.escola,
+                          turno: entrada.value.turno,
+                          horario: entrada.value.horario,
+                          status: entrada.value.status,
+                          corAcento: AppCores.corFilho(entrada.key),
+                          onTap: () => _abrirModalDetalhes(uid, entrada.value),
+                        ),
+                      ),
+                const SizedBox(height: 16),
+                Pulsante(
+                  ativo: filhos.isEmpty,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 50),
+                      side: const BorderSide(color: azulPrincipal),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: _abrirFormularioNovo,
+                    icon: const Icon(Icons.add, color: azulPrincipal),
+                    label: const Text('Cadastrar novo filho', style: TextStyle(color: azulPrincipal, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
             );
           },
-        ),
-
-        const SizedBox(height: 16),
-        OutlinedButton.icon(
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 50),
-            side: const BorderSide(color: azulPrincipal),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-          onPressed: _abrirFormularioNovo,
-          icon: const Icon(Icons.add, color: azulPrincipal),
-          label: const Text('Cadastrar novo filho', style: TextStyle(color: azulPrincipal, fontWeight: FontWeight.bold)),
         ),
       ],
     );

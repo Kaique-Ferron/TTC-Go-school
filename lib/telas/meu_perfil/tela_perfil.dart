@@ -10,6 +10,8 @@ import '../../widgets/card_filho.dart';
 import '../../widgets/card_cartao.dart';
 import '../../widgets/modal_info_filho.dart';
 import '../../widgets/nav_inferior_responsavel.dart';
+import '../../widgets/pulsante.dart';
+import '../../theme/cores.dart';
 import 'editar_perfil_tela.dart';
 
 /// Tela de Perfil do Responsável — atualiza em tempo real via StreamBuilder
@@ -111,7 +113,11 @@ class TelaPerfil extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [AppCores.azulPrincipal.withValues(alpha: 0.06), AppCores.roxo.withValues(alpha: 0.05)],
+                    ),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: Colors.grey.shade200),
                   ),
@@ -119,10 +125,17 @@ class TelaPerfil extends StatelessWidget {
                     children: [
                       Stack(
                         children: [
-                          const CircleAvatar(
-                            radius: 40,
-                            backgroundColor: Color(0xFFE8F0FE),
-                            child: Icon(Icons.person, size: 48, color: azulPrincipal),
+                          Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(colors: [AppCores.azulPrincipal, AppCores.roxo]),
+                            ),
+                            child: const CircleAvatar(
+                              radius: 40,
+                              backgroundColor: Color(0xFFE8F0FE),
+                              child: Icon(Icons.person, size: 48, color: azulPrincipal),
+                            ),
                           ),
                           Positioned(
                             bottom: 0,
@@ -161,11 +174,19 @@ class TelaPerfil extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      _buildItemInfo(Icons.email_outlined, email ?? '—'),
-                      const SizedBox(height: 8),
-                      _buildItemInfo(Icons.phone_outlined, telefone != null && telefone.isNotEmpty ? telefone : 'Não informado'),
-                      const SizedBox(height: 8),
-                      _buildItemInfo(Icons.location_on_outlined, endereco != null && endereco.isNotEmpty ? endereco : 'Endereço não informado'),
+                      _buildItemInfo(Icons.email_outlined, email ?? '—', AppCores.azulPrincipal),
+                      const SizedBox(height: 10),
+                      _buildItemInfo(
+                        Icons.phone_outlined,
+                        telefone != null && telefone.isNotEmpty ? telefone : 'Não informado',
+                        AppCores.verde,
+                      ),
+                      const SizedBox(height: 10),
+                      _buildItemInfo(
+                        Icons.location_on_outlined,
+                        endereco != null && endereco.isNotEmpty ? endereco : 'Endereço não informado',
+                        AppCores.laranjaMotorista,
+                      ),
                     ],
                   ),
                 ),
@@ -184,7 +205,17 @@ class TelaPerfil extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Meus filhos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(color: AppCores.verde.withValues(alpha: 0.12), shape: BoxShape.circle),
+                                child: const Icon(Icons.family_restroom, size: 16, color: AppCores.verde),
+                              ),
+                              const SizedBox(width: 8),
+                              const Text('Meus filhos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
                           TextButton(
                             onPressed: () => Navigator.pushNamed(context, '/meus-filhos'),
                             child: const Text('Ver todos', style: TextStyle(color: azulPrincipal)),
@@ -212,15 +243,19 @@ class TelaPerfil extends StatelessWidget {
                           return Column(
                             children: filhos
                                 .take(2)
+                                .toList()
+                                .asMap()
+                                .entries
                                 .map(
-                                  (filho) => CardFilho(
-                                    nome: filho.nome,
-                                    idadeEAno: filho.idadeEAno,
-                                    escola: filho.escola,
-                                    turno: filho.turno,
-                                    horario: filho.horario,
-                                    status: filho.status,
-                                    onTap: () => _abrirModalDetalhes(context, uid, filho),
+                                  (entrada) => CardFilho(
+                                    nome: entrada.value.nome,
+                                    idadeEAno: entrada.value.idadeEAno,
+                                    escola: entrada.value.escola,
+                                    turno: entrada.value.turno,
+                                    horario: entrada.value.horario,
+                                    status: entrada.value.status,
+                                    corAcento: AppCores.corFilho(entrada.key),
+                                    onTap: () => _abrirModalDetalhes(context, uid, entrada.value),
                                   ),
                                 )
                                 .toList(),
@@ -229,15 +264,24 @@ class TelaPerfil extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
 
-                      OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 45),
-                          side: const BorderSide(color: azulPrincipal),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        onPressed: () => Navigator.pushNamed(context, '/meus-filhos'),
-                        icon: const Icon(Icons.add, color: azulPrincipal),
-                        label: const Text('Adicionar filho', style: TextStyle(color: azulPrincipal, fontWeight: FontWeight.bold)),
+                      StreamBuilder<List<Filho>>(
+                        stream: FirestoreService.instance.filhosStream(uid),
+                        builder: (context, snapshotBotao) {
+                          final semFilhos = (snapshotBotao.data ?? []).isEmpty;
+                          return Pulsante(
+                            ativo: semFilhos,
+                            child: OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size(double.infinity, 45),
+                                side: const BorderSide(color: azulPrincipal),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                              onPressed: () => Navigator.pushNamed(context, '/meus-filhos'),
+                              icon: const Icon(Icons.add, color: azulPrincipal),
+                              label: const Text('Adicionar filho', style: TextStyle(color: azulPrincipal, fontWeight: FontWeight.bold)),
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -258,7 +302,17 @@ class TelaPerfil extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Método de pagamento', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(color: AppCores.roxo.withValues(alpha: 0.12), shape: BoxShape.circle),
+                                child: const Icon(Icons.credit_card, size: 16, color: AppCores.roxo),
+                              ),
+                              const SizedBox(width: 8),
+                              const Text('Método de pagamento', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
                           TextButton(onPressed: () {}, child: const Text('Editar', style: TextStyle(color: azulPrincipal))),
                         ],
                       ),
@@ -291,10 +345,10 @@ class TelaPerfil extends StatelessWidget {
                   ),
                   child: Column(
                     children: [
-                      _linhaConfig(context, icone: Icons.notifications_outlined, texto: 'Notificações'),
-                      _linhaConfig(context, icone: Icons.help_outline, texto: 'Ajuda e suporte'),
-                      _linhaConfig(context, icone: Icons.info_outline, texto: 'Sobre o GoSchool'),
-                      _linhaConfig(context, icone: Icons.settings_outlined, texto: 'Configurações'),
+                      _linhaConfig(context, icone: Icons.notifications_outlined, texto: 'Notificações', corIcone: AppCores.ambar),
+                      _linhaConfig(context, icone: Icons.help_outline, texto: 'Ajuda e suporte', corIcone: AppCores.azulPrincipal),
+                      _linhaConfig(context, icone: Icons.info_outline, texto: 'Sobre o GoSchool', corIcone: AppCores.roxo),
+                      _linhaConfig(context, icone: Icons.settings_outlined, texto: 'Configurações', corIcone: AppCores.ciano),
                       _linhaConfig(
                         context,
                         icone: Icons.logout,
@@ -314,12 +368,16 @@ class TelaPerfil extends StatelessWidget {
     );
   }
 
-  Widget _buildItemInfo(IconData icone, String texto) {
+  Widget _buildItemInfo(IconData icone, String texto, Color cor) {
     return Row(
       children: [
-        Icon(icone, size: 18, color: Colors.grey[600]),
+        Container(
+          padding: const EdgeInsets.all(7),
+          decoration: BoxDecoration(color: cor.withValues(alpha: 0.12), shape: BoxShape.circle),
+          child: Icon(icone, size: 15, color: cor),
+        ),
         const SizedBox(width: 10),
-        Text(texto, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
+        Expanded(child: Text(texto, style: TextStyle(color: Colors.grey[700], fontSize: 13))),
       ],
     );
   }
@@ -329,10 +387,12 @@ class TelaPerfil extends StatelessWidget {
     required IconData icone,
     required String texto,
     Color? cor,
+    Color? corIcone,
     bool ultimo = false,
     VoidCallback? onTap,
   }) {
     final Color corEfetiva = cor ?? Colors.grey[800]!;
+    final Color corDoIcone = cor ?? corIcone ?? Colors.grey[600]!;
     return InkWell(
       onTap: onTap ?? () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Em breve!'))),
       child: Container(
@@ -340,7 +400,11 @@ class TelaPerfil extends StatelessWidget {
         decoration: BoxDecoration(border: ultimo ? null : Border(bottom: BorderSide(color: Colors.grey.shade100))),
         child: Row(
           children: [
-            Icon(icone, size: 20, color: cor ?? Colors.grey[600]),
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(color: corDoIcone.withValues(alpha: 0.12), shape: BoxShape.circle),
+              child: Icon(icone, size: 17, color: corDoIcone),
+            ),
             const SizedBox(width: 14),
             Expanded(
               child: Text(

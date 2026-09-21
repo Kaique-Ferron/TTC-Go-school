@@ -7,6 +7,7 @@ class CardFilho extends StatelessWidget {
   final String turno;
   final String horario;
   final String status;
+  final Color corAcento;
   final VoidCallback? onTap;
 
   const CardFilho({
@@ -17,6 +18,7 @@ class CardFilho extends StatelessWidget {
     required this.turno,
     required this.horario,
     this.status = 'Ativo',
+    this.corAcento = const Color(0xFF1D58E2),
     this.onTap,
   });
 
@@ -25,16 +27,17 @@ class CardFilho extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: corAcento.withValues(alpha: 0.18)),
         borderRadius: BorderRadius.circular(16),
+        color: corAcento.withValues(alpha: 0.03),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         onTap: onTap,
         leading: CircleAvatar(
           radius: 24,
-          backgroundColor: Colors.blue.shade100,
-          child: const Icon(Icons.person, color: Color(0xFF1D58E2)),
+          backgroundColor: corAcento.withValues(alpha: 0.16),
+          child: Icon(Icons.person, color: corAcento),
         ),
         title: Row(
           children: [
@@ -46,13 +49,13 @@ class CardFilho extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: const Color(0xFFE8F0FE),
+                color: corAcento.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 status,
-                style: const TextStyle(
-                  color: Color(0xFF1D58E2),
+                style: TextStyle(
+                  color: corAcento,
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
                 ),
@@ -96,7 +99,7 @@ class CardFilho extends StatelessWidget {
               ],
             ),
             const SizedBox(width: 8),
-            const Icon(Icons.chevron_right, color: Colors.grey),
+            Icon(Icons.chevron_right, color: corAcento),
           ],
         ),
       ),
