@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/sessao_provider.dart';
-import '../telas/selecao_perfil/selecao_perfil.dart';
+import '../telas/auth/selecao_perfil/selecao_perfil.dart';
 import '../telas/auth/cadastro/cadastro.dart';
-import '../telas/recuperar_senha/recuperar_senha.dart';
+import '../telas/auth/recuperar_senha/recuperar_senha.dart';
 import '../telas/landpage/landpage-tela.dart';
 import '../telas/meu_perfil/tela_perfil.dart';
 import '../telas/meus_filhos/meus_filhos.dart';
@@ -32,7 +32,7 @@ class GoSchoolApp extends StatelessWidget {
           '/recuperar-senha': (context) => const TelaRecuperarSenha(),
           '/landpage': (context) => const LandpageTela(),
           '/meu-perfil': (context) => const TelaPerfil(),
-          '/meus-filhos': (context) => const TelaMeusFilhos(),
+          '/meus-filhos': (context) => const MeusFilhosTela(),
         },
       ),
     );
