@@ -88,7 +88,23 @@ class TelaPerfil extends StatelessWidget {
       // Integrado com a sua NavbarResponsavel já existente
       drawer: const NavbarResponsavel(itemSelecionado: 'Meu Perfil'),
       bottomNavigationBar: const NavInferiorResponsavel(abaSelecionada: 'Perfil'),
+<<<<<<< HEAD
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+=======
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppCores.azulPrincipal.withValues(alpha: 0.06),
+              const Color(0xFFF8FAFC),
+              AppCores.laranjaMotorista.withValues(alpha: 0.05),
+            ],
+          ),
+        ),
+        child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+>>>>>>> master
         stream: FirebaseFirestore.instance.collection('usuarios').doc(uid).snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -163,6 +179,10 @@ class TelaPerfil extends StatelessWidget {
           );
         },
       ),
+<<<<<<< HEAD
+=======
+      ),
+>>>>>>> master
     );
   }
 
@@ -195,7 +215,11 @@ class TelaPerfil extends StatelessWidget {
                     padding: const EdgeInsets.all(3),
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
+<<<<<<< HEAD
                       gradient: LinearGradient(colors: [AppCores.azulPrincipal, AppCores.roxo]),
+=======
+                      gradient: LinearGradient(colors: [AppCores.azulPrincipal, AppCores.laranjaMotorista]),
+>>>>>>> master
                     ),
                     child: const CircleAvatar(
                       radius: 38,
@@ -253,7 +277,11 @@ class TelaPerfil extends StatelessWidget {
                     _buildItemInfo(
                       Icons.phone_outlined,
                       telefone != null && telefone.isNotEmpty ? telefone : 'Não informado',
+<<<<<<< HEAD
                       AppCores.verde,
+=======
+                      AppCores.azulClaro,
+>>>>>>> master
                     ),
                     const SizedBox(height: 8),
                     _buildItemInfo(
@@ -278,7 +306,11 @@ class TelaPerfil extends StatelessWidget {
                               casaLat != null
                                   ? 'Localização da casa marcada no mapa'
                                   : 'Marcar localização da casa no mapa',
+<<<<<<< HEAD
                               AppCores.ciano,
+=======
+                              AppCores.laranjaClaro,
+>>>>>>> master
                             ),
                           ),
                           Icon(Icons.chevron_right, size: 18, color: Colors.grey[400]),
@@ -337,10 +369,17 @@ class TelaPerfil extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
+<<<<<<< HEAD
                       color: AppCores.verde.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.family_restroom, size: 16, color: AppCores.verde),
+=======
+                      color: AppCores.azulClaro.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.family_restroom, size: 16, color: AppCores.azulClaro),
+>>>>>>> master
                   ),
                   const SizedBox(width: 8),
                   const Text('Meus filhos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
@@ -442,10 +481,17 @@ class TelaPerfil extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
+<<<<<<< HEAD
                       color: AppCores.roxo.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.credit_card, size: 16, color: AppCores.roxo),
+=======
+                      color: AppCores.laranjaClaro.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.credit_card, size: 16, color: AppCores.laranjaClaro),
+>>>>>>> master
                   ),
                   const SizedBox(width: 8),
                   const Text('Método de pagamento', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
@@ -484,6 +530,11 @@ class TelaPerfil extends StatelessWidget {
     return SecaoCardWrapper(
       titulo: 'Estatísticas',
       subtitulo: 'Acompanhe seus dados na plataforma.',
+<<<<<<< HEAD
+=======
+      icone: Icons.insights,
+      corIcone: AppCores.azulEscuro,
+>>>>>>> master
       acaoHeader: TextButton(
         onPressed: () {},
         child: const Text('Ver todas', style: TextStyle(fontSize: 12, color: azulPrincipal)),
@@ -493,6 +544,7 @@ class TelaPerfil extends StatelessWidget {
         builder: (context, snapshotFilhos) {
           final int totalFilhos = snapshotFilhos.data?.length ?? 0;
 
+<<<<<<< HEAD
           return GridView.count(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -526,6 +578,43 @@ class TelaPerfil extends StatelessWidget {
                 icon: Icons.verified_outlined,
                 iconColor: Colors.blueAccent,
                 iconBgColor: Color(0xFFEFF6FF),
+=======
+          return GridView(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              mainAxisExtent: 100,
+            ),
+            children: [
+              CardEstatistica(
+                icon: Icons.people_outline,
+                iconColor: AppCores.azulPrincipal,
+                iconBgColor: AppCores.azulPrincipal.withValues(alpha: 0.1),
+                valor: '$totalFilhos',
+                rotulo: 'Filhos cadastrados',
+              ),
+              CardEstatistica(
+                icon: Icons.favorite_outline,
+                iconColor: AppCores.laranjaMotorista,
+                iconBgColor: AppCores.laranjaMotorista.withValues(alpha: 0.1),
+                valor: '5',
+                rotulo: 'Motoristas favoritos',
+              ),
+              CardEstatistica(
+                icon: Icons.chat_bubble_outline,
+                iconColor: AppCores.azulClaro,
+                iconBgColor: AppCores.azulClaro.withValues(alpha: 0.1),
+                valor: '12',
+                rotulo: 'Conversas iniciadas',
+              ),
+              CardEstatistica(
+                icon: Icons.verified_outlined,
+                iconColor: AppCores.laranjaClaro,
+                iconBgColor: AppCores.laranjaClaro.withValues(alpha: 0.1),
+>>>>>>> master
                 valor: '98%',
                 rotulo: 'Avaliações positivas',
               ),
@@ -546,10 +635,17 @@ class TelaPerfil extends StatelessWidget {
       ),
       child: Column(
         children: [
+<<<<<<< HEAD
           _linhaConfig(context, icone: Icons.notifications_outlined, texto: 'Notificações', corIcone: AppCores.ambar),
           _linhaConfig(context, icone: Icons.help_outline, texto: 'Ajuda e suporte', corIcone: AppCores.azulPrincipal),
           _linhaConfig(context, icone: Icons.info_outline, texto: 'Sobre o GoSchool', corIcone: AppCores.roxo),
           _linhaConfig(context, icone: Icons.settings_outlined, texto: 'Configurações', corIcone: AppCores.ciano),
+=======
+          _linhaConfig(context, icone: Icons.notifications_outlined, texto: 'Notificações', corIcone: AppCores.laranjaClaro),
+          _linhaConfig(context, icone: Icons.help_outline, texto: 'Ajuda e suporte', corIcone: AppCores.azulPrincipal),
+          _linhaConfig(context, icone: Icons.info_outline, texto: 'Sobre o GoSchool', corIcone: AppCores.azulEscuro),
+          _linhaConfig(context, icone: Icons.settings_outlined, texto: 'Configurações', corIcone: AppCores.laranjaEscuro),
+>>>>>>> master
           _linhaConfig(
             context,
             icone: Icons.logout,
