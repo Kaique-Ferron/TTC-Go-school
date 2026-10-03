@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 
-<<<<<<< HEAD
-/// Logo do GoSchool. Tenta carregar a imagem real (assets/logo.png); se o
-=======
 /// Logo do GoSchool. Tenta carregar a imagem real (assets/logo.jpg); se o
->>>>>>> master
 /// arquivo ainda não existir no projeto, cai graciosamente para um logo em
 /// texto (sem quebrar o app).
 class LogoGoSchool extends StatelessWidget {
@@ -15,24 +11,12 @@ class LogoGoSchool extends StatelessWidget {
   const LogoGoSchool({
     super.key,
     this.fontSize = 28.0,
-<<<<<<< HEAD
-    this.imageHeight = 38,
-=======
     this.imageHeight = 64,
->>>>>>> master
     this.corClara = false,
   });
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    return Image.asset(
-      'assets/logo.png',
-      height: imageHeight,
-      fit: BoxFit.contain,
-      errorBuilder: (context, error, stackTrace) => _logoTexto(),
-    );
-=======
     final imagem = Image.asset(
       'assets/logo.jpg',
       height: imageHeight,
@@ -61,7 +45,6 @@ class LogoGoSchool extends StatelessWidget {
       ),
       child: imagem,
     );
->>>>>>> master
   }
 
   Widget _logoTexto() {
