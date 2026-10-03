@@ -5,11 +5,8 @@ class SecaoCardWrapper extends StatelessWidget {
   final String? subtitulo;
   final Widget? acaoHeader;
   final Widget child;
-<<<<<<< HEAD
-=======
   final IconData? icone;
   final Color? corIcone;
->>>>>>> master
 
   const SecaoCardWrapper({
     super.key,
@@ -17,11 +14,8 @@ class SecaoCardWrapper extends StatelessWidget {
     this.subtitulo,
     this.acaoHeader,
     required this.child,
-<<<<<<< HEAD
-=======
     this.icone,
     this.corIcone,
->>>>>>> master
   });
 
   @override
@@ -49,15 +43,6 @@ class SecaoCardWrapper extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-<<<<<<< HEAD
-                  Text(
-                    titulo,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-=======
                   Row(
                     children: [
                       if (icone != null) ...[
@@ -80,7 +65,6 @@ class SecaoCardWrapper extends StatelessWidget {
                         ),
                       ),
                     ],
->>>>>>> master
                   ),
                   if (subtitulo != null) ...[
                     const SizedBox(height: 2),
