@@ -3,7 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import '../../repositories/motorista_repository.dart';
+import '../../models/motorista_model.dart';
+import '../../services/firestore_service.dart';
 import '../../widgets/motorista_card.dart';
 import '../meu_perfil/mapa_casa_tela.dart';
 
@@ -329,8 +330,6 @@ class AbaMotoristas extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final motoristas = MotoristaRepository.obterMotoristas();
-
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -344,11 +343,29 @@ class AbaMotoristas extends StatelessWidget {
           Text('Todos verificados e avaliados pela comunidade.', style: TextStyle(fontSize: 12.5, color: Colors.grey[600])),
           const SizedBox(height: 18),
 
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: motoristas.length,
-            itemBuilder: (context, index) => MotoristaCard(motorista: motoristas[index]),
+          StreamBuilder<List<Motorista>>(
+            stream: FirestoreService.instance.motoristasStream(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              final motoristas = snapshot.data ?? [];
+              if (motoristas.isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Text('Nenhum motorista cadastrado ainda.', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                );
+              }
+              return ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: motoristas.length,
+                itemBuilder: (context, index) => MotoristaCard(motorista: motoristas[index]),
+              );
+            },
           ),
           const SizedBox(height: 20),
         ],

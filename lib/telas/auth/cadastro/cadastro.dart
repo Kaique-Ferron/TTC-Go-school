@@ -35,6 +35,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
   final _cnhController = TextEditingController();
   final _licencaController = TextEditingController();
   final _placaController = TextEditingController();
+  final _veiculoController = TextEditingController();
 
   // Controllers de Senha
   final _senhaController = TextEditingController();
@@ -56,6 +57,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
     _cnhController.dispose();
     _licencaController.dispose();
     _placaController.dispose();
+    _veiculoController.dispose();
     _senhaController.dispose();
     _confirmarSenhaController.dispose();
     super.dispose();
@@ -93,6 +95,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
         cnh: _cnhController.text.trim(),
         licenca: _licencaController.text.trim(),
         placa: _placaController.text.trim(),
+        veiculo: _veiculoController.text.trim(),
       );
 
       await FirestoreService.instance.salvarUsuario(uid, usuario);
@@ -233,6 +236,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                       cnhController: _cnhController,
                       licencaController: _licencaController,
                       placaController: _placaController,
+                      veiculoController: _veiculoController,
                     ),
                     const SizedBox(height: 16),
                   ],

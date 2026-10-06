@@ -42,4 +42,23 @@ class Motorista {
       'placa': placa,
     };
   }
+
+  /// Converte um documento real de `usuarios` (tipoPerfil: 'motorista') em
+  /// Motorista para exibição na aba Serviços — esse documento não tem
+  /// 'corridas'/'tempo' (estatísticas que ainda não são rastreadas), então
+  /// ficam vazios e a UI esconde essa linha quando não há dado.
+  factory Motorista.fromUsuarioMap(Map<String, dynamic> map) {
+    final veiculo = (map['veiculo'] as String?) ?? '';
+    final placa = (map['placa'] as String?) ?? '';
+    final licenca = (map['licenca'] as String?) ?? '';
+    return Motorista(
+      nome: map['nome'] ?? '',
+      corridas: '',
+      tempo: '',
+      crm: licenca.isNotEmpty ? licenca : '---',
+      fotoPerfil: '',
+      veiculo: veiculo.isNotEmpty ? veiculo : 'Veículo não informado',
+      placa: placa.isNotEmpty ? placa : '---',
+    );
+  }
 }

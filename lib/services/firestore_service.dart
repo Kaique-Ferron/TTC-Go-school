@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/filho.dart';
+import '../models/motorista_model.dart';
 import '../models/usuario.dart';
 
 class FirestoreService {
@@ -47,5 +48,13 @@ class FirestoreService {
 
   Future<void> excluirFilho(String uid, String filhoId) {
     return _filhos(uid).doc(filhoId).delete();
+  }
+
+  /// Motoristas reais cadastrados no app (usuarios com tipoPerfil = 'motorista'),
+  /// exibidos na aba "Serviços" da landpage.
+  Stream<List<Motorista>> motoristasStream() {
+    return _usuarios.where('tipoPerfil', isEqualTo: 'motorista').snapshots().map(
+          (snap) => snap.docs.map((d) => Motorista.fromUsuarioMap(d.data())).toList(),
+        );
   }
 }
