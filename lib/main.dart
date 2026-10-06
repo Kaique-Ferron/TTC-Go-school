@@ -1,3 +1,4 @@
+import 'services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart'; // Adicionado
 import 'app/app.dart';
@@ -11,6 +12,8 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+await NotificationService.initOneSignal("c28e1d00-4d1a-4072-8eb5-b3bcfba4aff6");
 
   runApp(const GoSchoolApp());
 }
