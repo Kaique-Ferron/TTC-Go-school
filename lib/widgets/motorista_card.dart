@@ -40,17 +40,21 @@ class MotoristaCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(motorista.nome, style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                  const SizedBox(height: 6),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 4,
-                    children: [
-                      _detalhe(Icons.check_circle, Colors.green, '${motorista.corridas} corridas'),
-                      _detalhe(Icons.access_time_filled, const Color(0xFFFFC107), motorista.tempo),
-                    ],
-                  ),
                   const SizedBox(height: 4),
-                  _detalhe(Icons.badge, const Color(0xFF1D58E2), 'Registro ${motorista.crm}', destaque: true),
+                  _detalhe(Icons.directions_bus_filled, const Color(0xFF1D58E2), '${motorista.veiculo} • ${motorista.placa}', destaque: true),
+                  if (motorista.corridas.isNotEmpty || motorista.tempo.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 4,
+                      children: [
+                        if (motorista.corridas.isNotEmpty) _detalhe(Icons.check_circle, Colors.green, '${motorista.corridas} corridas'),
+                        if (motorista.tempo.isNotEmpty) _detalhe(Icons.access_time_filled, const Color(0xFFFFC107), motorista.tempo),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: 4),
+                  _detalhe(Icons.badge, Colors.grey[600]!, 'Registro ${motorista.crm}'),
                 ],
               ),
             ),

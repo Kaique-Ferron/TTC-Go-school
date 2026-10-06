@@ -5,12 +5,14 @@ class SecaoMotorista extends StatelessWidget {
   final TextEditingController cnhController;
   final TextEditingController licencaController;
   final TextEditingController placaController;
+  final TextEditingController veiculoController;
 
   const SecaoMotorista({
     super.key,
     required this.cnhController,
     required this.licencaController,
     required this.placaController,
+    required this.veiculoController,
   });
 
   static String? _obrigatorio(String? valor) =>
@@ -41,6 +43,15 @@ class SecaoMotorista extends StatelessWidget {
           controller: licencaController,
           hintText: 'Nº da Licença / Alvará de Transporte Escolar',
           prefixIcon: Icons.verified_user_outlined,
+          validator: _obrigatorio,
+        ),
+        const SizedBox(height: 10),
+
+        // Modelo do Veículo
+        CampoTextoCustomizado(
+          controller: veiculoController,
+          hintText: 'Veículo (ex: Van Renault Master)',
+          prefixIcon: Icons.directions_bus_filled_outlined,
           validator: _obrigatorio,
         ),
         const SizedBox(height: 10),
