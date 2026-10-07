@@ -7,6 +7,12 @@ class Motorista {
   final String veiculo; // Novo campo
   final String placa;   // Novo campo
 
+  // Dados mockados (ainda não vêm do Firestore) usados na tela de detalhes
+  // que o Responsável vê ao selecionar o motorista.
+  final double valorMensalidade;
+  final int criancasManha;
+  final int criancasTarde;
+
   const Motorista({
     required this.nome,
     required this.corridas,
@@ -15,6 +21,9 @@ class Motorista {
     required this.fotoPerfil,
     this.veiculo = 'Veículo não informado',
     this.placa = '---',
+    this.valorMensalidade = 320.0,
+    this.criancasManha = 0,
+    this.criancasTarde = 0,
   });
 
   // Converte os dados vindo do Firestore (Map) para o objeto Motorista
@@ -51,14 +60,24 @@ class Motorista {
     final veiculo = (map['veiculo'] as String?) ?? '';
     final placa = (map['placa'] as String?) ?? '';
     final licenca = (map['licenca'] as String?) ?? '';
+    final nome = (map['nome'] as String?) ?? '';
+
+    // Mensalidade e capacidade por período ainda não existem no Firestore —
+    // gera uma variação mockada, porém estável (mesmo motorista sempre com
+    // os mesmos valores), derivada do nome, só pra não ficar tudo idêntico.
+    final semente = nome.isEmpty ? 0 : nome.codeUnits.fold<int>(0, (soma, c) => soma + c);
+
     return Motorista(
-      nome: map['nome'] ?? '',
+      nome: nome,
       corridas: '',
       tempo: '',
       crm: licenca.isNotEmpty ? licenca : '---',
       fotoPerfil: '',
       veiculo: veiculo.isNotEmpty ? veiculo : 'Veículo não informado',
       placa: placa.isNotEmpty ? placa : '---',
+      valorMensalidade: 280.0 + (semente % 6) * 20,
+      criancasManha: 1 + (semente % 4),
+      criancasTarde: (semente ~/ 4) % 4,
     );
   }
 }

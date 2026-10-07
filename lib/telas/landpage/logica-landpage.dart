@@ -5,6 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../models/motorista_model.dart';
 import '../../services/firestore_service.dart';
+import '../../widgets/modal_detalhes_motorista.dart';
 import '../../widgets/motorista_card.dart';
 import '../meu_perfil/mapa_casa_tela.dart';
 
@@ -363,7 +364,13 @@ class AbaMotoristas extends StatelessWidget {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: motoristas.length,
-                itemBuilder: (context, index) => MotoristaCard(motorista: motoristas[index]),
+                itemBuilder: (context, index) => MotoristaCard(
+                  motorista: motoristas[index],
+                  onTap: () => showDialog(
+                    context: context,
+                    builder: (_) => ModalDetalhesMotorista(motorista: motoristas[index]),
+                  ),
+                ),
               );
             },
           ),
