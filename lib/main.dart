@@ -13,7 +13,15 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-await NotificationService.initOneSignal("c28e1d00-4d1a-4072-8eb5-b3bcfba4aff6");
+  // OneSignal ainda não tem suporte configurado para Flutter Web (precisa do
+  // SDK JS no web/index.html) — sem o try/catch, a exceção impedia o
+  // runApp() de ser chamado e a tela ficava em branco. No mobile continua
+  // inicializando normalmente.
+  try {
+    await NotificationService.initOneSignal("c28e1d00-4d1a-4072-8eb5-b3bcfba4aff6");
+  } catch (e) {
+    debugPrint('OneSignal não inicializado (esperado na Web): $e');
+  }
 
   runApp(const GoSchoolApp());
 }

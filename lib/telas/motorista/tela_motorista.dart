@@ -66,9 +66,9 @@ class TelaMotorista extends StatelessWidget {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(6),
                             child: Image.asset(
-                              'assets/logo.png', // fundo transparente
-                              width: 130,          // Podes ajustar a largura conforme preferires
-                              height: 40,          // Podes ajustar a altura conforme preferires
+                              'assets/logo.jpg',
+                              width: 156,
+                              height: 48,
                               fit: BoxFit.contain,
                             ),
                           ),

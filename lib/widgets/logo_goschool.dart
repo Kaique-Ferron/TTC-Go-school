@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// Logo do GoSchool. Tenta carregar a imagem real (assets/logo.png, com
-/// fundo transparente); se o arquivo ainda não existir no projeto, cai
-/// graciosamente para um logo em texto (sem quebrar o app).
+/// Logo do GoSchool, sempre dentro de um selo circular branco — assim funciona
+/// igual sobre qualquer fundo (claro ou escuro) sem precisar de transparência
+/// na imagem (assets/logo.jpg tem fundo branco sólido mesmo). Se o arquivo
+/// ainda não existir no projeto, cai graciosamente para um logo em texto.
 class LogoGoSchool extends StatelessWidget {
   final double fontSize;
   final double imageHeight;
@@ -10,57 +11,44 @@ class LogoGoSchool extends StatelessWidget {
 
   const LogoGoSchool({
     super.key,
-    this.fontSize = 28.0,
-    this.imageHeight = 64,
+    this.fontSize = 34.0,
+    this.imageHeight = 77,
     this.corClara = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      'assets/logo.png',
+    return Container(
+      width: imageHeight,
       height: imageHeight,
-      fit: BoxFit.contain,
-      filterQuality: FilterQuality.high,
-      errorBuilder: (context, error, stackTrace) => _logoTexto(),
+      alignment: Alignment.center,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(imageHeight * 0.1),
+        child: Image.asset(
+          'assets/logo.jpg',
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.high,
+          errorBuilder: (context, error, stackTrace) => _logoTexto(),
+        ),
+      ),
     );
   }
 
+  // Fallback (só usado se assets/logo.jpg não existir): monograma "GS",
+  // dimensionado pra caber dentro do selo circular sem transbordar.
   Widget _logoTexto() {
-    const azulPrincipal = Color(0xFF1D58E2);
-    const azulEscuro = Color(0xFF0F2B7A);
-    final corGo = corClara ? Colors.white : azulPrincipal;
-    final corSchool = corClara ? Colors.white70 : azulEscuro;
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: 'GO',
-                style: TextStyle(
-                  fontSize: fontSize,
-                  fontWeight: FontWeight.w900,
-                  fontStyle: FontStyle.italic,
-                  color: corGo,
-                ),
-              ),
-              const WidgetSpan(child: SizedBox(width: 4)),
-              TextSpan(
-                text: 'SCHOOL',
-                style: TextStyle(
-                  fontSize: fontSize * 0.85,
-                  fontWeight: FontWeight.w900,
-                  fontStyle: FontStyle.italic,
-                  color: corSchool,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+    return Text(
+      'GS',
+      style: TextStyle(
+        fontSize: fontSize * 0.55,
+        fontWeight: FontWeight.w900,
+        fontStyle: FontStyle.italic,
+        color: const Color(0xFF1D58E2),
+      ),
     );
   }
 }
