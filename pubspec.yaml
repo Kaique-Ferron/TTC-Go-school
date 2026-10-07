@@ -7,6 +7,8 @@ environment:
   sdk: ^3.11.5
 
 dependencies:
+  flutter:
+    sdk: flutter
   firebase_core: ^4.14.0
   firebase_auth: ^6.7.0
   cloud_firestore: ^6.1.0
@@ -15,9 +17,10 @@ dependencies:
   latlong2: ^0.9.1
   geolocator: ^13.0.2
   geocoding: ^3.0.0
-  flutter:
-    sdk: flutter
   http: ^1.2.0
+  image_picker: ^1.1.2
+  firebase_storage: ^13.6.0
+  onesignal_flutter: ^5.7.0
 
 dev_dependencies:
   flutter_test:

@@ -24,7 +24,7 @@ class HeaderLandpage extends StatelessWidget {
       ),
       child: const Align(
         alignment: Alignment.centerLeft,
-        child: LogoGoSchool(imageHeight: 34, fontSize: 20, corClara: true),
+        child: LogoGoSchool(imageHeight: 40, fontSize: 20, corClara: true),
       ),
     );
   }
