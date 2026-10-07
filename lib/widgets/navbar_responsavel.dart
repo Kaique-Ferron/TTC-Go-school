@@ -27,7 +27,7 @@ class NavbarResponsavel extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(
                 children: [
-                  const LogoGoSchool(fontSize: 22, imageHeight: 48),
+                  const LogoGoSchool(fontSize: 26, imageHeight: 58),
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.all(4),
