@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 Coloque aqui o arquivo logo.png (logo do GoSchool). Enquanto o arquivo não existir, o app usa automaticamente um logo em texto como fallback — nada quebra.
+=======
+Logo do GoSchool: assets/logo.jpg (já cadastrado). Se o arquivo for removido, o app usa automaticamente um logo em texto como fallback — nada quebra.
+>>>>>>> master

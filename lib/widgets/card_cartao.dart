@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/cores.dart';
 
 class CardCartao extends StatelessWidget {
   final String ultimosDigitos;
@@ -29,7 +30,7 @@ class CardCartao extends StatelessWidget {
           width: 40,
           height: 28,
           decoration: BoxDecoration(
-            color: Colors.red.shade400,
+            color: AppCores.laranjaMotorista,
             borderRadius: BorderRadius.circular(6),
           ),
           child: const Icon(Icons.credit_card, color: Colors.white, size: 20),

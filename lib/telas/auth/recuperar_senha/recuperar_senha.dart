@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart';
-import '../../theme/cores.dart';
-import '../../widgets/botoes.dart';
-import '../../widgets/campos.dart';
-import '../../widgets/box_seguranca.dart';
-import '../../widgets/logo_goschool.dart';
+import '../../../services/auth_service.dart';
+import '../../../theme/cores.dart';
+import '../../../widgets/botoes.dart';
+import '../../../widgets/campos.dart';
+import '../../../widgets/box_seguranca.dart';
+import '../../../widgets/logo_goschool.dart';
 
 class TelaRecuperarSenha extends StatefulWidget {
   const TelaRecuperarSenha({super.key});
