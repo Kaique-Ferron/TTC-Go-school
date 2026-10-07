@@ -1,8 +1,9 @@
 import '../models/mensalidade_model.dart';
 
-/// Fonte de dados das mensalidades exibidas na tela de Finanças do
-/// Motorista. Mockado por enquanto — isolar aqui facilita trocar por uma
-/// consulta real ao Firestore no futuro, sem tocar na UI.
+/// Dados de exemplo (mock) usados para semear `usuarios/{uid}/mensalidades`
+/// no Firestore — ver FirestoreService.semearMensalidadesMock e
+/// firestore/MIGRATIONS.md. A tela de Finanças lê do Firestore de verdade;
+/// isso aqui só alimenta o botão "Carregar dados de exemplo".
 class MensalidadeRepository {
   static List<Mensalidade> obterMensalidades() {
     final hoje = DateTime.now();
