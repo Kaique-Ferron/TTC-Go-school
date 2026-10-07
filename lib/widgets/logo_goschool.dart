@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// Logo do GoSchool. Tenta carregar a imagem real (assets/logo.jpg); se o
-/// arquivo ainda não existir no projeto, cai graciosamente para um logo em
-/// texto (sem quebrar o app).
+/// Logo do GoSchool. Tenta carregar a imagem real (assets/logo.png, com
+/// fundo transparente); se o arquivo ainda não existir no projeto, cai
+/// graciosamente para um logo em texto (sem quebrar o app).
 class LogoGoSchool extends StatelessWidget {
   final double fontSize;
   final double imageHeight;
@@ -17,33 +17,12 @@ class LogoGoSchool extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imagem = Image.asset(
-      'assets/logo.jpg',
+    return Image.asset(
+      'assets/logo.png',
       height: imageHeight,
       fit: BoxFit.contain,
       filterQuality: FilterQuality.high,
       errorBuilder: (context, error, stackTrace) => _logoTexto(),
-    );
-
-    // A imagem é um .jpg com fundo branco sólido (sem transparência). Sobre
-    // fundos escuros (corClara), colocamos em uma "etiqueta" branca
-    // arredondada para o fundo branco parecer intencional, não um bug.
-    if (!corClara) return imagem;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: imagem,
     );
   }
 
