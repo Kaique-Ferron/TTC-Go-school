@@ -54,6 +54,14 @@ class TelaMotorista extends StatelessWidget {
             centerTitle: true,
             actions: [
               IconButton(
+                icon: const Icon(Icons.payments_outlined),
+                tooltip: 'Finanças',
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TelaFinancasMotorista()),
+                ),
+              ),
+              IconButton(
                 icon: const Icon(Icons.logout),
                 tooltip: 'Sair',
                 onPressed: () async {
@@ -160,59 +168,6 @@ class TelaMotorista extends StatelessWidget {
                           ],
                         ),
                       ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // FINANÇAS
-                const Text(
-                  'Finanças',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-
-                const SizedBox(height: 12),
-
-                Card(
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(4),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const TelaFinancasMotorista()),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.green.withValues(alpha: 0.12),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.payments_outlined, color: Colors.green, size: 24),
-                          ),
-                          const SizedBox(width: 14),
-                          const Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Mensalidades recebidas',
-                                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                                ),
-                                SizedBox(height: 2),
-                                Text(
-                                  'Veja o que caiu pra você este mês',
-                                  style: TextStyle(fontSize: 12.5, color: Colors.grey),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Icon(Icons.chevron_right, color: Colors.grey),
-                        ],
-                      ),
                     ),
                   ),
                 ),
