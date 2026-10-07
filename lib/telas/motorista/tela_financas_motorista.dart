@@ -1,19 +1,40 @@
 import 'package:flutter/material.dart';
 import '../../models/mensalidade_model.dart';
 import '../../repositories/mensalidade_repository.dart';
+import '../../services/auth_service.dart';
+import '../../services/firestore_service.dart';
 import '../../theme/cores.dart';
 
 /// Tela de Finanças do Motorista — mostra as mensalidades que caem pra ele
-/// a cada mês. Dados mockados por enquanto (ver MensalidadeRepository);
-/// trocar pela consulta real ao Firestore é só mudar a fonte de dados aqui.
-class TelaFinancasMotorista extends StatelessWidget {
+/// a cada mês, lidas em tempo real de usuarios/{uid}/mensalidades.
+/// Enquanto não há nenhum documento lá, oferece um botão pra semear os
+/// dados de exemplo (ver MensalidadeRepository + FirestoreService.semearMensalidadesMock
+/// e firestore/MIGRATIONS.md para o schema).
+class TelaFinancasMotorista extends StatefulWidget {
   const TelaFinancasMotorista({super.key});
 
   @override
+  State<TelaFinancasMotorista> createState() => _TelaFinancasMotoristaState();
+}
+
+class _TelaFinancasMotoristaState extends State<TelaFinancasMotorista> {
+  bool _semeando = false;
+
+  Future<void> _semearDadosDeExemplo(String uid) async {
+    setState(() => _semeando = true);
+    try {
+      await FirestoreService.instance.semearMensalidadesMock(
+        uid,
+        MensalidadeRepository.obterMensalidades(),
+      );
+    } finally {
+      if (mounted) setState(() => _semeando = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final mensalidades = MensalidadeRepository.obterMensalidades();
-    final recebido = mensalidades.where((m) => m.pago).fold<double>(0, (soma, m) => soma + m.valor);
-    final pendente = mensalidades.where((m) => !m.pago).fold<double>(0, (soma, m) => soma + m.valor);
+    final uid = AuthService.instance.uidAtual;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -23,31 +44,78 @@ class TelaFinancasMotorista extends StatelessWidget {
         foregroundColor: Colors.black,
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Mensalidades recebidas dos responsáveis este mês.', style: TextStyle(color: Colors.grey[600], fontSize: 13.5)),
-            const SizedBox(height: 20),
+      body: uid == null
+          ? const Center(child: Text('Utilizador não autenticado.'))
+          : StreamBuilder<List<Mensalidade>>(
+              stream: FirestoreService.instance.mensalidadesStream(uid),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-            // Resumo: recebido x pendente
-            Row(
-              children: [
-                Expanded(child: _cardResumo('Recebido', recebido, AppCores.verde, Icons.check_circle_outline)),
-                const SizedBox(width: 12),
-                Expanded(child: _cardResumo('Pendente', pendente, AppCores.ambar, Icons.schedule)),
-              ],
+                final mensalidades = snapshot.data ?? [];
+
+                if (mensalidades.isEmpty) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.payments_outlined, size: 48, color: Colors.grey[400]),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Nenhuma mensalidade registrada ainda.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                          ),
+                          const SizedBox(height: 20),
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppCores.azulPrincipal,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            onPressed: _semeando ? null : () => _semearDadosDeExemplo(uid),
+                            icon: _semeando
+                                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                : const Icon(Icons.cloud_upload_outlined, color: Colors.white),
+                            label: const Text('Carregar dados de exemplo', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                final recebido = mensalidades.where((m) => m.pago).fold<double>(0, (soma, m) => soma + m.valor);
+                final pendente = mensalidades.where((m) => !m.pago).fold<double>(0, (soma, m) => soma + m.valor);
+
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Mensalidades recebidas dos responsáveis este mês.', style: TextStyle(color: Colors.grey[600], fontSize: 13.5)),
+                      const SizedBox(height: 20),
+
+                      Row(
+                        children: [
+                          Expanded(child: _cardResumo('Recebido', recebido, AppCores.verde, Icons.check_circle_outline)),
+                          const SizedBox(width: 12),
+                          Expanded(child: _cardResumo('Pendente', pendente, AppCores.ambar, Icons.schedule)),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+
+                      const Text('Histórico de pagamentos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 12),
+
+                      ...mensalidades.map(_cardMensalidade),
+                    ],
+                  ),
+                );
+              },
             ),
-            const SizedBox(height: 24),
-
-            const Text('Histórico de pagamentos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-
-            ...mensalidades.map(_cardMensalidade),
-          ],
-        ),
-      ),
     );
   }
 
