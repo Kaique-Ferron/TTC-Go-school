@@ -79,3 +79,31 @@ motorista, usando o SDK cliente do Firestore:
 
 Pra conferir manualmente: Firebase Console → Firestore Database →
 `usuarios` → (documento do motorista) → `mensalidades`.
+
+---
+
+## 004 — `usuarios/{responsavelUid}/contratacoes` (subcoleção) — Tela de Contratação
+
+Criada em: 2026-10. Gravada pela `TelaContratacao` quando o Responsável
+confirma a contratação de um motorista pra um ou mais filhos.
+
+Código: `lib/telas/contratacao/tela_contratacao.dart`.
+
+Caminho: `usuarios/{responsavelUid}/contratacoes/{contratacaoId}` (ID
+autogerado pelo Firestore, via `.add()`)
+
+| Campo              | Tipo       | Observação                                |
+|---------------------|-----------|---------------------------------------------|
+| `motoristaNome`      | string    |                                               |
+| `motoristaVeiculo`   | string    |                                               |
+| `motoristaPlaca`     | string    |                                               |
+| `filhosIds`          | array\<string\> | IDs dos documentos em `.../filhos`     |
+| `filhosNomes`        | array\<string\> | Nomes no momento da contratação        |
+| `periodo`            | string    | `'Manhã'` ou `'Tarde'`                        |
+| `valorPorFilho`      | number    | Mensalidade do motorista (double)             |
+| `valorTotal`         | number    | `valorPorFilho × quantidade de filhos`        |
+| `status`             | string    | `'Ativo'` (sem fluxo de cancelamento ainda)   |
+| `contratadoEm`       | timestamp | `FieldValue.serverTimestamp()`                |
+
+Não precisa de seed — é criada organicamente pelo fluxo real de uso
+(Serviços → tocar no motorista → "Contratar motorista").

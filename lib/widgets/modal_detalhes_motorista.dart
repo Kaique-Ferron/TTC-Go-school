@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/motorista_model.dart';
+import '../telas/contratacao/tela_contratacao.dart';
 import '../theme/cores.dart';
 
 /// Modal exibido ao Responsável quando ele toca num motorista na aba
@@ -137,8 +138,9 @@ class ModalDetalhesMotorista extends StatelessWidget {
                 ),
                 onPressed: () {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Contratação em breve!')),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => TelaContratacao(motorista: motorista)),
                   );
                 },
                 icon: const Icon(Icons.check_circle_outline, color: Colors.white),
