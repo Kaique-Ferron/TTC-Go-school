@@ -3,7 +3,7 @@ import '../services/auth_service.dart';
 import 'logo_goschool.dart';
 
 class NavbarResponsavel extends StatelessWidget {
-  final String itemSelecionado; // Ex: 'Meu Perfil', 'Painel Principal', etc.
+  final String itemSelecionado; // Ex: 'Meu Perfil', 'Meus filhos', 'Configurações', etc.
 
   const NavbarResponsavel({
     super.key,
@@ -27,7 +27,7 @@ class NavbarResponsavel extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(
                 children: [
-                  const LogoGoSchool(fontSize: 22, imageHeight: 48),
+                  const LogoGoSchool(fontSize: 22),
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.all(4),
@@ -154,29 +154,33 @@ class NavbarResponsavel extends StatelessWidget {
         ),
         tileColor: isSelected
             ? azulPrincipal
-            : (titulo == 'Configurações' ? const Color(0xFFF1F5F9) : Colors.transparent),
+            : (titulo == 'Configurações' && !isSelected ? const Color(0xFFF1F5F9) : Colors.transparent),
         leading: Icon(
           icone,
-          color: isSelected ? Colors.white : (isSair ? Colors.grey[700] : Colors.grey[700]),
+          color: isSelected ? Colors.white : Colors.grey[700],
           size: 22,
         ),
         title: Text(
           titulo,
           style: TextStyle(
-            color: isSelected ? Colors.white : (isSair ? Colors.grey[800] : Colors.grey[800]),
+            color: isSelected ? Colors.white : Colors.grey[800],
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
             fontSize: 14.5,
           ),
         ),
         onTap: () async {
           Navigator.pop(context); // Fecha o Drawer
+
           if (isSair) {
             await AuthService.instance.sair();
             if (context.mounted) {
               Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
             }
-          } else if (rota == '/meu-perfil' || rota == '/meus-filhos') {
-            Navigator.pushNamed(context, rota);
+          } else if (rota == '/meu-perfil' || rota == '/meus-filhos' || rota == '/configuracoes') {
+            // Liberado a navegação para a tela de configurações!
+            if (!isSelected) {
+              Navigator.pushNamed(context, rota);
+            }
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Em breve!')),

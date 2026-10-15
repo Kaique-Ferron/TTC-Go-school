@@ -7,8 +7,8 @@ import '../telas/auth/recuperar_senha/recuperar_senha.dart';
 import '../telas/landpage/landpage-tela.dart';
 import '../telas/meu_perfil/tela_perfil.dart';
 import '../telas/meus_filhos/meus_filhos.dart';
+import '../telas/configuracoes/configuracoes_tela.dart'; // <--- Import corrigido com ../
 import 'auth_gate.dart';
-
 
 class GoSchoolApp extends StatelessWidget {
   const GoSchoolApp({super.key});
@@ -33,6 +33,7 @@ class GoSchoolApp extends StatelessWidget {
           '/landpage': (context) => const LandpageTela(),
           '/meu-perfil': (context) => const TelaPerfil(),
           '/meus-filhos': (context) => const MeusFilhosTela(),
+          '/configuracoes': (context) => const ConfiguracoesTela(),
         },
       ),
     );
