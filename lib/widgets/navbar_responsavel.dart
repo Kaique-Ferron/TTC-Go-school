@@ -3,7 +3,7 @@ import '../services/auth_service.dart';
 import 'logo_goschool.dart';
 
 class NavbarResponsavel extends StatelessWidget {
-  final String itemSelecionado; // Ex: 'Meu Perfil', 'Meus filhos', 'Configurações', etc.
+  final String itemSelecionado; // Ex: 'Meu Perfil', 'Meus filhos', 'Procurar Motorista', etc.
 
   const NavbarResponsavel({
     super.key,
@@ -27,8 +27,7 @@ class NavbarResponsavel extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(
                 children: [
-                  const LogoGoSchool(fontSize: 26, imageHeight: 58),
- 
+                  const LogoGoSchool(fontSize: 22),
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.all(4),
@@ -177,8 +176,10 @@ class NavbarResponsavel extends StatelessWidget {
             if (context.mounted) {
               Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
             }
-          } else if (rota == '/meu-perfil' || rota == '/meus-filhos' || rota == '/configuracoes') {
-            // Liberado a navegação para a tela de configurações!
+          } else if (rota == '/meu-perfil' ||
+                     rota == '/meus-filhos' ||
+                     rota == '/configuracoes' ||
+                     rota == '/procurar-motorista') {
             if (!isSelected) {
               Navigator.pushNamed(context, rota);
             }
