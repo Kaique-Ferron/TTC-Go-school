@@ -364,10 +364,10 @@ packages:
     dependency: transitive
     description:
       name: image_picker_android
-      sha256: "8a7823d5d3e884f7780829d85d92110d072bdcd9ed48e2be158d2abe91a912d4"
+      sha256: d5b3e1774af29c9ab00103afb0d4614070f924d2e0057ac867ec98800114793f
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.13+25"
+    version: "0.8.13+17"
   image_picker_for_web:
     dependency: transitive
     description:
@@ -528,6 +528,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
+  onesignal_flutter:
+    dependency: "direct main"
+    description:
+      name: onesignal_flutter
+      sha256: "93f33118978a68ab3ee4df936e71fc08cda0a2cce56cc89d9a32bbd9692d71ca"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.7.0"
   path:
     dependency: transitive
     description:
@@ -678,5 +686,5 @@ packages:
     source: hosted
     version: "2.0.0"
 sdks:
-  dart: ">=3.12.0 <4.0.0"
-  flutter: ">=3.44.0"
+  dart: ">=3.11.5 <4.0.0"
+  flutter: ">=3.41.0"

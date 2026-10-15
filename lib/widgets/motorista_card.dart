@@ -57,33 +57,39 @@ class MotoristaCard extends StatelessWidget {
                       : null,
                 ),
                 const SizedBox(width: 16),
-                
+
                 // Informações e detalhes
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(motorista.nome, style: _nameTextStyle),
-                      const SizedBox(height: 6),
-                      Wrap(
-                        spacing: 14,
-                        runSpacing: 4,
-                        children: [
-                          _buildDetailItem(Icons.check_circle, Colors.green, '${motorista.corridas} corridas'),
-                          _buildDetailItem(Icons.access_time_filled, const Color(0xFFFFC107), motorista.tempo),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
                       _buildDetailItem(
-                        Icons.badge,
+                        Icons.directions_bus_filled,
                         _primaryColor,
-                        'Registro ${motorista.crm}',
+                        '${motorista.veiculo} • ${motorista.placa}',
                         isHighlighted: true,
                       ),
+                      if (motorista.corridas.isNotEmpty || motorista.tempo.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Wrap(
+                          spacing: 14,
+                          runSpacing: 4,
+                          children: [
+                            if (motorista.corridas.isNotEmpty)
+                              _buildDetailItem(Icons.check_circle, Colors.green, '${motorista.corridas} corridas'),
+                            if (motorista.tempo.isNotEmpty)
+                              _buildDetailItem(Icons.access_time_filled, const Color(0xFFFFC107), motorista.tempo),
+                          ],
+                        ),
+                      ],
+                      const SizedBox(height: 6),
+                      _buildDetailItem(Icons.badge, Colors.grey[600]!, 'Registro ${motorista.crm}'),
                     ],
                   ),
                 ),
-                
+
                 // Ícone de navegação
                 const Icon(Icons.chevron_right, color: Colors.grey),
               ],
