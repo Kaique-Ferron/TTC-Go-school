@@ -1,14 +1,23 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+import '../models/conversa_model.dart';
 import '../models/filho.dart';
+import '../models/mensagem_model.dart';
 import '../models/mensalidade_model.dart';
 import '../models/motorista_model.dart';
 import '../models/usuario.dart';
 
 class FirestoreService {
-  FirestoreService._();
-  static final FirestoreService instance = FirestoreService._();
+  FirestoreService._(this._db);
+  static final FirestoreService instance = FirestoreService._(FirebaseFirestore.instance);
 
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  /// Construtor usado em testes de widget, pra injetar um FirebaseFirestore
+  /// fake (ex.: FakeFirebaseFirestore do pacote fake_cloud_firestore) em vez
+  /// do singleton real.
+  @visibleForTesting
+  factory FirestoreService.comInstancia(FirebaseFirestore db) => FirestoreService._(db);
+
+  final FirebaseFirestore _db;
 
   CollectionReference<Map<String, dynamic>> get _usuarios =>
       _db.collection('usuarios');
@@ -84,5 +93,84 @@ class FirestoreService {
       lote.set(ref, mensalidades[i].toMap());
     }
     await lote.commit();
+  }
+
+  // ===== Contratação (Responsável contrata um Motorista) =====
+  // Caminho: usuarios/{responsavelUid}/contratacoes/{contratacaoId}
+  // Ver firestore/MIGRATIONS.md para o schema completo.
+
+  Future<void> registrarContratacao(String responsavelUid, Map<String, dynamic> dados) {
+    return _usuarios.doc(responsavelUid).collection('contratacoes').add(dados);
+  }
+
+  // ===== Chat (conversas entre Responsável e Motorista) =====
+  // Caminho: conversas/{conversaId} e conversas/{conversaId}/mensagens/{mensagemId}.
+  // Ver firestore/MIGRATIONS.md para o schema completo.
+
+  CollectionReference<Map<String, dynamic>> get _conversas => _db.collection('conversas');
+
+  /// Id determinístico pra dupla (uidA, uidB): sempre os dois uids ordenados
+  /// e juntos com "_", então a mesma dupla sempre cai na mesma conversa.
+  String conversaIdPara(String uidA, String uidB) {
+    final ids = [uidA, uidB]..sort();
+    return '${ids[0]}_${ids[1]}';
+  }
+
+  /// Retorna o id da conversa entre os dois usuários, criando o documento
+  /// (com os nomes dos participantes) se ainda não existir.
+  Future<String> obterOuCriarConversa({
+    required String meuUid,
+    required String meuNome,
+    required String outroUid,
+    required String outroNome,
+  }) async {
+    final id = conversaIdPara(meuUid, outroUid);
+    final ref = _conversas.doc(id);
+    final doc = await ref.get();
+    if (!doc.exists) {
+      await ref.set({
+        'participantes': [meuUid, outroUid],
+        'participantesNomes': {meuUid: meuNome, outroUid: outroNome},
+        'ultimaMensagem': '',
+        'ultimaMensagemEm': FieldValue.serverTimestamp(),
+        'criadoEm': FieldValue.serverTimestamp(),
+      });
+    }
+    return id;
+  }
+
+  Stream<List<Conversa>> conversasStream(String uid) {
+    return _conversas.where('participantes', arrayContains: uid).snapshots().map((snap) {
+      final conversas = snap.docs.map((d) => Conversa.fromMap(d.id, d.data())).toList();
+      conversas.sort((a, b) {
+        if (a.ultimaMensagemEm == null) return 1;
+        if (b.ultimaMensagemEm == null) return -1;
+        return b.ultimaMensagemEm!.compareTo(a.ultimaMensagemEm!);
+      });
+      return conversas;
+    });
+  }
+
+  Stream<List<Mensagem>> mensagensStream(String conversaId) {
+    return _conversas.doc(conversaId).collection('mensagens').orderBy('enviadaEm').snapshots().map(
+          (snap) => snap.docs.map((d) => Mensagem.fromMap(d.id, d.data())).toList(),
+        );
+  }
+
+  Future<void> enviarMensagem({
+    required String conversaId,
+    required String remetenteUid,
+    required String texto,
+  }) async {
+    final ref = _conversas.doc(conversaId);
+    await ref.collection('mensagens').add({
+      'remetenteUid': remetenteUid,
+      'texto': texto,
+      'enviadaEm': FieldValue.serverTimestamp(),
+    });
+    await ref.update({
+      'ultimaMensagem': texto,
+      'ultimaMensagemEm': FieldValue.serverTimestamp(),
+    });
   }
 }

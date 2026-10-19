@@ -1,15 +1,53 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../models/motorista_model.dart';
+import '../services/firestore_service.dart';
+import '../telas/chat/tela_chat.dart';
 import '../telas/contratacao/tela_contratacao.dart';
 import '../theme/cores.dart';
 
 /// Modal exibido ao Responsável quando ele toca num motorista na aba
 /// Serviços — mostra foto de perfil, valor da mensalidade e quantas
 /// crianças o motorista já leva por período (manhã/tarde).
-class ModalDetalhesMotorista extends StatelessWidget {
+class ModalDetalhesMotorista extends StatefulWidget {
   final Motorista motorista;
 
   const ModalDetalhesMotorista({super.key, required this.motorista});
+
+  @override
+  State<ModalDetalhesMotorista> createState() => _ModalDetalhesMotoristaState();
+}
+
+class _ModalDetalhesMotoristaState extends State<ModalDetalhesMotorista> {
+  bool _abrindoChat = false;
+
+  Motorista get motorista => widget.motorista;
+
+  Future<void> _abrirChat(BuildContext context) async {
+    final meuUid = FirebaseAuth.instance.currentUser?.uid;
+    if (meuUid == null || motorista.uid.isEmpty) return;
+
+    setState(() => _abrindoChat = true);
+    try {
+      final meuUsuario = await FirestoreService.instance.usuarioStream(meuUid).first;
+      final conversaId = await FirestoreService.instance.obterOuCriarConversa(
+        meuUid: meuUid,
+        meuNome: meuUsuario?.nome.isNotEmpty == true ? meuUsuario!.nome : 'Responsável',
+        outroUid: motorista.uid,
+        outroNome: motorista.nome,
+      );
+      if (!context.mounted) return;
+      Navigator.pop(context);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => TelaChat(conversaId: conversaId, meuUid: meuUid, outroNome: motorista.nome),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _abrindoChat = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -128,24 +166,43 @@ class ModalDetalhesMotorista extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppCores.azulPrincipal,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      side: const BorderSide(color: AppCores.azulPrincipal),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: motorista.uid.isEmpty || _abrindoChat ? null : () => _abrirChat(context),
+                    icon: _abrindoChat
+                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppCores.azulPrincipal))
+                        : const Icon(Icons.chat_bubble_outline, color: AppCores.azulPrincipal, size: 18),
+                    label: const Text('Mensagem', style: TextStyle(color: AppCores.azulPrincipal, fontWeight: FontWeight.bold)),
+                  ),
                 ),
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => TelaContratacao(motorista: motorista)),
-                  );
-                },
-                icon: const Icon(Icons.check_circle_outline, color: Colors.white),
-                label: const Text('Contratar motorista', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppCores.azulPrincipal,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => TelaContratacao(motorista: motorista)),
+                      );
+                    },
+                    icon: const Icon(Icons.check_circle_outline, color: Colors.white),
+                    label: const Text('Contratar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

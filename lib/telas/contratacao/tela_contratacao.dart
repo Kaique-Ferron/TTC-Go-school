@@ -13,7 +13,20 @@ import '../../theme/cores.dart';
 class TelaContratacao extends StatefulWidget {
   final Motorista motorista;
 
-  const TelaContratacao({super.key, required this.motorista});
+  /// Sobrescritas usadas em testes de widget (injeta um uid e um
+  /// FirestoreService fake em vez dos singletons reais). Em produção ficam
+  /// nulas e a tela usa AuthService/FirestoreService normalmente.
+  @visibleForTesting
+  final String? uidParaTeste;
+  @visibleForTesting
+  final FirestoreService? servicoParaTeste;
+
+  const TelaContratacao({
+    super.key,
+    required this.motorista,
+    this.uidParaTeste,
+    this.servicoParaTeste,
+  });
 
   @override
   State<TelaContratacao> createState() => _TelaContratacaoState();
@@ -27,9 +40,20 @@ class _TelaContratacaoState extends State<TelaContratacao> {
   bool get _temManha => widget.motorista.criancasManha > 0;
   bool get _temTarde => widget.motorista.criancasTarde > 0;
 
+  String? get _uid => widget.uidParaTeste ?? AuthService.instance.uidAtual;
+  FirestoreService get _servico => widget.servicoParaTeste ?? FirestoreService.instance;
+
+  // Criado uma única vez em initState — se fosse recriado a cada build (ex.:
+  // ao marcar um filho ou trocar o período), o StreamBuilder reinterpretaria
+  // como uma troca de stream e voltaria a exibir o spinner de carregamento
+  // a cada toque, descartando a seleção visível momentaneamente.
+  Stream<List<Filho>>? _filhosStream;
+
   @override
   void initState() {
     super.initState();
+    final uid = _uid;
+    if (uid != null) _filhosStream = _servico.filhosStream(uid);
     // Pré-seleciona o único período disponível, se só tiver um.
     if (_temManha && !_temTarde) {
       _periodo = 'Manhã';
@@ -57,7 +81,7 @@ class _TelaContratacaoState extends State<TelaContratacao> {
       final filhosSelecionados = todosOsFilhos.where((f) => _filhosSelecionadosIds.contains(f.id)).toList();
       final valorTotal = widget.motorista.valorMensalidade * filhosSelecionados.length;
 
-      await FirebaseFirestore.instance.collection('usuarios').doc(uid).collection('contratacoes').add({
+      await _servico.registrarContratacao(uid, {
         'motoristaNome': widget.motorista.nome,
         'motoristaVeiculo': widget.motorista.veiculo,
         'motoristaPlaca': widget.motorista.placa,
@@ -126,7 +150,7 @@ class _TelaContratacaoState extends State<TelaContratacao> {
 
   @override
   Widget build(BuildContext context) {
-    final uid = AuthService.instance.uidAtual;
+    final uid = _uid;
     final m = widget.motorista;
 
     return Scaffold(
@@ -140,7 +164,7 @@ class _TelaContratacaoState extends State<TelaContratacao> {
       body: uid == null
           ? const Center(child: Text('Utilizador não autenticado.'))
           : StreamBuilder<List<Filho>>(
-              stream: FirestoreService.instance.filhosStream(uid),
+              stream: _filhosStream,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -233,15 +257,25 @@ class _TelaContratacaoState extends State<TelaContratacao> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  qtdSelecionados == 0
-                                      ? 'Nenhum filho selecionado'
-                                      : '$qtdSelecionados filho${qtdSelecionados == 1 ? '' : 's'} selecionado${qtdSelecionados == 1 ? '' : 's'}',
-                                  style: TextStyle(color: Colors.grey[600], fontSize: 12.5),
+                                Expanded(
+                                  child: Text(
+                                    qtdSelecionados == 0
+                                        ? 'Nenhum filho selecionado'
+                                        : '$qtdSelecionados filho${qtdSelecionados == 1 ? '' : 's'} selecionado${qtdSelecionados == 1 ? '' : 's'}',
+                                    style: TextStyle(color: Colors.grey[600], fontSize: 12.5),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                                Text(
-                                  'Total: R\$ ${total.toStringAsFixed(2).replaceAll('.', ',')}/mês',
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppCores.verde),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    'Total: R\$ ${total.toStringAsFixed(2).replaceAll('.', ',')}/mês',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppCores.verde),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.end,
+                                  ),
                                 ),
                               ],
                             ),
@@ -360,22 +394,29 @@ class _TelaContratacaoState extends State<TelaContratacao> {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: selecionado ? AppCores.azulPrincipal : Colors.grey.shade200, width: selecionado ? 1.6 : 1),
       ),
-      child: CheckboxListTile(
-        value: selecionado,
-        onChanged: (marcado) {
-          setState(() {
-            if (marcado == true && filho.id != null) {
-              _filhosSelecionadosIds.add(filho.id!);
-            } else {
-              _filhosSelecionadosIds.remove(filho.id);
-            }
-          });
-        },
-        activeColor: AppCores.azulPrincipal,
-        controlAffinity: ListTileControlAffinity.trailing,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        title: Text(filho.nome, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-        subtitle: Text('${filho.idadeEAno} • ${filho.escola}', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+      // Material(transparent) entre o Container colorido e o CheckboxListTile
+      // pra o ink splash do toque pintar por cima da cor de fundo, em vez de
+      // ficar invisível atrás dela.
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(14),
+        child: CheckboxListTile(
+          value: selecionado,
+          onChanged: (marcado) {
+            setState(() {
+              if (marcado == true && filho.id != null) {
+                _filhosSelecionadosIds.add(filho.id!);
+              } else {
+                _filhosSelecionadosIds.remove(filho.id);
+              }
+            });
+          },
+          activeColor: AppCores.azulPrincipal,
+          controlAffinity: ListTileControlAffinity.trailing,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          title: Text(filho.nome, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          subtitle: Text('${filho.idadeEAno} • ${filho.escola}', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+        ),
       ),
     );
   }
