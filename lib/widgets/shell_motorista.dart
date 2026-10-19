@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../telas/chat/tela_conversas.dart';
 import '../telas/motorista/tela_financas_motorista.dart';
 
 /// Shell responsivo compartilhado pelas telas do Motorista (Painel, Finanças, ...).
@@ -69,6 +70,8 @@ class _MenuMotorista extends StatelessWidget {
 
     if (destino == 'Finanças') {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaFinancasMotorista()));
+    } else if (destino == 'Mensagens') {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaConversas()));
     } else if (destino == 'Meu Perfil') {
       if (Navigator.canPop(context)) Navigator.pop(context);
     }
@@ -116,13 +119,12 @@ class _MenuMotorista extends StatelessWidget {
 
   Widget _buildMenuItem(BuildContext context, IconData icon, String title, {String? badge}) {
     final bool isSelected = title == itemSelecionado;
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFF1D58E2) : Colors.transparent,
-        borderRadius: BorderRadius.circular(10),
-      ),
+    // tileColor (em vez de pintar a cor num Container externo) deixa o
+    // próprio ListTile cuidar do Material/ink splash corretamente.
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: ListTile(
+        tileColor: isSelected ? const Color(0xFF1D58E2) : Colors.transparent,
         leading: Icon(icon, color: isSelected ? Colors.white : Colors.grey[600]),
         title: Text(
           title,

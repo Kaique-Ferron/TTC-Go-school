@@ -1,4 +1,5 @@
 class Motorista {
+  final String uid;
   final String nome;
   final String email;
   final String telefone;
@@ -21,6 +22,7 @@ class Motorista {
   final int criancasTarde;
 
   const Motorista({
+    this.uid = '',
     required this.nome,
     this.email = '',
     this.telefone = '',
@@ -43,6 +45,7 @@ class Motorista {
   // Converte os dados vindos do Firestore (Map) para o objeto Motorista
   factory Motorista.fromMap(Map<String, dynamic> map) {
     return Motorista(
+      uid: map['uid'] ?? '',
       nome: map['nome'] ?? '',
       email: map['email'] ?? '',
       telefone: map['telefone'] ?? '',
@@ -63,6 +66,7 @@ class Motorista {
   // Converte o objeto Motorista para salvar no Firestore
   Map<String, dynamic> toMap() {
     return {
+      'uid': uid,
       'nome': nome,
       'email': email,
       'telefone': telefone,
@@ -96,6 +100,7 @@ class Motorista {
     final semente = nome.isEmpty ? 0 : nome.codeUnits.fold<int>(0, (soma, c) => soma + c);
 
     return Motorista(
+      uid: (map['uid'] as String?) ?? '',
       nome: nome,
       corridas: '',
       tempo: '',

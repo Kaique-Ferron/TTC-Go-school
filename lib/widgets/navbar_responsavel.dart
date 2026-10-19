@@ -179,7 +179,8 @@ class NavbarResponsavel extends StatelessWidget {
           } else if (rota == '/meu-perfil' ||
                      rota == '/meus-filhos' ||
                      rota == '/configuracoes' ||
-                     rota == '/procurar-motorista') {
+                     rota == '/procurar-motorista' ||
+                     rota == '/chat') {
             if (!isSelected) {
               Navigator.pushNamed(context, rota);
             }

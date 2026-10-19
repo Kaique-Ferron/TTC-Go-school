@@ -12,7 +12,15 @@ import '../../widgets/shell_motorista.dart';
 /// dados de exemplo (ver MensalidadeRepository + FirestoreService.semearMensalidadesMock
 /// e firestore/MIGRATIONS.md para o schema).
 class TelaFinancasMotorista extends StatefulWidget {
-  const TelaFinancasMotorista({super.key});
+  /// Sobrescritas usadas em testes de widget (injeta um uid e um
+  /// FirestoreService fake em vez dos singletons reais). Em produção ficam
+  /// nulas e a tela usa AuthService/FirestoreService normalmente.
+  @visibleForTesting
+  final String? uidParaTeste;
+  @visibleForTesting
+  final FirestoreService? servicoParaTeste;
+
+  const TelaFinancasMotorista({super.key, this.uidParaTeste, this.servicoParaTeste});
 
   @override
   State<TelaFinancasMotorista> createState() => _TelaFinancasMotoristaState();
@@ -22,10 +30,24 @@ class _TelaFinancasMotoristaState extends State<TelaFinancasMotorista> {
   bool _semeando = false;
   String _filtro = 'Todos';
 
+  FirestoreService get _servico => widget.servicoParaTeste ?? FirestoreService.instance;
+
+  // Criado uma única vez — se fosse recriado a cada build (ex.: ao trocar o
+  // filtro Todos/Pagos/Pendentes), o StreamBuilder reinterpretaria como uma
+  // troca de stream e voltaria a exibir o spinner a cada toque.
+  Stream<List<Mensalidade>>? _mensalidadesStream;
+
+  @override
+  void initState() {
+    super.initState();
+    final uid = widget.uidParaTeste ?? AuthService.instance.uidAtual;
+    if (uid != null) _mensalidadesStream = _servico.mensalidadesStream(uid);
+  }
+
   Future<void> _semearDadosDeExemplo(String uid) async {
     setState(() => _semeando = true);
     try {
-      await FirestoreService.instance.semearMensalidadesMock(
+      await _servico.semearMensalidadesMock(
         uid,
         MensalidadeRepository.obterMensalidades(),
       );
@@ -36,14 +58,14 @@ class _TelaFinancasMotoristaState extends State<TelaFinancasMotorista> {
 
   @override
   Widget build(BuildContext context) {
-    final uid = AuthService.instance.uidAtual;
+    final uid = widget.uidParaTeste ?? AuthService.instance.uidAtual;
 
     return ShellMotorista(
       itemSelecionado: 'Finanças',
       builder: (context) => uid == null
           ? const Center(child: Text('Utilizador não autenticado.'))
           : StreamBuilder<List<Mensalidade>>(
-              stream: FirestoreService.instance.mensalidadesStream(uid),
+              stream: _mensalidadesStream,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -135,7 +157,15 @@ class _TelaFinancasMotoristaState extends State<TelaFinancasMotorista> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Histórico de pagamentos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const Expanded(
+                  child: Text(
+                    'Histórico de pagamentos',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
                 Text('${mensalidadesFiltradas.length}', style: TextStyle(color: Colors.grey[500], fontSize: 12, fontWeight: FontWeight.bold)),
               ],
             ),

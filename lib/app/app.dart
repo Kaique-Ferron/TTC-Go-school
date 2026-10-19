@@ -10,6 +10,7 @@ import '../telas/meus_filhos/meus_filhos.dart';
 import '../telas/configuracoes/configuracoes_tela.dart'; // <--- Import corrigido com ../
 import 'auth_gate.dart';
 import '../telas/procurar_motorista/procurar_motorista_tela.dart';
+import '../telas/chat/tela_conversas.dart';
 
 
 
@@ -41,6 +42,7 @@ class GoSchoolApp extends StatelessWidget {
           '/meus-filhos': (context) => const MeusFilhosTela(),
           '/configuracoes': (context) => const ConfiguracoesTela(),
           '/procurar-motorista': (context) => const ProcurarMotoristaTela(),
+          '/chat': (context) => const TelaConversas(),
         },
       ),
     );
