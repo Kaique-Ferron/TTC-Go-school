@@ -1,0 +1,18 @@
+# Flutter & Dart
+.dart_tool/
+.fvm/
+.pub-cache/
+.pub/
+build/
+
+# Web / Chrome Device temp files
+.dart_tool/chrome-device/
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# Android / iOS local configs
+android/local.properties
+ios/Flutter/Generated.xcconfig
