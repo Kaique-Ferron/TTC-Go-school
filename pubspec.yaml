@@ -26,6 +26,11 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+<<<<<<< HEAD
+=======
+  fake_cloud_firestore: ^4.3.0
+  firebase_auth_mocks: ^0.15.2
+>>>>>>> a7ce609ef0ec64c6a9b7ca168e2d94768a25a935
 
 dependency_overrides:
   firebase_core_web: 3.10.0
