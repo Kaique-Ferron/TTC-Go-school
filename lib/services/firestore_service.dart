@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import '../models/contato_chat.dart';
 import '../models/conversa_model.dart';
 import '../models/filho.dart';
 import '../models/mensagem_model.dart';
@@ -101,6 +102,44 @@ class FirestoreService {
 
   Future<void> registrarContratacao(String responsavelUid, Map<String, dynamic> dados) {
     return _usuarios.doc(responsavelUid).collection('contratacoes').add(dados);
+  }
+
+  /// Motoristas que o Responsável já contratou — vira a lista de contatos pra
+  /// começar uma conversa nova sem passar pela aba Serviços de novo.
+  Stream<List<ContatoChat>> meusMotoristasContratadosStream(String responsavelUid) {
+    return _usuarios.doc(responsavelUid).collection('contratacoes').snapshots().map((snap) {
+      final vistos = <String>{};
+      final lista = <ContatoChat>[];
+      for (final doc in snap.docs) {
+        final dados = doc.data();
+        final uid = dados['motoristaUid'] as String?;
+        if (uid == null || uid.isEmpty || !vistos.add(uid)) continue;
+        lista.add(ContatoChat(uid: uid, nome: (dados['motoristaNome'] as String?) ?? ''));
+      }
+      return lista;
+    });
+  }
+
+  /// Responsáveis que já contrataram esse motorista — via collectionGroup,
+  /// já que a contratação é gravada do lado do Responsável
+  /// (usuarios/{responsavelUid}/contratacoes). Precisa de um índice de
+  /// collection group pra 'motoristaUid' no Firestore (o próprio erro no
+  /// console, na primeira vez que rodar, traz o link pra criar).
+  Stream<List<ContatoChat>> meusResponsaveisStream(String motoristaUid) {
+    return _db
+        .collectionGroup('contratacoes')
+        .where('motoristaUid', isEqualTo: motoristaUid)
+        .snapshots()
+        .map((snap) {
+      final vistos = <String>{};
+      final lista = <ContatoChat>[];
+      for (final doc in snap.docs) {
+        final responsavelUid = doc.reference.parent.parent?.id;
+        if (responsavelUid == null || !vistos.add(responsavelUid)) continue;
+        lista.add(ContatoChat(uid: responsavelUid, nome: (doc.data()['responsavelNome'] as String?) ?? ''));
+      }
+      return lista;
+    });
   }
 
   // ===== Chat (conversas entre Responsável e Motorista) =====

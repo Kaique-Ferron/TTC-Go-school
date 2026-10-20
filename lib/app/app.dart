@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/sessao_provider.dart';
@@ -32,6 +33,22 @@ class GoSchoolApp extends StatelessWidget {
           useMaterial3: true,
           fontFamily: 'Roboto',
         ),
+        // Na Web, o app inteiro fica com a cara de um celular (mesma largura
+        // do cartão de login) centralizado na janela do navegador, em vez de
+        // esticar o layout mobile pela tela toda do computador.
+        builder: kIsWeb
+            ? (context, child) {
+                return ColoredBox(
+                  color: const Color(0xFFE2E6ED),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 430),
+                      child: child,
+                    ),
+                  ),
+                );
+              }
+            : null,
         home: const AuthGate(),
         routes: {
           '/selecao-perfil': (context) => const TelaSelecaoPerfil(),

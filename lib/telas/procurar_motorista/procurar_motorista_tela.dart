@@ -1,11 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/filho.dart';
+import '../../models/motorista_model.dart';
 import '../../services/firestore_service.dart';
 import '../../services/sessao_provider.dart';
 import '../../theme/cores.dart';
+import '../../widgets/modal_detalhes_motorista.dart';
 import '../../widgets/navbar_responsavel.dart';
 import '../../widgets/nav_inferior_responsavel.dart';
 import '../../widgets/card_motorista.dart';
@@ -23,69 +24,19 @@ class ProcurarMotoristaTela extends StatefulWidget {
 class _ProcurarMotoristaTelaState extends State<ProcurarMotoristaTela> {
   final TextEditingController _buscaController = TextEditingController();
   String _cidadeSelecionada = 'São Paulo, SP';
-
-  // Lista simulada de motoristas baseada no layout
-  final List<MotoristaModel> _motoristas = const [
-    MotoristaModel(
-      id: '1',
-      nome: 'Carlos Silva',
-      avaliacao: 4.9,
-      totalAvaliacoes: 128,
-      veiculo: 'Van Escolar - Renault Master',
-      escolasAtendidas: ['ETEC Albert Einstein', 'Colégio Objetivo'],
-      vagasDisponiveis: 8,
-    ),
-    MotoristaModel(
-      id: '2',
-      nome: 'Ricardo Lima',
-      avaliacao: 4.8,
-      totalAvaliacoes: 96,
-      veiculo: 'Van Escolar - Fiat Ducato',
-      escolasAtendidas: ['Colégio Batista', 'ETEC Zona Leste'],
-      vagasDisponiveis: 5,
-    ),
-    MotoristaModel(
-      id: '3',
-      nome: 'Fernanda Costa',
-      avaliacao: 4.9,
-      totalAvaliacoes: 74,
-      veiculo: 'Micro-ônibus - Volare V8',
-      escolasAtendidas: ['Colégio Ágape', 'Objetivo Morumbi'],
-      vagasDisponiveis: 6,
-    ),
-    MotoristaModel(
-      id: '4',
-      nome: 'João Santos',
-      avaliacao: 4.7,
-      totalAvaliacoes: 60,
-      veiculo: 'Van Escolar - Mercedes Sprinter',
-      escolasAtendidas: ['ETEC Albert Einstein', 'Colégio Integração'],
-      vagasDisponiveis: 7,
-    ),
-    MotoristaModel(
-      id: '5',
-      nome: 'Paulo Henrique',
-      avaliacao: 4.8,
-      totalAvaliacoes: 112,
-      veiculo: 'Van Escolar - Renault Master',
-      escolasAtendidas: ['Colégio Objetivo', 'ETEC Zona Leste'],
-      vagasDisponiveis: 4,
-    ),
-    MotoristaModel(
-      id: '6',
-      nome: 'Juliana Alves',
-      avaliacao: 4.9,
-      totalAvaliacoes: 88,
-      veiculo: 'Micro-ônibus - Volare Fly 10',
-      escolasAtendidas: ['Colégio Batista', 'Colégio Ágape'],
-      vagasDisponiveis: 3,
-    ),
-  ];
+  String _busca = '';
 
   @override
   void dispose() {
     _buscaController.dispose();
     super.dispose();
+  }
+
+  void _abrirDetalhes(Motorista motorista) {
+    showDialog(
+      context: context,
+      builder: (_) => ModalDetalhesMotorista(motorista: motorista),
+    );
   }
 
   void _abrirCadastrarFilho() {
@@ -198,9 +149,10 @@ class _ProcurarMotoristaTelaState extends State<ProcurarMotoristaTela> {
                                   Expanded(
                                     child: TextFormField(
                                       controller: _buscaController,
+                                      onChanged: (valor) => setState(() => _busca = valor.trim().toLowerCase()),
                                       style: const TextStyle(fontSize: 13),
                                       decoration: InputDecoration(
-                                        hintText: 'Pesquisar por nome, escola ou bairro...',
+                                        hintText: 'Pesquisar por nome...',
                                         prefixIcon: Icon(Icons.search, size: 18, color: Colors.grey.shade600),
                                         filled: true,
                                         fillColor: Colors.white,
@@ -231,31 +183,54 @@ class _ProcurarMotoristaTelaState extends State<ProcurarMotoristaTela> {
                               ),
                               const SizedBox(height: 20),
 
-                              // Cards dos Motoristas em Grid
-                              LayoutBuilder(
-                                builder: (context, gridConstraints) {
-                                  int columns = gridConstraints.maxWidth > 650 ? 2 : 1;
-                                  return GridView.builder(
-                                    shrinkWrap: true,
-                                    physics: const NeverScrollableScrollPhysics(),
-                                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: columns,
-                                      crossAxisSpacing: 14,
-                                      mainAxisSpacing: 14,
-                                      mainAxisExtent: 280,
-                                    ),
-                                    itemCount: _motoristas.length,
-                                    itemBuilder: (context, index) {
-                                      final motorista = _motoristas[index];
-                                      return CardMotorista(
-                                        motorista: motorista,
-                                        temFilhoCadastrado: temFilhos,
-                                        onSolicitarVaga: () {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text('Solicitação enviada para ${motorista.nome}!'),
-                                              backgroundColor: Colors.green,
-                                            ),
+                              // Cards dos Motoristas em Grid — dados reais do Firestore
+                              // (mesma fonte usada na aba Serviços).
+                              StreamBuilder<List<Motorista>>(
+                                stream: FirestoreService.instance.motoristasStream(),
+                                builder: (context, snapshotMotoristas) {
+                                  if (snapshotMotoristas.connectionState == ConnectionState.waiting) {
+                                    return const Padding(
+                                      padding: EdgeInsets.symmetric(vertical: 40),
+                                      child: Center(child: CircularProgressIndicator()),
+                                    );
+                                  }
+
+                                  final todos = snapshotMotoristas.data ?? [];
+                                  final motoristas = _busca.isEmpty
+                                      ? todos
+                                      : todos.where((m) => m.nome.toLowerCase().contains(_busca)).toList();
+
+                                  if (motoristas.isEmpty) {
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 40),
+                                      child: Center(
+                                        child: Text(
+                                          todos.isEmpty ? 'Nenhum motorista cadastrado ainda.' : 'Nenhum motorista encontrado pra "$_busca".',
+                                          style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                                        ),
+                                      ),
+                                    );
+                                  }
+
+                                  return LayoutBuilder(
+                                    builder: (context, gridConstraints) {
+                                      int columns = gridConstraints.maxWidth > 650 ? 2 : 1;
+                                      return GridView.builder(
+                                        shrinkWrap: true,
+                                        physics: const NeverScrollableScrollPhysics(),
+                                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                          crossAxisCount: columns,
+                                          crossAxisSpacing: 14,
+                                          mainAxisSpacing: 14,
+                                          mainAxisExtent: 280,
+                                        ),
+                                        itemCount: motoristas.length,
+                                        itemBuilder: (context, index) {
+                                          final motorista = motoristas[index];
+                                          return CardMotorista(
+                                            motorista: motorista,
+                                            temFilhoCadastrado: temFilhos,
+                                            onVerDetalhes: () => _abrirDetalhes(motorista),
                                           );
                                         },
                                       );

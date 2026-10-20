@@ -5,6 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+import '../../config/mapa_config.dart';
 import '../../theme/cores.dart';
 
 /// Tela para o Responsável marcar a localização da própria casa no mapa.
@@ -144,7 +145,7 @@ class _MapaCasaTelaState extends State<MapaCasaTela> {
             ),
             children: [
               TileLayer(
-                urlTemplate: 'https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png',
+                urlTemplate: MapaConfig.tileUrlTemplate,
                 userAgentPackageName: 'com.example.flutter_application_1',
               ),
               if (_posicaoCasa != null)

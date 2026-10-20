@@ -94,9 +94,11 @@ autogerado pelo Firestore, via `.add()`)
 
 | Campo              | Tipo       | Observação                                |
 |---------------------|-----------|---------------------------------------------|
+| `motoristaUid`       | string    | uid do motorista — ver nota abaixo            |
 | `motoristaNome`      | string    |                                               |
 | `motoristaVeiculo`   | string    |                                               |
 | `motoristaPlaca`     | string    |                                               |
+| `responsavelNome`    | string    | Nome do responsável no momento da contratação |
 | `filhosIds`          | array\<string\> | IDs dos documentos em `.../filhos`     |
 | `filhosNomes`        | array\<string\> | Nomes no momento da contratação        |
 | `periodo`            | string    | `'Manhã'` ou `'Tarde'`                        |
@@ -107,3 +109,29 @@ autogerado pelo Firestore, via `.add()`)
 
 Não precisa de seed — é criada organicamente pelo fluxo real de uso
 (Serviços → tocar no motorista → "Contratar motorista").
+
+`motoristaUid` e `responsavelNome` foram adicionados em 2026-10 (depois da
+coleção já existir) pra dar pro motorista consultar "quem me contratou" —
+ver seção 005. Contratações feitas antes disso não têm esses dois campos.
+
+---
+
+## 005 — "Meus contatos" do chat (consulta, não coleção nova)
+
+Criada em: 2026-10. Não é uma coleção nova — são duas consultas em cima da
+própria `contratacoes` (seção 004), usadas pela tela "Nova conversa"
+(`TelaNovoChat`) pra listar com quem dá pra começar um chat.
+
+Código: `lib/services/firestore_service.dart` →
+`meusMotoristasContratadosStream`, `meusResponsaveisStream`.
+
+- **Lado do Responsável**: lê a própria subcoleção
+  `usuarios/{meuUid}/contratacoes` e tira os `motoristaUid`/`motoristaNome`
+  distintos. Não precisa de índice especial.
+- **Lado do Motorista**: usa uma consulta **collection group** em
+  `contratacoes` filtrando por `motoristaUid == meuUid` (já que a
+  contratação só existe do lado do Responsável). **Precisa de um índice de
+  collection group pro campo `motoristaUid`** — na primeira vez que essa
+  consulta rodar no app de verdade, o erro no console do navegador traz um
+  link direto pra criar esse índice no Firebase Console; depois de criado
+  (leva alguns minutos), a consulta passa a funcionar.

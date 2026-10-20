@@ -80,11 +80,14 @@ class _TelaContratacaoState extends State<TelaContratacao> {
     try {
       final filhosSelecionados = todosOsFilhos.where((f) => _filhosSelecionadosIds.contains(f.id)).toList();
       final valorTotal = widget.motorista.valorMensalidade * filhosSelecionados.length;
+      final meuUsuario = await _servico.usuarioStream(uid).first;
 
       await _servico.registrarContratacao(uid, {
+        'motoristaUid': widget.motorista.uid,
         'motoristaNome': widget.motorista.nome,
         'motoristaVeiculo': widget.motorista.veiculo,
         'motoristaPlaca': widget.motorista.placa,
+        'responsavelNome': meuUsuario?.nome ?? '',
         'filhosIds': filhosSelecionados.map((f) => f.id).toList(),
         'filhosNomes': filhosSelecionados.map((f) => f.nome).toList(),
         'periodo': _periodo,

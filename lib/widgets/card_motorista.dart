@@ -1,42 +1,26 @@
 import 'package:flutter/material.dart';
+import '../models/motorista_model.dart';
 import '../theme/cores.dart';
 
-class MotoristaModel {
-  final String id;
-  final String nome;
-  final double avaliacao;
-  final int totalAvaliacoes;
-  final String veiculo;
-  final List<String> escolasAtendidas;
-  final int vagasDisponiveis;
-  final String? fotoUrl;
-
-  const MotoristaModel({
-    required this.id,
-    required this.nome,
-    required this.avaliacao,
-    required this.totalAvaliacoes,
-    required this.veiculo,
-    required this.escolasAtendidas,
-    required this.vagasDisponiveis,
-    this.fotoUrl,
-  });
-}
-
+/// Card de um motorista real (vindo do Firestore) na tela de "Procurar
+/// Motorista". Mostra só dados que realmente existem no cadastro — nada de
+/// "escolas atendidas" ou "total de avaliações" mockados.
 class CardMotorista extends StatelessWidget {
-  final MotoristaModel motorista;
+  final Motorista motorista;
   final bool temFilhoCadastrado;
-  final VoidCallback onSolicitarVaga;
+  final VoidCallback onVerDetalhes;
 
   const CardMotorista({
     super.key,
     required this.motorista,
     required this.temFilhoCadastrado,
-    required this.onSolicitarVaga,
+    required this.onVerDetalhes,
   });
 
   @override
   Widget build(BuildContext context) {
+    final vagas = motorista.criancasManha + motorista.criancasTarde;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -47,14 +31,17 @@ class CardMotorista extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Cabeçalho: Foto, Nome, Selo Verificado, Avaliação e Veículo
+          // Cabeçalho: Foto, Nome, Selo Verificado e Avaliação
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CircleAvatar(
                 radius: 28,
                 backgroundColor: AppCores.azulPrincipal.withValues(alpha: 0.1),
-                child: const Icon(Icons.person, size: 32, color: AppCores.azulPrincipal),
+                backgroundImage: motorista.fotoPerfil.isNotEmpty ? NetworkImage(motorista.fotoPerfil) : null,
+                child: motorista.fotoPerfil.isEmpty
+                    ? const Icon(Icons.person, size: 32, color: AppCores.azulPrincipal)
+                    : null,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -66,11 +53,7 @@ class CardMotorista extends StatelessWidget {
                         Expanded(
                           child: Text(
                             motorista.nome,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
+                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -81,22 +64,9 @@ class CardMotorista extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Text(
-                          '${motorista.avaliacao}',
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                        ),
+                        const Icon(Icons.star, size: 13, color: Colors.amber),
                         const SizedBox(width: 4),
-                        Row(
-                          children: List.generate(
-                            5,
-                            (index) => const Icon(Icons.star, size: 12, color: Colors.amber),
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '(${motorista.totalAvaliacoes})',
-                          style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-                        ),
+                        Text(motorista.avaliacao, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -106,7 +76,7 @@ class CardMotorista extends StatelessWidget {
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
-                            motorista.veiculo,
+                            '${motorista.veiculo} • ${motorista.placa}',
                             style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -120,34 +90,11 @@ class CardMotorista extends StatelessWidget {
           ),
 
           const SizedBox(height: 12),
-          Text(
-            'Escolas atendidas:',
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: 6),
-
-          // Chips com as escolas atendidas
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: motorista.escolasAtendidas.map((escola) {
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  escola,
-                  style: const TextStyle(fontSize: 10.5, color: Colors.black87, fontWeight: FontWeight.w500),
-                ),
-              );
-            }).toList(),
-          ),
+          Text('Registro: ${motorista.crm}', style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontWeight: FontWeight.w500)),
 
           const SizedBox(height: 12),
           Text(
-            '${motorista.vagasDisponiveis} vagas disponíveis',
+            '$vagas vaga${vagas == 1 ? '' : 's'} ${vagas == 1 ? 'disponível' : 'disponíveis'}',
             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.green),
           ),
           const SizedBox(height: 12),
@@ -156,7 +103,7 @@ class CardMotorista extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: temFilhoCadastrado ? onSolicitarVaga : null,
+              onPressed: temFilhoCadastrado ? onVerDetalhes : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: temFilhoCadastrado ? AppCores.azulPrincipal : Colors.grey.shade200,
                 elevation: 0,
@@ -164,12 +111,12 @@ class CardMotorista extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 10),
               ),
               icon: Icon(
-                temFilhoCadastrado ? Icons.send : Icons.lock_outlined,
+                temFilhoCadastrado ? Icons.visibility_outlined : Icons.lock_outlined,
                 size: 15,
                 color: temFilhoCadastrado ? Colors.white : Colors.grey.shade600,
               ),
               label: Text(
-                'Solicitar vaga',
+                'Ver detalhes',
                 style: TextStyle(
                   fontSize: 12.5,
                   fontWeight: FontWeight.bold,

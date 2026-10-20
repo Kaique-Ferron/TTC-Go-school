@@ -5,6 +5,7 @@ import 'logica-landpage.dart';
 import '../../services/firestore_service.dart';
 import '../../services/sessao_provider.dart';
 import '../../widgets/nav_inferior_responsavel.dart';
+import '../procurar_motorista/procurar_motorista_tela.dart';
 
 class LandpageTela extends StatefulWidget {
   const LandpageTela({super.key});
@@ -19,13 +20,17 @@ class _LandpageTelaState extends State<LandpageTela> {
 
   static const Color azulPrincipal = Color(0xFF1D58E2);
 
+  void _abrirProcurarMotorista() {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const ProcurarMotoristaTela()));
+  }
+
   // Ao clicar em "Encontrar uma Van": se o responsável ainda não cadastrou
   // nenhum filho, manda ele cadastrar primeiro em vez de mostrar a lista
   // de motoristas (não faz sentido contratar transporte sem um filho).
   Future<void> _aoClicarEncontrarVan() async {
     final uid = context.read<SessaoProvider>().uid;
     if (uid == null) {
-      setState(() => _abaSelecionada = 1);
+      _abrirProcurarMotorista();
       return;
     }
 
@@ -35,7 +40,7 @@ class _LandpageTelaState extends State<LandpageTela> {
     if (filhos.isEmpty) {
       Navigator.pushNamed(context, '/meus-filhos');
     } else {
-      setState(() => _abaSelecionada = 1);
+      _abrirProcurarMotorista();
     }
   }
 
@@ -74,7 +79,7 @@ class _LandpageTelaState extends State<LandpageTela> {
                       final bool isSelected = _abaSelecionada == index;
                       return Expanded(
                         child: GestureDetector(
-                          onTap: () => setState(() => _abaSelecionada = index),
+                          onTap: () => index == 1 ? _abrirProcurarMotorista() : setState(() => _abaSelecionada = index),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             padding: const EdgeInsets.symmetric(vertical: 10),
