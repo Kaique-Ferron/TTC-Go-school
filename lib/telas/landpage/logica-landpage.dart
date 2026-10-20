@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import '../../config/mapa_config.dart';
 import '../../models/motorista_model.dart';
 import '../../services/firestore_service.dart';
 import '../../widgets/modal_detalhes_motorista.dart';
@@ -241,11 +242,9 @@ class _MapaTrajeto extends StatelessWidget {
                       ),
                       children: [
                         TileLayer(
-                          // Tiles do Wikimedia Maps — dados do OpenStreetMap, servidos pela
-                          // infraestrutura da Wikimedia (mesmo servidor usado nos mapas da
-                          // Wikipédia). Gratuito, sem chave de API, e com CORS liberado de
-                          // verdade para apps rodando no navegador.
-                          urlTemplate: 'https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png',
+                          // Tiles do Mapbox (estilo "streets") — visual bem mais limpo que o
+                          // OSM puro. Token público, gratuito até 50 mil carregamentos/mês.
+                          urlTemplate: MapaConfig.tileUrlTemplate,
                           userAgentPackageName: 'com.example.flutter_application_1',
                         ),
                         PolylineLayer(

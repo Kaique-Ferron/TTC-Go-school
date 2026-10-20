@@ -234,7 +234,11 @@ class _CadastroMotoristaState extends State<CadastroMotorista> {
                     : cadastrarMotorista,
 
                 child: cadastrando
-                    ? const CircularProgressIndicator()
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
                     : const Text(
                         'CADASTRAR MOTORISTA',
                       ),

@@ -1,0 +1,355 @@
+<title>Tela Principal Completa</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@500;600&display=swap');
+
+:root{
+  --bg:#eef0f3; --surface:#ffffff; --surface-2:#f6f7f9; --border:#e4e6ea;
+  --ink:#0b0d12; --text:#14171c; --text-muted:#6b7280;
+  --azul:#1D58E2; --azul-d:#123B9E; --azul-10:rgba(29,88,226,.11); --azul-18:rgba(29,88,226,.18);
+  --laranja:#FF5C00; --laranja-d:#B33F00; --laranja-10:rgba(255,92,0,.12); --laranja-18:rgba(255,92,0,.2);
+  --verde:#15803d; --roxo:#9333EA; --ciano:#0EA5E9; --ambar:#F59E0B;
+  --shadow-lg: 0 40px 80px -30px rgba(10,12,18,.42);
+  --shadow-sheet: 0 -18px 44px -18px rgba(10,12,18,.3);
+  --shadow-card: 0 2px 5px rgba(10,12,18,.05), 0 14px 26px -16px rgba(10,12,18,.16);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0a0c10; --surface:#15181f; --surface-2:#1b1e26; --border:#262a34;
+    --ink:#f3f4f6; --text:#eceef1; --text-muted:#9aa1ad;
+    --shadow-lg: 0 40px 80px -30px rgba(0,0,0,.75);
+    --shadow-sheet: 0 -18px 44px -18px rgba(0,0,0,.65);
+    --shadow-card: 0 2px 5px rgba(0,0,0,.3), 0 14px 26px -16px rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0a0c10; --surface:#15181f; --surface-2:#1b1e26; --border:#262a34;
+  --ink:#f3f4f6; --text:#eceef1; --text-muted:#9aa1ad;
+  --shadow-lg: 0 40px 80px -30px rgba(0,0,0,.75);
+  --shadow-sheet: 0 -18px 44px -18px rgba(0,0,0,.65);
+  --shadow-card: 0 2px 5px rgba(0,0,0,.3), 0 14px 26px -16px rgba(0,0,0,.45);
+}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Roboto',system-ui,sans-serif;padding:0 0 90px}
+.wrap{max-width:1280px;margin:0 auto;padding:52px 28px 0}
+code{font-family:'Roboto Mono',monospace}
+svg{display:block}
+
+.eyebrow{font-family:'Roboto Mono',monospace;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--azul)}
+h1{font-size:clamp(30px,4.2vw,46px);font-weight:900;margin:12px 0 16px;letter-spacing:-.025em;line-height:1.06;text-wrap:balance;color:var(--ink)}
+h1 .az{color:var(--azul)} h1 .la{color:var(--laranja)}
+.lede{max-width:700px;color:var(--text-muted);font-size:16px;line-height:1.6}
+.lede b{color:var(--text)}
+
+.gallery{margin-top:54px;display:grid;grid-template-columns:1fr 1fr;gap:46px}
+@media (max-width:980px){.gallery{grid-template-columns:1fr;max-width:420px;margin-left:auto;margin-right:auto}}
+
+.col-head{margin-bottom:20px}
+.col-head .who{display:inline-flex;align-items:center;gap:7px;font-family:'Roboto Mono',monospace;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:20px}
+.col-head.az .who{color:var(--azul);background:var(--azul-10)}
+.col-head.la .who{color:var(--laranja);background:var(--laranja-10)}
+.col-head h2{margin:10px 0 4px;font-size:23px;font-weight:900;letter-spacing:-.01em;color:var(--ink)}
+.col-head p{margin:0;font-size:13.5px;color:var(--text-muted);max-width:360px;line-height:1.5}
+
+.phone-stage{display:flex;justify-content:center}
+.phone{width:100%;max-width:368px;border-radius:40px;padding:12px;background:linear-gradient(160deg,#2a2e36,#0c0d10);box-shadow:var(--shadow-lg);position:relative}
+.phone::before{content:"";position:absolute;inset:12px;border-radius:30px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);pointer-events:none;z-index:5}
+.screen{border-radius:30px;overflow:hidden;background:var(--surface-2);min-height:900px;position:relative;display:flex;flex-direction:column}
+.notch{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:84px;height:20px;background:#0c0d10;border-radius:12px;z-index:6}
+
+/* ---- map ---- */
+.map{position:relative;height:230px;overflow:hidden;flex:none}
+.map svg{width:100%;height:100%}
+.float-btn{position:absolute;width:38px;height:38px;border-radius:50%;background:var(--surface);box-shadow:var(--shadow-card);display:flex;align-items:center;justify-content:center;z-index:2}
+.float-btn.tl{top:16px;left:16px}
+.float-btn.tr{top:16px;right:16px}
+.toggle-pill{position:absolute;top:16px;left:62px;right:62px;z-index:2;color:#fff;border-radius:26px;padding:9px 14px;display:flex;align-items:center;justify-content:center;gap:7px;font-size:12px;font-weight:800;box-shadow:var(--shadow-card)}
+.toggle-pill .dot{width:7px;height:7px;border-radius:50%;background:#4ade80}
+.pin{position:absolute;display:flex;align-items:center;justify-content:center}
+.pin .dot-outer{width:28px;height:28px;border-radius:50%;background:var(--surface);box-shadow:var(--shadow-card);display:flex;align-items:center;justify-content:center}
+.pin .dot-inner{width:10px;height:10px;border-radius:50%}
+.van-pin{width:30px;height:30px;border-radius:50%;box-shadow:var(--shadow-card);display:flex;align-items:center;justify-content:center;position:absolute}
+
+/* ---- hero strip under map, full color ---- */
+.hero-strip{position:relative;z-index:3;margin-top:-26px;border-radius:26px 26px 0 0;padding:20px 18px 16px;color:#fff;overflow:hidden}
+.hero-strip.az{background:linear-gradient(120deg,var(--azul-d),var(--azul) 65%,#3b7bff)}
+.hero-strip.la{background:linear-gradient(120deg,var(--laranja-d),var(--laranja) 65%,#ff8a42)}
+.hero-strip::after{content:"";position:absolute;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.08);top:-80px;right:-40px}
+.hs-row{display:flex;align-items:center;gap:12px;position:relative;z-index:2}
+.avatar{width:50px;height:50px;border-radius:16px;flex:none;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;color:#fff;background:rgba(255,255,255,.2);box-shadow:0 0 0 2px rgba(255,255,255,.35) inset}
+.hs-row .name{font-size:18px;font-weight:900;letter-spacing:-.01em}
+.hs-row .sub{font-size:11.5px;opacity:.9;margin-top:2px;font-weight:600}
+.stars{display:flex;align-items:center;gap:2px;margin-top:6px}
+.stars svg{width:12px;height:12px}
+.stars .score{font-size:12px;font-weight:800;margin-left:5px}
+.stars .count{font-size:10.5px;opacity:.78;font-weight:500}
+.status-line{position:relative;z-index:2;margin-top:14px;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.16);padding:8px 13px;border-radius:14px;font-size:12px;font-weight:700}
+.pulse{width:7px;height:7px;border-radius:50%;background:#4ade80;flex:none}
+
+/* ---- sheet body ---- */
+.body{flex:1;background:var(--surface);padding:18px 16px 24px;display:flex;flex-direction:column;gap:14px}
+
+.actions{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.action{border-radius:16px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:7px;box-shadow:var(--shadow-card);position:relative}
+.action.az{background:var(--azul-10)} .action.la{background:var(--laranja-10)}
+.action.neutral{background:var(--surface-2)}
+.action svg{width:18px;height:18px}
+.action.az svg{stroke:var(--azul-d)} .action.la svg{stroke:var(--laranja-d)} .action.neutral svg{stroke:var(--text)}
+.action span{font-size:9.5px;font-weight:800;color:var(--text);text-align:center;line-height:1.2}
+.action .pip{position:absolute;top:8px;right:14px;width:8px;height:8px;border-radius:50%;background:#dc2626;box-shadow:0 0 0 2px var(--surface)}
+
+.card{border-radius:18px;padding:16px;box-shadow:var(--shadow-card);background:var(--surface)}
+.card.tint-az{background:linear-gradient(160deg,var(--azul-10),var(--surface) 55%)}
+.card.tint-la{background:linear-gradient(160deg,var(--laranja-10),var(--surface) 55%)}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.card-head h3{margin:0;font-size:13.5px;font-weight:900;color:var(--text)}
+.card-head .meta{font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:20px}
+.meta.az{color:var(--azul);background:var(--azul-18)} .meta.la{color:var(--laranja-d);background:var(--laranja-18)}
+
+.tabs{display:flex;gap:4px;background:var(--surface-2);border-radius:11px;padding:3px}
+.tab{flex:1;text-align:center;padding:8px 0;border-radius:9px;font-size:11.5px;font-weight:800;color:var(--text-muted)}
+.tab.on.az{background:var(--azul);color:#fff} .tab.on.la{background:var(--laranja);color:#fff}
+.earn{display:flex;align-items:baseline;gap:9px;margin-top:4px}
+.earn .num{font-size:32px;font-weight:900;letter-spacing:-.02em}
+.earn .num.az{color:var(--azul-d)} .earn .num.la{color:var(--laranja-d)}
+.earn .meta2{font-size:12px;color:var(--text-muted);font-weight:700}
+
+.resumo-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.resumo{border-radius:14px;padding:13px;display:flex;flex-direction:column;gap:6px}
+.resumo svg{width:16px;height:16px}
+.resumo .lbl{font-size:9.5px;color:var(--text-muted);font-weight:800;text-transform:uppercase;letter-spacing:.02em}
+.resumo .val{font-size:19px;font-weight:900;color:var(--text)}
+.resumo .val .unit{font-size:11px;font-weight:700;color:var(--text-muted)}
+
+.passenger{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.passenger:last-child{border-bottom:none}
+.passenger .pav{width:32px;height:32px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11.5px;color:#fff}
+.passenger b{font-size:13px;color:var(--text);display:block;font-weight:800}
+.passenger span{font-size:11px;color:var(--text-muted)}
+.passenger .time{font-size:12px;font-weight:800}
+.passenger .time.az{color:var(--azul)} .passenger .time.la{color:var(--laranja-d)}
+.chip-period{margin-left:auto;font-size:10px;font-weight:800;padding:4px 9px;border-radius:20px}
+
+.pay-row{display:flex;align-items:center;justify-content:space-between}
+.pay-row .amount{font-size:20px;font-weight:900;color:var(--ink)}
+.pay-row .badge{font-size:10.5px;font-weight:800;padding:4px 10px;border-radius:20px}
+.badge.az{background:var(--azul-18);color:var(--azul-d)} .badge.la{background:var(--laranja-18);color:var(--laranja-d)}
+
+.review-card{border-radius:18px;padding:14px 15px;display:flex;gap:11px;align-items:center;background:linear-gradient(135deg,rgba(245,158,11,.14),rgba(245,158,11,.03));border:1.5px dashed #ecc26a}
+.review-card .ic{font-size:22px}
+.review-card b{font-size:12.5px;color:#8a5a0a;display:block}
+.review-card span{font-size:10.5px;color:#a9772a;line-height:1.35}
+
+.checklist{display:flex;flex-direction:column;gap:10px}
+.cl-row{display:flex;align-items:center;gap:9px}
+.cl-box{width:18px;height:18px;border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center}
+.cl-box.done.az{background:var(--azul)} .cl-box.done.la{background:var(--laranja)}
+.cl-box.pend{border:2px solid var(--border)}
+.cl-row span{font-size:12.5px;color:var(--text);font-weight:600}
+.cl-row span.done{color:var(--text-muted);text-decoration:line-through;font-weight:500}
+
+.footnote{margin-top:22px;display:flex;flex-direction:column;gap:9px}
+.footnote .f{display:flex;gap:9px;font-size:12.5px;color:var(--text-muted);line-height:1.5}
+.footnote b{color:var(--text)}
+.footnote .n{flex:none;width:17px;height:17px;border-radius:50%;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:var(--text-muted)}
+
+.rail{margin-top:72px;background:var(--surface);border-radius:22px;padding:28px 30px;box-shadow:var(--shadow-card);border:1px solid var(--border)}
+.rail h3{margin:0 0 6px;font-size:16px;font-weight:900;color:var(--ink)}
+.rail p{margin:0 0 16px;font-size:13.5px;color:var(--text-muted);max-width:680px;line-height:1.55}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{font-family:'Roboto Mono',monospace;font-size:11px;font-weight:600;background:var(--surface-2);border:1px solid var(--border);color:var(--text-muted);padding:5px 11px;border-radius:20px}
+.pill.new{color:#0b6fa8;background:rgba(14,165,233,.1);border-color:transparent}
+
+footer{max-width:1280px;margin:56px auto 0;padding:0 28px;font-size:12.5px;color:var(--text-muted);border-top:1px solid var(--border);padding-top:20px}
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">GoSchool · versão final — tudo junto</div>
+  <h1>Mapa do Uber. Conteúdo das três versões.<br><span class="az">Azul</span> é a família. <span class="la">Laranja</span> é a van.</h1>
+  <p class="lede">
+    Juntei as três tentativas: a estrutura de mapa + folha (referência Uber), o conteúdo cheio da segunda
+    versão (pagamento, filhos, checklist, avaliação) e, agora, a cor dominante de cada perfil puxada com
+    mais força — <b>azul no Responsável, laranja no Motorista</b> — nos cabeçalhos, chips, botões e abas,
+    não só num pontinho de destaque.
+  </p>
+
+  <div class="gallery">
+    <!-- RESPONSÁVEL — AZUL -->
+    <div>
+      <div class="col-head az">
+        <span class="who">● Responsável</span>
+        <h2>"Sua van", de ponta a ponta em azul</h2>
+        <p>Mapa, motorista, filhos, pagamento e avaliação — tudo numa folha só, com o azul do perfil presente em cada seção, não só no cabeçalho.</p>
+      </div>
+      <div class="phone-stage">
+        <div class="phone"><div class="screen">
+          <div class="notch"></div>
+          <div class="map">
+            <svg viewBox="0 0 360 230" preserveAspectRatio="xMidYMid slice">
+              <rect width="360" height="230" fill="#d7e3ff"/>
+              <g stroke="#ffffff" stroke-width="7" opacity=".95">
+                <path d="M-10 50 H370"/><path d="M-10 120 H370"/><path d="M-10 195 H370"/>
+                <path d="M60 -10 V240"/><path d="M160 -10 V240"/><path d="M270 -10 V240"/>
+              </g>
+              <path d="M58 185 C 95 150, 85 110, 145 95 S 235 70, 258 42" fill="none" stroke="#1D58E2" stroke-width="5" stroke-linecap="round" stroke-dasharray="1 13"/>
+            </svg>
+            <div class="pin" style="top:160px;left:40px"><div class="dot-outer"><div class="dot-inner" style="background:#14171c"></div></div></div>
+            <div class="pin" style="top:28px;left:240px"><div class="dot-outer"><div class="dot-inner" style="background:#1D58E2"></div></div></div>
+            <div class="van-pin" style="top:92px;left:150px;background:#1D58E2">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M3 11l1.5-4.5A2 2 0 0 1 6.4 5h8.2a2 2 0 0 1 1.9 1.5L18 11"/><path d="M3 11h18v5a1 1 0 0 1-1 1h-1a2 2 0 1 1-4 0H9a2 2 0 1 1-4 0H4a1 1 0 0 1-1-1z"/></svg>
+            </div>
+            <div class="float-btn tl"><svg viewBox="0 0 24 24" fill="none" stroke="#14171c" stroke-width="2" stroke-linecap="round" width="18" height="18"><path d="M4 6h16M4 12h16M4 18h16"/></svg></div>
+            <div class="float-btn tr"><svg viewBox="0 0 24 24" fill="none" stroke="#14171c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
+          </div>
+
+          <div class="hero-strip az">
+            <div class="hs-row">
+              <div class="avatar">CA</div>
+              <div>
+                <div class="name">Carlos Andrade</div>
+                <div class="sub">Van Mercedes · ABC1D23</div>
+                <div class="stars">
+                  <svg viewBox="0 0 20 20" fill="#FFC107"><path d="M10 1l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L10 15l-5.6 3.1 1.4-6.3L1 7.5l6.4-.6z"/></svg>
+                  <svg viewBox="0 0 20 20" fill="#FFC107"><path d="M10 1l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L10 15l-5.6 3.1 1.4-6.3L1 7.5l6.4-.6z"/></svg>
+                  <svg viewBox="0 0 20 20" fill="#FFC107"><path d="M10 1l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L10 15l-5.6 3.1 1.4-6.3L1 7.5l6.4-.6z"/></svg>
+                  <svg viewBox="0 0 20 20" fill="#FFC107"><path d="M10 1l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L10 15l-5.6 3.1 1.4-6.3L1 7.5l6.4-.6z"/></svg>
+                  <svg viewBox="0 0 20 20" fill="#FFC107"><path d="M10 1l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L10 15l-5.6 3.1 1.4-6.3L1 7.5l6.4-.6z"/></svg>
+                  <span class="score">4.9</span><span class="count">(24)</span>
+                </div>
+              </div>
+            </div>
+            <div class="status-line"><span class="pulse"></span>Rota da manhã · chegando em 8 min</div>
+          </div>
+
+          <div class="body">
+            <div class="actions">
+              <div class="action az"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Mensagem</span><div class="pip"></div></div>
+              <div class="action az"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 3a2 2 0 0 1-.5 2.1L8 10a16 16 0 0 0 6 6l1.2-1.3a2 2 0 0 1 2.1-.5c1 .3 2 .5 3 .7a2 2 0 0 1 1.7 2z"/></svg><span>Ligar</span></div>
+              <div class="action neutral"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span>Contrato</span></div>
+              <div class="action neutral"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4M3 12v-2a4 4 0 0 1 4-4h14M7 22l-4-4 4-4M21 12v2a4 4 0 0 1-4 4H3"/></svg><span>Trocar</span></div>
+            </div>
+
+            <div class="card tint-az">
+              <div class="card-head"><h3>Quem a van leva</h3><span class="meta az">Manhã</span></div>
+              <div class="passenger"><div class="pav" style="background:var(--roxo)">A</div><div style="flex:1"><b>Ana, 8 anos</b><span>Esc. Municipal Dom Pedro</span></div><div class="time az">07:00</div></div>
+              <div class="passenger"><div class="pav" style="background:var(--ciano)">T</div><div style="flex:1"><b>Theo, 6 anos</b><span>Esc. Municipal Dom Pedro</span></div><div class="time az">07:00</div></div>
+            </div>
+
+            <div class="card">
+              <div class="card-head"><h3>Mensalidade</h3></div>
+              <div class="pay-row"><div class="amount">R$ 300,00<span style="font-size:11px;color:var(--text-muted);font-weight:700"> /mês</span></div><div class="badge az">ativa</div></div>
+            </div>
+
+            <div class="review-card">
+              <div class="ic">⭐</div>
+              <div><b>Já andou de van com o Carlos?</b><span>Avalie em 10 segundos — ajuda outras famílias a escolher.</span></div>
+            </div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+    <!-- MOTORISTA — LARANJA -->
+    <div>
+      <div class="col-head la">
+        <span class="who">● Motorista</span>
+        <h2>Painel, de ponta a ponta em laranja</h2>
+        <p>Mapa das paradas, toggle de disponibilidade, ganhos e passageiros — mesma estrutura, cor do motorista em cada ponto de ação.</p>
+      </div>
+      <div class="phone-stage">
+        <div class="phone"><div class="screen">
+          <div class="notch"></div>
+          <div class="map">
+            <svg viewBox="0 0 360 230" preserveAspectRatio="xMidYMid slice">
+              <rect width="360" height="230" fill="#ffe3cf"/>
+              <g stroke="#ffffff" stroke-width="7" opacity=".95">
+                <path d="M-10 60 H370"/><path d="M-10 130 H370"/><path d="M-10 195 H370"/>
+                <path d="M90 -10 V240"/><path d="M200 -10 V240"/><path d="M300 -10 V240"/>
+              </g>
+              <path d="M50 182 C 85 150, 68 112, 135 100 S 225 108, 245 70 S 292 46, 310 30" fill="none" stroke="#FF5C00" stroke-width="5" stroke-linecap="round"/>
+            </svg>
+            <div class="pin" style="top:168px;left:32px"><div class="dot-outer"><div class="dot-inner" style="background:var(--roxo)"></div></div></div>
+            <div class="pin" style="top:84px;left:122px"><div class="dot-outer"><div class="dot-inner" style="background:var(--ciano)"></div></div></div>
+            <div class="pin" style="top:18px;left:294px"><div class="dot-outer"><div class="dot-inner" style="background:#14171c"></div></div></div>
+            <div class="float-btn tl"><svg viewBox="0 0 24 24" fill="none" stroke="#14171c" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></div>
+            <div class="toggle-pill" style="background:var(--laranja-d)"><span class="dot"></span>Disponível p/ novas famílias</div>
+          </div>
+
+          <div class="hero-strip la">
+            <div class="hs-row">
+              <div class="avatar">CA</div>
+              <div>
+                <div class="name">Carlos Andrade</div>
+                <div class="sub">4 passageiros ativos</div>
+                <div class="stars">
+                  <svg viewBox="0 0 20 20" fill="#FFC107"><path d="M10 1l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L10 15l-5.6 3.1 1.4-6.3L1 7.5l6.4-.6z"/></svg>
+                  <svg viewBox="0 0 20 20" fill="#FFC107"><path d="M10 1l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L10 15l-5.6 3.1 1.4-6.3L1 7.5l6.4-.6z"/></svg>
+                  <svg viewBox="0 0 20 20" fill="#FFC107"><path d="M10 1l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L10 15l-5.6 3.1 1.4-6.3L1 7.5l6.4-.6z"/></svg>
+                  <svg viewBox="0 0 20 20" fill="#FFC107"><path d="M10 1l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L10 15l-5.6 3.1 1.4-6.3L1 7.5l6.4-.6z"/></svg>
+                  <svg viewBox="0 0 20 20" fill="#FFC107"><path d="M10 1l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L10 15l-5.6 3.1 1.4-6.3L1 7.5l6.4-.6z"/></svg>
+                  <span class="score">4.9</span><span class="count">(24)</span>
+                </div>
+              </div>
+            </div>
+            <div class="status-line"><span class="pulse"></span>Próxima rota · Manhã, 07:00</div>
+          </div>
+
+          <div class="body">
+            <div class="card tint-la">
+              <div class="card-head"><h3>Ganhos</h3></div>
+              <div class="tabs">
+                <div class="tab on la">Hoje</div><div class="tab">Semana</div><div class="tab">Mês</div>
+              </div>
+              <div class="earn"><div class="num la">R$ 1.350</div><div class="meta2">4 passageiros · 3 conversas</div></div>
+            </div>
+
+            <div class="card">
+              <div class="card-head"><h3>Resumo real</h3><span class="meta la">este mês</span></div>
+              <div class="resumo-grid">
+                <div class="resumo" style="background:var(--laranja-10)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--laranja-d)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/><path d="M21 21v-2a4 4 0 0 0-3-3.9"/></svg><div class="lbl">Passageiros</div><div class="val">4</div></div>
+                <div class="resumo" style="background:var(--surface-2)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><div class="lbl">Conversas</div><div class="val">3</div></div>
+                <div class="resumo" style="background:var(--laranja-10)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--laranja-d)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><div class="lbl">Recebido</div><div class="val">1.350<span class="unit"> R$</span></div></div>
+                <div class="resumo" style="background:var(--surface-2)"><svg viewBox="0 0 20 20" fill="#F59E0B"><path d="M10 1l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L10 15l-5.6 3.1 1.4-6.3L1 7.5l6.4-.6z"/></svg><div class="lbl">Avaliação</div><div class="val">4.9<span class="unit"> /5</span></div></div>
+              </div>
+            </div>
+
+            <div class="card tint-la">
+              <div class="card-head"><h3>Próximas crianças</h3><span class="meta la">07:00</span></div>
+              <div class="passenger"><div class="pav" style="background:var(--roxo)">A</div><div style="flex:1"><b>Ana Beatriz</b><span>Resp.: Marcos Silva</span></div><div class="chip-period" style="background:var(--laranja-18);color:var(--laranja-d)">Manhã</div></div>
+              <div class="passenger"><div class="pav" style="background:var(--ciano)">T</div><div style="flex:1"><b>Theo Martins</b><span>Resp.: Juliana Alves</span></div><div class="chip-period" style="background:var(--laranja-18);color:var(--laranja-d)">Manhã</div></div>
+            </div>
+
+            <div class="card">
+              <div class="card-head"><h3>Perfil</h3><span class="meta la">3/4 completo</span></div>
+              <div class="checklist">
+                <div class="cl-row"><div class="cl-box done la"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" width="11" height="11"><path d="M20 6L9 17l-5-5"/></svg></div><span class="done">Veículo e placa</span></div>
+                <div class="cl-row"><div class="cl-box done la"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" width="11" height="11"><path d="M20 6L9 17l-5-5"/></svg></div><span class="done">Foto de perfil</span></div>
+                <div class="cl-row"><div class="cl-box pend"></div><span>Telefone de contato</span></div>
+              </div>
+            </div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rail">
+    <h3>O que é reaproveitado vs. o que é novo</h3>
+    <p>A maior parte do conteúdo já existe em alguma tela do app — a mudança real é de linguagem visual e de cor por perfil. Três peças são genuinamente novas.</p>
+    <div class="pills">
+      <span class="pill">mensalidades (Finanças)</span>
+      <span class="pill">filhos</span>
+      <span class="pill">conversas/mensagens (Chat)</span>
+      <span class="pill">contratacoes</span>
+      <span class="pill new">+ avaliacoes (nova subcoleção)</span>
+      <span class="pill new">+ contratacoes.motoristaUid (novo campo)</span>
+      <span class="pill new">+ "Disponível"/"Ligar" (toggle + url_launcher)</span>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Preview conceitual — nenhum arquivo do app foi alterado ainda. Pra bater exatamente com o app, o azul e o
+  laranja aqui são os mesmos de <code>AppCores.azulPrincipal</code> e <code>AppCores.laranjaMotorista</code>,
+  só que aplicados em mais lugares (abas, chips, fundo tingido dos cards) em vez de só no cabeçalho.
+</footer>

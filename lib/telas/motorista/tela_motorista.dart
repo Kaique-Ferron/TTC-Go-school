@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/motorista_model.dart';
@@ -407,18 +408,27 @@ class TelaMotorista extends StatelessWidget {
       source: ImageSource.gallery,
       imageQuality: 70,
     );
+    if (imagemSelecionada == null) return;
 
-    if (imagemSelecionada != null) {
-      final caminhoOuUrl = imagemSelecionada.path;
+    // Faz upload de verdade pro Firebase Storage e salva a URL real. O
+    // XFile.path, na Web, é só um "blob:" temporário do navegador — salvar
+    // ele direto no Firestore quebra a foto assim que a aba fecha.
+    try {
+      final bytes = await imagemSelecionada.readAsBytes();
+      final ref = FirebaseStorage.instance.ref('fotos_perfil/$uid.jpg');
+      await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
+      final url = await ref.getDownloadURL();
 
-      await FirebaseFirestore.instance
-          .collection('usuarios')
-          .doc(uid)
-          .update({'fotoPerfil': caminhoOuUrl});
+      await FirebaseFirestore.instance.collection('usuarios').doc(uid).update({'fotoPerfil': url});
 
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Foto de perfil atualizada com sucesso!')),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Não foi possível enviar a foto: $e'), backgroundColor: Colors.red),
       );
     }
   }
