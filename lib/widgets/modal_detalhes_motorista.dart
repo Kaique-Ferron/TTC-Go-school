@@ -58,7 +58,8 @@ class _ModalDetalhesMotoristaState extends State<ModalDetalhesMotorista> {
       child: Container(
         constraints: const BoxConstraints(maxWidth: 420),
         padding: const EdgeInsets.all(24),
-        child: Column(
+        child: SingleChildScrollView(
+          child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -205,6 +206,7 @@ class _ModalDetalhesMotoristaState extends State<ModalDetalhesMotorista> {
               ],
             ),
           ],
+          ),
         ),
       ),
     );
