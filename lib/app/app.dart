@@ -12,6 +12,7 @@ import '../telas/configuracoes/configuracoes_tela.dart'; // <--- Import corrigid
 import 'auth_gate.dart';
 import '../telas/procurar_motorista/procurar_motorista_tela.dart';
 import '../telas/chat/tela_conversas.dart';
+import '../telas/painel_principal/painel_principal_tela.dart';
 
 
 
@@ -60,6 +61,7 @@ class GoSchoolApp extends StatelessWidget {
           '/configuracoes': (context) => const ConfiguracoesTela(),
           '/procurar-motorista': (context) => const ProcurarMotoristaTela(),
           '/chat': (context) => const TelaConversas(),
+          '/painel-principal': (context) => const PainelPrincipalTela(),
         },
       ),
     );

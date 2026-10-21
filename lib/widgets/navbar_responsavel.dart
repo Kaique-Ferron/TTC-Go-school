@@ -180,7 +180,8 @@ class NavbarResponsavel extends StatelessWidget {
                      rota == '/meus-filhos' ||
                      rota == '/configuracoes' ||
                      rota == '/procurar-motorista' ||
-                     rota == '/chat') {
+                     rota == '/chat' ||
+                     rota == '/painel-principal') {
             if (!isSelected) {
               Navigator.pushNamed(context, rota);
             }
