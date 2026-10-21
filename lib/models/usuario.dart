@@ -12,6 +12,8 @@ class Usuario {
   final String licenca;
   final String placa;
   final String veiculo; // 1. Declaração do campo
+  final String tema; // 'Claro', 'Escuro' ou 'Automático'
+  final String tamanhoFonte; // 'Pequena', 'Média' ou 'Grande'
 
   const Usuario({
     required this.nome,
@@ -27,6 +29,8 @@ class Usuario {
     this.licenca = '',
     this.placa = '',
     this.veiculo = '', // 2. Parâmetro no construtor
+    this.tema = 'Automático',
+    this.tamanhoFonte = 'Média',
   });
 
   /// Valor normalizado do perfil para gravar no Firestore
@@ -61,6 +65,8 @@ class Usuario {
       'licenca': licenca,
       'placa': placa,
       'veiculo': veiculo, // 3. Adicionado ao toMap
+      'tema': tema,
+      'tamanhoFonte': tamanhoFonte,
     };
   }
 
@@ -79,6 +85,8 @@ class Usuario {
       licenca: map['licenca'] ?? '',
       placa: map['placa'] ?? '',
       veiculo: map['veiculo'] ?? '', // 4. Adicionado ao fromMap
+      tema: map['tema'] ?? 'Automático',
+      tamanhoFonte: map['tamanhoFonte'] ?? 'Média',
     );
   }
 }

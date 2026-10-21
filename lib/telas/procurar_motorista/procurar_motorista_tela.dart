@@ -51,7 +51,7 @@ class _ProcurarMotoristaTelaState extends State<ProcurarMotoristaTela> {
     final logado = context.watch<SessaoProvider>().logado;
     if (!logado) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: AppCores.fundo(context),
         body: Center(
           child: TextButton(
             onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false),
@@ -64,12 +64,9 @@ class _ProcurarMotoristaTelaState extends State<ProcurarMotoristaTela> {
     final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppCores.fundo(context),
       appBar: AppBar(
         title: const Text('Procurar Motorista'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
       ),
       drawer: const NavbarResponsavel(itemSelecionado: 'Procurar Motorista'),
       bottomNavigationBar: const NavInferiorResponsavel(abaSelecionada: 'Motoristas'),
@@ -120,7 +117,7 @@ class _ProcurarMotoristaTelaState extends State<ProcurarMotoristaTela> {
                                         ),
                                         Text(
                                           'Veja motoristas disponíveis na sua região e solicite uma vaga.',
-                                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                                          style: TextStyle(fontSize: 12, color: AppCores.textoSecundario(context)),
                                         ),
                                       ],
                                     ),
@@ -129,9 +126,9 @@ class _ProcurarMotoristaTelaState extends State<ProcurarMotoristaTela> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: Colors.white,
+                                      color: AppCores.superficie(context),
                                       borderRadius: BorderRadius.circular(10),
-                                      border: Border.all(color: Colors.grey.shade300),
+                                      border: Border.all(color: AppCores.borda(context)),
                                     ),
                                     child: Row(
                                       children: [
@@ -153,20 +150,20 @@ class _ProcurarMotoristaTelaState extends State<ProcurarMotoristaTela> {
                                     child: TextFormField(
                                       controller: _buscaController,
                                       onChanged: (valor) => setState(() => _busca = valor.trim().toLowerCase()),
-                                      style: const TextStyle(fontSize: 13),
+                                      style: TextStyle(fontSize: 13, color: AppCores.textoPrincipal(context)),
                                       decoration: InputDecoration(
                                         hintText: 'Pesquisar por nome...',
-                                        prefixIcon: Icon(Icons.search, size: 18, color: Colors.grey.shade600),
+                                        prefixIcon: Icon(Icons.search, size: 18, color: AppCores.textoSecundario(context)),
                                         filled: true,
-                                        fillColor: Colors.white,
+                                        fillColor: AppCores.superficie(context),
                                         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                                         border: OutlineInputBorder(
                                           borderRadius: BorderRadius.circular(12),
-                                          borderSide: BorderSide(color: Colors.grey.shade300),
+                                          borderSide: BorderSide(color: AppCores.borda(context)),
                                         ),
                                         enabledBorder: OutlineInputBorder(
                                           borderRadius: BorderRadius.circular(12),
-                                          borderSide: BorderSide(color: Colors.grey.shade300),
+                                          borderSide: BorderSide(color: AppCores.borda(context)),
                                         ),
                                       ),
                                     ),
@@ -175,12 +172,13 @@ class _ProcurarMotoristaTelaState extends State<ProcurarMotoristaTela> {
                                   OutlinedButton.icon(
                                     onPressed: () {},
                                     style: OutlinedButton.styleFrom(
-                                      backgroundColor: Colors.white,
+                                      backgroundColor: AppCores.superficie(context),
+                                      side: BorderSide(color: AppCores.borda(context)),
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                     ),
-                                    icon: const Icon(Icons.tune, size: 16, color: Colors.black87),
-                                    label: const Text('Filtros', style: TextStyle(color: Colors.black87, fontSize: 13)),
+                                    icon: Icon(Icons.tune, size: 16, color: AppCores.textoPrincipal(context)),
+                                    label: Text('Filtros', style: TextStyle(color: AppCores.textoPrincipal(context), fontSize: 13)),
                                   ),
                                 ],
                               ),
@@ -209,7 +207,7 @@ class _ProcurarMotoristaTelaState extends State<ProcurarMotoristaTela> {
                                       child: Center(
                                         child: Text(
                                           todos.isEmpty ? 'Nenhum motorista cadastrado ainda.' : 'Nenhum motorista encontrado pra "$_busca".',
-                                          style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                                          style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 13),
                                         ),
                                       ),
                                     );
@@ -246,7 +244,7 @@ class _ProcurarMotoristaTelaState extends State<ProcurarMotoristaTela> {
                               Center(
                                 child: Text(
                                   '🛡️ Todos os motoristas são verificados e passam por um rigoroso processo de segurança.',
-                                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                                  style: TextStyle(fontSize: 11, color: AppCores.textoSecundario(context)),
                                   textAlign: TextAlign.center,
                                 ),
                               ),

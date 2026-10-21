@@ -130,9 +130,6 @@ class _MapaCasaTelaState extends State<MapaCasaTela> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Localização da Casa'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
       ),
       body: Stack(
         children: [
@@ -171,18 +168,18 @@ class _MapaCasaTelaState extends State<MapaCasaTela> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppCores.superficie(context),
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10)],
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.touch_app, size: 18, color: AppCores.azulPrincipal),
-                  SizedBox(width: 8),
+                  const Icon(Icons.touch_app, size: 18, color: AppCores.azulPrincipal),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Toque no mapa para marcar onde fica sua casa',
-                      style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+                      style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: AppCores.textoPrincipal(context)),
                     ),
                   ),
                 ],

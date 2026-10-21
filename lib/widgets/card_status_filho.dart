@@ -18,9 +18,9 @@ class CardStatusFilho extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppCores.borda(context)),
       ),
       child: Column(
         children: [
@@ -37,7 +37,7 @@ class CardStatusFilho extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(nomeFilho, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-                    Text(idadeEAno, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                    Text(idadeEAno, style: TextStyle(fontSize: 12, color: AppCores.textoSecundario(context))),
                   ],
                 ),
               ),
@@ -61,10 +61,10 @@ class CardStatusFilho extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildPasso('Aguardando\nembarque', '07:20', true),
-              _buildPasso('Embarcou', '07:40', false),
-              _buildPasso('A caminho', '08:00', false),
-              _buildPasso('Chegou na\nescola', '—', false),
+              _buildPasso(context, 'Aguardando\nembarque', '07:20', true),
+              _buildPasso(context, 'Embarcou', '07:40', false),
+              _buildPasso(context, 'A caminho', '08:00', false),
+              _buildPasso(context, 'Chegou na\nescola', '—', false),
             ],
           ),
         ],
@@ -72,17 +72,17 @@ class CardStatusFilho extends StatelessWidget {
     );
   }
 
-  Widget _buildPasso(String texto, String hora, bool ativo) {
+  Widget _buildPasso(BuildContext context, String texto, String hora, bool ativo) {
     return Column(
       children: [
         Icon(
           ativo ? Icons.check_circle : Icons.radio_button_unchecked,
           size: 16,
-          color: ativo ? Colors.amber : Colors.grey.shade300,
+          color: ativo ? Colors.amber : AppCores.textoSecundario(context),
         ),
         const SizedBox(height: 4),
-        Text(texto, textAlign: TextAlign.center, style: TextStyle(fontSize: 9.5, color: Colors.grey.shade700)),
-        Text(hora, style: TextStyle(fontSize: 9.5, color: ativo ? AppCores.azulPrincipal : Colors.grey)),
+        Text(texto, textAlign: TextAlign.center, style: TextStyle(fontSize: 9.5, color: AppCores.textoSecundario(context))),
+        Text(hora, style: TextStyle(fontSize: 9.5, color: ativo ? AppCores.azulPrincipal : AppCores.textoSecundario(context))),
       ],
     );
   }

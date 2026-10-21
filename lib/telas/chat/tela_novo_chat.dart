@@ -37,7 +37,7 @@ class ListaContatos extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => TelaChat(conversaId: conversaId, meuUid: meuUid, outroNome: contato.nome),
+        builder: (_) => TelaChat(conversaId: conversaId, meuUid: meuUid, outroUid: contato.uid, outroNome: contato.nome),
       ),
     );
   }

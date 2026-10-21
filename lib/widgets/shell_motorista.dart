@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../theme/cores.dart';
 import '../telas/chat/tela_conversas.dart';
 import '../telas/motorista/tela_financas_motorista.dart';
 
@@ -23,14 +24,14 @@ class ShellMotorista extends StatelessWidget {
 
         if (isWide) {
           return Scaffold(
-            backgroundColor: const Color(0xFFF8FAFC),
+            backgroundColor: AppCores.fundo(context),
             body: Row(
               children: [
                 SizedBox(
                   width: 240,
                   child: _MenuMotorista(itemSelecionado: itemSelecionado),
                 ),
-                const VerticalDivider(thickness: 1, width: 1, color: Colors.black12),
+                VerticalDivider(thickness: 1, width: 1, color: AppCores.borda(context)),
                 Expanded(child: Builder(builder: builder)),
               ],
             ),
@@ -38,12 +39,9 @@ class ShellMotorista extends StatelessWidget {
         }
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF8FAFC),
+          backgroundColor: AppCores.fundo(context),
           appBar: AppBar(
             title: Text(itemSelecionado),
-            backgroundColor: Colors.white,
-            foregroundColor: const Color(0xFF1E293B),
-            elevation: 0,
           ),
           drawer: Drawer(
             width: 260,
@@ -89,20 +87,29 @@ class _MenuMotorista extends StatelessWidget {
             child: Image.asset('assets/logo.jpg', width: 156, height: 48, fit: BoxFit.contain),
           ),
         ),
-        const Divider(height: 1, color: Colors.black12),
-        const SizedBox(height: 16),
+        Divider(height: 1, color: AppCores.borda(context)),
 
-        _buildMenuItem(context, Icons.home_outlined, 'Painel Principal'),
-        _buildMenuItem(context, Icons.alt_route, 'Minhas Rotas'),
-        _buildMenuItem(context, Icons.person, 'Meu Perfil'),
-        _buildMenuItem(context, Icons.payments_outlined, 'Finanças'),
-        _buildMenuItem(context, Icons.chat_bubble_outline, 'Mensagens'),
-        _buildMenuItem(context, Icons.notifications_none, 'Notificações', badge: '3'),
-        _buildMenuItem(context, Icons.settings_outlined, 'Configurações'),
+        // Expanded + SingleChildScrollView (em vez de um Spacer no fim da
+        // Column) pra rolar os itens em vez de estourar em janelas baixas.
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16),
+                _buildMenuItem(context, Icons.home_outlined, 'Painel Principal'),
+                _buildMenuItem(context, Icons.alt_route, 'Minhas Rotas'),
+                _buildMenuItem(context, Icons.person, 'Meu Perfil'),
+                _buildMenuItem(context, Icons.payments_outlined, 'Finanças'),
+                _buildMenuItem(context, Icons.chat_bubble_outline, 'Mensagens'),
+                _buildMenuItem(context, Icons.notifications_none, 'Notificações', badge: '3'),
+                _buildMenuItem(context, Icons.settings_outlined, 'Configurações'),
+              ],
+            ),
+          ),
+        ),
 
-        const Spacer(),
-        const Divider(height: 1, color: Colors.black12),
-
+        Divider(height: 1, color: AppCores.borda(context)),
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: TextButton.icon(
@@ -124,12 +131,12 @@ class _MenuMotorista extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: ListTile(
-        tileColor: isSelected ? const Color(0xFF1D58E2) : Colors.transparent,
-        leading: Icon(icon, color: isSelected ? Colors.white : Colors.grey[600]),
+        tileColor: isSelected ? AppCores.azulPrincipal : Colors.transparent,
+        leading: Icon(icon, color: isSelected ? Colors.white : AppCores.textoSecundario(context)),
         title: Text(
           title,
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.grey[800],
+            color: isSelected ? Colors.white : AppCores.textoPrincipal(context),
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             fontSize: 14,
           ),

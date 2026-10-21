@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/motorista_model.dart';
+import '../theme/cores.dart';
 
 /// Card reutilizável para exibir um motorista na lista de "Motoristas Disponíveis".
 class MotoristaCard extends StatelessWidget {
@@ -10,23 +11,16 @@ class MotoristaCard extends StatelessWidget {
 
   // Estilos centralizados para facilitar a manutenção visual
   static const Color _primaryColor = Color(0xFF1D58E2);
-  static const Color _textColor = Color(0xFF1E293B);
   static const Color _backgroundColorAvatar = Color(0xFFE8EEFC);
-
-  static const TextStyle _nameTextStyle = TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.bold,
-    color: _textColor,
-  );
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppCores.borda(context)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
@@ -63,9 +57,13 @@ class MotoristaCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(motorista.nome, style: _nameTextStyle),
+                      Text(
+                        motorista.nome,
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppCores.textoPrincipal(context)),
+                      ),
                       const SizedBox(height: 4),
                       _buildDetailItem(
+                        context,
                         Icons.directions_bus_filled,
                         _primaryColor,
                         '${motorista.veiculo} • ${motorista.placa}',
@@ -78,20 +76,20 @@ class MotoristaCard extends StatelessWidget {
                           runSpacing: 4,
                           children: [
                             if (motorista.corridas.isNotEmpty)
-                              _buildDetailItem(Icons.check_circle, Colors.green, '${motorista.corridas} corridas'),
+                              _buildDetailItem(context, Icons.check_circle, Colors.green, '${motorista.corridas} corridas'),
                             if (motorista.tempo.isNotEmpty)
-                              _buildDetailItem(Icons.access_time_filled, const Color(0xFFFFC107), motorista.tempo),
+                              _buildDetailItem(context, Icons.access_time_filled, const Color(0xFFFFC107), motorista.tempo),
                           ],
                         ),
                       ],
                       const SizedBox(height: 6),
-                      _buildDetailItem(Icons.badge, Colors.grey[600]!, 'Registro ${motorista.crm}'),
+                      _buildDetailItem(context, Icons.badge, AppCores.textoSecundario(context), 'Registro ${motorista.crm}'),
                     ],
                   ),
                 ),
 
                 // Ícone de navegação
-                const Icon(Icons.chevron_right, color: Colors.grey),
+                Icon(Icons.chevron_right, color: AppCores.textoSecundario(context)),
               ],
             ),
           ),
@@ -101,7 +99,7 @@ class MotoristaCard extends StatelessWidget {
   }
 
   /// Componente auxiliar estilizado para os detalhes do motorista
-  Widget _buildDetailItem(IconData icon, Color color, String text, {bool isHighlighted = false}) {
+  Widget _buildDetailItem(BuildContext context, IconData icon, Color color, String text, {bool isHighlighted = false}) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -111,7 +109,7 @@ class MotoristaCard extends StatelessWidget {
           text,
           style: TextStyle(
             fontSize: 12,
-            color: isHighlighted ? color : Colors.grey[600],
+            color: isHighlighted ? color : AppCores.textoSecundario(context),
             fontWeight: isHighlighted ? FontWeight.bold : FontWeight.w500,
           ),
         ),

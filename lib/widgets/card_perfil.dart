@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/cores.dart';
 
 class CardPerfil extends StatelessWidget {
   final String titulo;
@@ -26,7 +27,7 @@ class CardPerfil extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade200, width: 1.5),
+          border: Border.all(color: AppCores.borda(context), width: 1.5),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -58,7 +59,7 @@ class CardPerfil extends StatelessWidget {
                   Text(
                     subtitulo,
                     style: TextStyle(
-                      color: Colors.grey[600],
+                      color: AppCores.textoSecundario(context),
                       fontSize: 12,
                       height: 1.3,
                     ),

@@ -58,7 +58,7 @@ class _TelaLoginState extends State<TelaLogin> {
     final Color corPerfil = AppCores.porPerfil(_perfil);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F9),
+      backgroundColor: AppCores.fundo(context),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Center(
@@ -66,11 +66,11 @@ class _TelaLoginState extends State<TelaLogin> {
             constraints: const BoxConstraints(maxWidth: 420),
             padding: const EdgeInsets.all(24.0),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppCores.superficie(context),
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 15,
                   offset: const Offset(0, 5),
                 ),
@@ -85,7 +85,7 @@ class _TelaLoginState extends State<TelaLogin> {
                   const SizedBox(height: 16),
                   const Text('Bem-vindo de volta!', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
-                  Text('Faça login para acessar sua conta', style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+                  Text('Faça login para acessar sua conta', style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 14)),
                   const SizedBox(height: 24),
 
                   // Seletor de Perfil
@@ -131,7 +131,7 @@ class _TelaLoginState extends State<TelaLogin> {
                             onChanged: (val) => setState(() => _lembrarDeMim = val ?? false),
                             activeColor: corPerfil,
                           ),
-                          Text('Lembrar de mim', style: TextStyle(color: Colors.grey[700], fontSize: 13)),
+                          Text('Lembrar de mim', style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 13)),
                         ],
                       ),
                       GestureDetector(
@@ -160,7 +160,7 @@ class _TelaLoginState extends State<TelaLogin> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Ainda não tem uma conta? ', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                      Text('Ainda não tem uma conta? ', style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 13)),
                       GestureDetector(
                         onTap: () {
                           Navigator.pushNamed(context, '/selecao-perfil');

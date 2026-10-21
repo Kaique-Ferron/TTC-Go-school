@@ -133,7 +133,7 @@ class _SecaoEnderecoFormState extends State<SecaoEnderecoForm> {
             widget.casaLat != null
                 ? 'Localização marcada no mapa'
                 : 'Marcar localização no mapa',
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppCores.textoPrincipal(context)),
           ),
           trailing: const Icon(Icons.chevron_right),
           onTap: () async {
@@ -166,20 +166,20 @@ class _SecaoEnderecoFormState extends State<SecaoEnderecoForm> {
       controller: controller,
       keyboardType: keyboardType,
       onChanged: onChanged,
-      style: const TextStyle(fontSize: 14),
+      style: TextStyle(fontSize: 14, color: AppCores.textoPrincipal(context)),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, size: 18, color: Colors.grey[600]),
+        prefixIcon: Icon(icon, size: 18, color: AppCores.textoSecundario(context)),
         filled: true,
-        fillColor: const Color(0xFFF8FAFC),
+        fillColor: AppCores.fundo(context),
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide(color: AppCores.borda(context)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide(color: AppCores.borda(context)),
         ),
       ),
     );

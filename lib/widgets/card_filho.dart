@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/cores.dart';
 
 class CardFilho extends StatelessWidget {
   final String nome;
@@ -24,6 +25,12 @@ class CardFilho extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Os tons mais escuros da paleta de filhos (azulEscuro/laranjaEscuro)
+    // ficam quase invisíveis como ícone/texto num badge translúcido sobre
+    // superfície escura — corIconeLegivel troca pela variante clara só
+    // nesse caso (no tema claro devolve a cor original sem alteração).
+    final corIcone = AppCores.corIconeLegivel(context, corAcento);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -38,8 +45,8 @@ class CardFilho extends StatelessWidget {
           onTap: onTap,
           leading: CircleAvatar(
             radius: 24,
-            backgroundColor: corAcento.withValues(alpha: 0.16),
-            child: Icon(Icons.person, color: corAcento),
+            backgroundColor: corIcone.withValues(alpha: 0.16),
+            child: Icon(Icons.person, color: corIcone),
           ),
           title: Row(
             children: [
@@ -48,20 +55,20 @@ class CardFilho extends StatelessWidget {
                   nome,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppCores.textoPrincipal(context)),
                 ),
               ),
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: corAcento.withValues(alpha: 0.14),
+                  color: corIcone.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   status,
                   style: TextStyle(
-                    color: corAcento,
+                    color: corIcone,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -73,8 +80,8 @@ class CardFilho extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 2),
-              Text(idadeEAno, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-              Text(escola, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+              Text(idadeEAno, style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 12)),
+              Text(escola, style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 12)),
             ],
           ),
           trailing: ConstrainedBox(
@@ -110,13 +117,13 @@ class CardFilho extends StatelessWidget {
                         '($horario)',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: Colors.grey[500], fontSize: 10),
+                        style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 10),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(width: 4),
-                Icon(Icons.chevron_right, color: corAcento),
+                Icon(Icons.chevron_right, color: corIcone),
               ],
             ),
           ),

@@ -59,7 +59,7 @@ class MeusFilhosTela extends StatelessWidget {
     final logado = context.watch<SessaoProvider>().logado;
     if (!logado) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: AppCores.fundo(context),
         body: Center(
           child: TextButton(
             onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false),
@@ -72,12 +72,9 @@ class MeusFilhosTela extends StatelessWidget {
     final uid = FirebaseAuth.instance.currentUser!.uid;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppCores.fundo(context),
       appBar: AppBar(
         title: const Text('Meus Filhos'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.add_circle_outline, color: azulPrincipal),
@@ -99,9 +96,9 @@ class MeusFilhosTela extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Gerencie as informações dos seus filhos cadastrados.',
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+              style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 14),
             ),
             const SizedBox(height: 20),
 
@@ -125,25 +122,33 @@ class MeusFilhosTela extends StatelessWidget {
                 if (filhos.isEmpty) {
                   return Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(28),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.grey.shade200),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [AppCores.azulPrincipal.withValues(alpha: 0.08), AppCores.laranjaClaro.withValues(alpha: 0.06)],
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: AppCores.azulPrincipal.withValues(alpha: 0.15)),
                     ),
                     child: Column(
                       children: [
-                        Icon(Icons.child_care, size: 48, color: Colors.grey.shade400),
-                        const SizedBox(height: 12),
-                        const Text(
+                        Container(
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(color: AppCores.azulPrincipal.withValues(alpha: 0.12), shape: BoxShape.circle),
+                          child: const Icon(Icons.child_care, size: 40, color: azulPrincipal),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
                           'Nenhum filho cadastrado',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppCores.textoPrincipal(context)),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'Cadastre um novo filho para utilizar o serviço de transporte.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                          style: TextStyle(fontSize: 12, color: AppCores.textoSecundario(context)),
                         ),
                       ],
                     ),
@@ -172,12 +177,14 @@ class MeusFilhosTela extends StatelessWidget {
                         final semFilhos = (snapshotBotao.data ?? []).isEmpty;
                         return Pulsante(
                           ativo: semFilhos,
-                          child: OutlinedButton.icon(
-                            style: OutlinedButton.styleFrom(
-                              minimumSize: const Size(double.infinity, 48),
-                              side: const BorderSide(color: azulPrincipal),
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: const Size(double.infinity, 50),
+                              backgroundColor: azulPrincipal,
+                              elevation: 0,
+                              shadowColor: azulPrincipal.withValues(alpha: 0.3),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(14),
                               ),
                             ),
                             onPressed: () {
@@ -188,10 +195,10 @@ class MeusFilhosTela extends StatelessWidget {
                                 ),
                               );
                             },
-                            icon: const Icon(Icons.add, color: azulPrincipal),
+                            icon: const Icon(Icons.add, color: Colors.white),
                             label: const Text(
                               'Adicionar filho',
-                              style: TextStyle(color: azulPrincipal, fontWeight: FontWeight.bold),
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                             ),
                           ),
                         );
@@ -204,7 +211,11 @@ class MeusFilhosTela extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
+                        gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [AppCores.azulPrincipal.withValues(alpha: 0.10), AppCores.ciano.withValues(alpha: 0.10)],
+                        ),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: Colors.blue.shade100),
                       ),
@@ -212,8 +223,8 @@ class MeusFilhosTela extends StatelessWidget {
                         children: [
                           Container(
                             padding: const EdgeInsets.all(8),
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
+                            decoration: BoxDecoration(
+                              color: AppCores.superficie(context),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(Icons.shield_outlined, color: azulPrincipal, size: 20),
@@ -222,7 +233,13 @@ class MeusFilhosTela extends StatelessWidget {
                           Expanded(
                             child: Text(
                               'Importante: mantenha as informações dos seus filhos sempre atualizadas. Isso garante mais segurança no GoSchool.',
-                              style: TextStyle(fontSize: 12, color: Colors.blue.shade900, height: 1.3),
+                              style: TextStyle(
+                                fontSize: 12,
+                                height: 1.3,
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.lightBlue.shade100
+                                    : Colors.blue.shade900,
+                              ),
                             ),
                           ),
                         ],
@@ -239,110 +256,145 @@ class MeusFilhosTela extends StatelessWidget {
   }
 
   Widget _buildCardFilhoCustomizado(BuildContext context, String uid, Filho filho, int index) {
+    final corAcento = AppCores.corFilho(index);
+    // Vermelho puro em cima do rosa quase-branco (shade50 a 50% alpha) fica
+    // com uma cor estranha e lavada sobre a superfície escura — usa um tom
+    // mais claro no escuro e monta o fundo/borda com o mesmo alpha-blend
+    // usado no resto do card em vez de um tom sólido fixo.
+    final corExcluir = Theme.of(context).brightness == Brightness.dark ? Colors.red.shade300 : Colors.red;
+
     return Container(
-      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: corAcento.withValues(alpha: 0.22)),
+        boxShadow: [
+          BoxShadow(color: corAcento.withValues(alpha: 0.10), blurRadius: 14, offset: const Offset(0, 6)),
+        ],
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CardFilho(
-            nome: filho.nome,
-            idadeEAno: filho.idadeEAno,
-            escola: filho.escola,
-            turno: filho.turno,
-            horario: filho.horario,
-            status: filho.status,
-            corAcento: AppCores.corFilho(index),
-            onTap: () => _abrirModalDetalhes(context, uid, filho),
-          ),
+          // Faixa colorida no topo — identifica cada filho de relance,
+          // consistente com a cor usada no avatar/ícones do CardFilho.
+          Container(height: 5, color: corAcento),
 
-          const SizedBox(height: 12),
-          const Divider(height: 1),
-          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CardFilho(
+                  nome: filho.nome,
+                  idadeEAno: filho.idadeEAno,
+                  escola: filho.escola,
+                  turno: filho.turno,
+                  horario: filho.horario,
+                  status: filho.status,
+                  corAcento: corAcento,
+                  onTap: () => _abrirModalDetalhes(context, uid, filho),
+                ),
 
-          _buildLinhaInfo(
-            Icons.account_balance_outlined,
-            'Escola',
-            filho.escola.isNotEmpty ? filho.escola : 'Não informada',
-          ),
-          const SizedBox(height: 8),
-          _buildLinhaInfo(
-            Icons.directions_bus_outlined,
-            'Turno / Horário',
-            '${filho.turno} ${filho.horario.isNotEmpty ? "(${filho.horario})" : ""}',
-          ),
-          const SizedBox(height: 8),
-          _buildLinhaInfo(
-            Icons.bloodtype_outlined,
-            'Tipo Sanguíneo',
-            filho.tipoSanguineo.isNotEmpty ? filho.tipoSanguineo : 'Não informado',
-          ),
-          const SizedBox(height: 8),
-          _buildLinhaInfo(
-            Icons.warning_amber_outlined,
-            'Alergias',
-            filho.alergias.isNotEmpty ? filho.alergias : 'Nenhuma cadastrada',
-          ),
+                const SizedBox(height: 12),
+                Divider(height: 1, color: corAcento.withValues(alpha: 0.15)),
+                const SizedBox(height: 12),
 
-          const SizedBox(height: 16),
+                _buildLinhaInfo(
+                  context,
+                  Icons.account_balance_outlined,
+                  'Escola',
+                  filho.escola.isNotEmpty ? filho.escola : 'Não informada',
+                  AppCores.azulClaro,
+                ),
+                const SizedBox(height: 10),
+                _buildLinhaInfo(
+                  context,
+                  Icons.directions_bus_outlined,
+                  'Turno / Horário',
+                  '${filho.turno} ${filho.horario.isNotEmpty ? "(${filho.horario})" : ""}',
+                  AppCores.laranjaMotorista,
+                ),
+                const SizedBox(height: 10),
+                _buildLinhaInfo(
+                  context,
+                  Icons.bloodtype_outlined,
+                  'Tipo Sanguíneo',
+                  filho.tipoSanguineo.isNotEmpty ? filho.tipoSanguineo : 'Não informado',
+                  AppCores.rosa,
+                ),
+                const SizedBox(height: 10),
+                _buildLinhaInfo(
+                  context,
+                  Icons.warning_amber_outlined,
+                  'Alergias',
+                  filho.alergias.isNotEmpty ? filho.alergias : 'Nenhuma cadastrada',
+                  AppCores.ambar,
+                ),
 
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => CadastrarFilhoTela(filhoParaEditar: filho),
+                const SizedBox(height: 16),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => CadastrarFilhoTela(filhoParaEditar: filho),
+                            ),
+                          );
+                        },
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          side: BorderSide(color: corAcento.withValues(alpha: 0.5)),
+                          foregroundColor: corAcento,
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                        icon: Icon(Icons.edit_outlined, size: 16, color: corAcento),
+                        label: Text(
+                          'Editar',
+                          style: TextStyle(fontSize: 13, color: corAcento, fontWeight: FontWeight.w600),
+                        ),
                       ),
-                    );
-                  },
-                  style: OutlinedButton.styleFrom(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    side: BorderSide(color: Colors.grey.shade300),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                  ),
-                  icon: const Icon(Icons.edit_outlined, size: 16, color: Colors.black87),
-                  label: const Text(
-                    'Editar',
-                    style: TextStyle(fontSize: 13, color: Colors.black87, fontWeight: FontWeight.w600),
-                  ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _abrirModalDetalhes(context, uid, filho),
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          side: BorderSide(color: corExcluir.withValues(alpha: 0.5)),
+                          backgroundColor: corExcluir.withValues(alpha: 0.10),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                        icon: Icon(Icons.delete_outline, size: 16, color: corExcluir),
+                        label: Text(
+                          'Excluir',
+                          style: TextStyle(fontSize: 13, color: corExcluir, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _abrirModalDetalhes(context, uid, filho),
-                  style: OutlinedButton.styleFrom(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    side: BorderSide(color: Colors.red.shade200),
-                    backgroundColor: Colors.red.shade50.withValues(alpha: 0.3),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                  ),
-                  icon: const Icon(Icons.delete_outline, size: 16, color: Colors.red),
-                  label: const Text(
-                    'Excluir',
-                    style: TextStyle(fontSize: 13, color: Colors.red, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildLinhaInfo(IconData icone, String titulo, String valor) {
+  Widget _buildLinhaInfo(BuildContext context, IconData icone, String titulo, String valor, Color cor) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icone, size: 16, color: Colors.grey.shade500),
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(color: cor.withValues(alpha: 0.12), shape: BoxShape.circle),
+          child: Icon(icone, size: 14, color: cor),
+        ),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
@@ -350,11 +402,11 @@ class MeusFilhosTela extends StatelessWidget {
             children: [
               Text(
                 titulo,
-                style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                style: TextStyle(fontSize: 11, color: AppCores.textoSecundario(context)),
               ),
               Text(
                 valor,
-                style: const TextStyle(fontSize: 13, color: Colors.black87, fontWeight: FontWeight.w500),
+                style: TextStyle(fontSize: 13, color: AppCores.textoPrincipal(context), fontWeight: FontWeight.w500),
               ),
             ],
           ),

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import '../models/avaliacao_model.dart';
 import '../models/contato_chat.dart';
 import '../models/conversa_model.dart';
 import '../models/filho.dart';
@@ -37,6 +38,12 @@ class FirestoreService {
   /// Atualiza campos específicos do usuário sem sobrescrever o documento inteiro.
   Future<void> atualizarUsuario(String uid, Map<String, dynamic> dados) {
     return _usuarios.doc(uid).update(dados);
+  }
+
+  /// Preferências de aparência (tema e tamanho da fonte) — ver
+  /// [PreferenciasProvider], que aplica esses valores no MaterialApp inteiro.
+  Future<void> salvarPreferencias(String uid, {required String tema, required String tamanhoFonte}) {
+    return atualizarUsuario(uid, {'tema': tema, 'tamanhoFonte': tamanhoFonte});
   }
 
   Stream<Usuario?> usuarioStream(String uid) {
@@ -102,6 +109,19 @@ class FirestoreService {
 
   Future<void> registrarContratacao(String responsavelUid, Map<String, dynamic> dados) {
     return _usuarios.doc(responsavelUid).collection('contratacoes').add(dados);
+  }
+
+  /// Se o Responsável já tem algum motorista contratado — usado pra decidir
+  /// qual tela de início mostrar (landpage de busca ou painel de
+  /// acompanhamento). Reativo: se ele contratar ou (no futuro) cancelar,
+  /// a tela de início muda sozinha, sem precisar deslogar/logar de novo.
+  Stream<bool> temContratacaoAtivaStream(String responsavelUid) {
+    return _usuarios
+        .doc(responsavelUid)
+        .collection('contratacoes')
+        .where('status', isEqualTo: 'Ativo')
+        .snapshots()
+        .map((snap) => snap.docs.isNotEmpty);
   }
 
   /// Motoristas que o Responsável já contratou — vira a lista de contatos pra
@@ -211,5 +231,36 @@ class FirestoreService {
       'ultimaMensagem': texto,
       'ultimaMensagemEm': FieldValue.serverTimestamp(),
     });
+  }
+
+  // ===== Avaliações (Responsável avalia o Motorista) =====
+  // Caminho: usuarios/{motoristaUid}/avaliacoes/{responsavelUid} — um
+  // documento por responsável (o id fixo evita duplicar e deixa o
+  // responsável atualizar a própria nota depois). Ver firestore/MIGRATIONS.md.
+
+  CollectionReference<Map<String, dynamic>> _avaliacoes(String motoristaUid) =>
+      _usuarios.doc(motoristaUid).collection('avaliacoes');
+
+  Stream<List<Avaliacao>> avaliacoesStream(String motoristaUid) {
+    return _avaliacoes(motoristaUid).orderBy('criadoEm', descending: true).snapshots().map(
+          (snap) => snap.docs.map((d) => Avaliacao.fromMap(d.data())).toList(),
+        );
+  }
+
+  Future<void> enviarAvaliacao({
+    required String motoristaUid,
+    required String responsavelUid,
+    required String responsavelNome,
+    required int nota,
+    required String comentario,
+  }) {
+    final avaliacao = Avaliacao(
+      responsavelUid: responsavelUid,
+      responsavelNome: responsavelNome,
+      nota: nota,
+      comentario: comentario,
+      criadoEm: DateTime.now(),
+    );
+    return _avaliacoes(motoristaUid).doc(responsavelUid).set(avaliacao.toMap());
   }
 }

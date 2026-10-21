@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/cores.dart';
 import 'campos.dart';
 
 class SecaoMotorista extends StatelessWidget {
@@ -23,9 +24,9 @@ class SecaoMotorista extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Documentação e Veículo (Regulamentação)',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1E293B)),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppCores.textoPrincipal(context)),
         ),
         const SizedBox(height: 8),
 

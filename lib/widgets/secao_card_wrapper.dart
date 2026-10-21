@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/cores.dart';
 
 class SecaoCardWrapper extends StatelessWidget {
   final String titulo;
@@ -23,12 +24,12 @@ class SecaoCardWrapper extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppCores.borda(context)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -58,10 +59,10 @@ class SecaoCardWrapper extends StatelessWidget {
                       ],
                       Text(
                         titulo,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                          color: AppCores.textoPrincipal(context),
                         ),
                       ),
                     ],
@@ -70,7 +71,7 @@ class SecaoCardWrapper extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       subtitulo!,
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                      style: TextStyle(fontSize: 12, color: AppCores.textoSecundario(context)),
                     ),
                   ],
                 ],

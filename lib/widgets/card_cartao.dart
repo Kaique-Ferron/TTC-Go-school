@@ -21,7 +21,7 @@ class CardCartao extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppCores.borda(context)),
         borderRadius: BorderRadius.circular(16),
       ),
       child: ListTile(
@@ -39,7 +39,7 @@ class CardCartao extends StatelessWidget {
           children: [
             Text(
               '•••• •••• •••• $ultimosDigitos',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppCores.textoPrincipal(context)),
             ),
             if (isPadrao) ...[
               const SizedBox(width: 8),
@@ -63,9 +63,9 @@ class CardCartao extends StatelessWidget {
         ),
         subtitle: Text(
           'Venc. $validade • $titular',
-          style: TextStyle(color: Colors.grey[600], fontSize: 12),
+          style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 12),
         ),
-        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+        trailing: Icon(Icons.chevron_right, color: AppCores.textoSecundario(context)),
       ),
     );
   }

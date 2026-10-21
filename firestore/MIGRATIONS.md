@@ -29,6 +29,16 @@ Caminho: `usuarios/{uid}`
 | `casa_endereco` | string | Endereço legível da casa (geocoding reverso)     |
 | `criadoEm`    | timestamp | `FieldValue.serverTimestamp()`                    |
 | `atualizadoEm`| timestamp | Atualizado em edições de perfil                   |
+| `tema`        | string    | `'Claro'`, `'Escuro'` ou `'Automático'` (padrão)   |
+| `tamanhoFonte`| string    | `'Pequena'`, `'Média'` (padrão) ou `'Grande'`      |
+
+`tema` e `tamanhoFonte` foram adicionados em 2026-10 (depois da coleção já
+existir) pra tornar reais as opções de Aparência da tela de Configurações,
+que antes eram só UI local sem efeito nenhum no app. Gravados por
+`FirestoreService.salvarPreferencias` e lidos pelo `PreferenciasProvider`
+(`lib/services/preferencias_provider.dart`), que aplica o `ThemeMode` e a
+escala de fonte no `MaterialApp` inteiro. Usuários cadastrados antes disso
+não têm esses dois campos — o `Usuario.fromMap` usa os padrões acima nesse caso.
 
 ---
 
@@ -135,3 +145,36 @@ Código: `lib/services/firestore_service.dart` →
   consulta rodar no app de verdade, o erro no console do navegador traz um
   link direto pra criar esse índice no Firebase Console; depois de criado
   (leva alguns minutos), a consulta passa a funcionar.
+
+---
+
+## 006 — `usuarios/{motoristaUid}/avaliacoes` (subcoleção) — Avaliação do Motorista
+
+Criada em: 2026-10. Substitui a nota fixa que existia em texto no card e no
+modal do motorista por uma avaliação real, feita pelo Responsável depois de
+contratar.
+
+Código: `lib/models/avaliacao_model.dart`, `lib/services/firestore_service.dart`
+→ `avaliacoesStream`, `enviarAvaliacao`. UI: `lib/widgets/avaliacao_media.dart`
+(mostra a média real) e `lib/widgets/dialog_avaliar_motorista.dart` (diálogo de
+estrelas + comentário, acessível pelo ícone ⭐ na AppBar do chat quando quem
+está conversando é o Responsável).
+
+Caminho: `usuarios/{motoristaUid}/avaliacoes/{responsavelUid}`
+
+ID do documento é o `uid` do responsável que avaliou — uma avaliação por
+responsável por motorista; avaliar de novo sobrescreve a anterior em vez de
+duplicar.
+
+| Campo              | Tipo      | Observação                                |
+|---------------------|-----------|-------------------------------------------|
+| `responsavelUid`    | string    | Mesmo valor do ID do documento              |
+| `responsavelNome`   | string    |                                             |
+| `nota`              | number    | Inteiro de 1 a 5                           |
+| `comentario`        | string    | Opcional, pode ser vazio                   |
+| `criadoEm`          | timestamp | `FieldValue.serverTimestamp()`             |
+
+A média exibida nos cards/modal é calculada no cliente (`AvaliacaoMedia`,
+via `StreamBuilder` sobre `avaliacoesStream`) — sem campo de média
+pré-calculado no documento do motorista. Não precisa de índice especial
+(é uma subcoleção simples, sem collection group).

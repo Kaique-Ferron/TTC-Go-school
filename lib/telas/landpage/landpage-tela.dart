@@ -4,6 +4,7 @@ import 'widgets/header-landpage.dart';
 import 'logica-landpage.dart';
 import '../../services/firestore_service.dart';
 import '../../services/sessao_provider.dart';
+import '../../theme/cores.dart';
 import '../../widgets/nav_inferior_responsavel.dart';
 import '../procurar_motorista/procurar_motorista_tela.dart';
 
@@ -47,7 +48,7 @@ class _LandpageTelaState extends State<LandpageTela> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F5F7),
+      backgroundColor: AppCores.fundo(context),
       bottomNavigationBar: const NavInferiorResponsavel(abaSelecionada: 'Início'),
       body: Center(
         child: ConstrainedBox(
@@ -63,12 +64,12 @@ class _LandpageTelaState extends State<LandpageTela> {
                 child: Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppCores.superficie(context),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.grey.shade200),
+                    border: Border.all(color: AppCores.borda(context)),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.03),
+                        color: Colors.black.withValues(alpha: 0.03),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -91,7 +92,7 @@ class _LandpageTelaState extends State<LandpageTela> {
                               _menus[index],
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                color: isSelected ? Colors.white : Colors.grey[600],
+                                color: isSelected ? Colors.white : AppCores.textoSecundario(context),
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13.5,
                               ),

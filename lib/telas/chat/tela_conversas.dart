@@ -19,12 +19,9 @@ class TelaConversas extends StatelessWidget {
     final uid = AuthService.instance.uidAtual;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppCores.fundo(context),
       appBar: AppBar(
         title: const Text('Mensagens'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
       ),
       body: uid == null
           ? const Center(child: Text('Utilizador não autenticado.'))
@@ -64,7 +61,7 @@ class TelaConversas extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(horizontal: 20),
                               child: Text(
                                 contatosTitulo,
-                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey),
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppCores.textoSecundario(context)),
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -89,7 +86,7 @@ class TelaConversas extends StatelessWidget {
                           child: ListView.separated(
                             padding: const EdgeInsets.symmetric(vertical: 8),
                             itemCount: conversas.length,
-                            separatorBuilder: (_, _) => Divider(height: 1, color: Colors.grey.shade100, indent: 80),
+                            separatorBuilder: (_, _) => Divider(height: 1, color: AppCores.borda(context), indent: 80),
                             itemBuilder: (context, index) {
                               final conversa = conversas[index];
                               final outroNome = conversa.outroNome(uid);
@@ -108,15 +105,15 @@ class TelaConversas extends StatelessWidget {
                                   conversa.ultimaMensagem.isNotEmpty ? conversa.ultimaMensagem : 'Nenhuma mensagem ainda.',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                                  style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 13),
                                 ),
                                 trailing: conversa.ultimaMensagemEm == null
                                     ? null
-                                    : Text(_formatarHorario(conversa.ultimaMensagemEm!), style: TextStyle(color: Colors.grey[500], fontSize: 11)),
+                                    : Text(_formatarHorario(conversa.ultimaMensagemEm!), style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 11)),
                                 onTap: () => Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => TelaChat(conversaId: conversa.id, meuUid: uid, outroNome: outroNome),
+                                    builder: (_) => TelaChat(conversaId: conversa.id, meuUid: uid, outroUid: conversa.outroUid(uid), outroNome: outroNome),
                                   ),
                                 ),
                               );

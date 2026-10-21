@@ -220,12 +220,9 @@ class _CadastrarFilhoTelaState extends State<CadastrarFilhoTela> {
     final bool isEdicao = widget.filhoParaEditar != null;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppCores.fundo(context),
       appBar: AppBar(
         title: Text(isEdicao ? 'Editar Filho' : 'Cadastrar Filho'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
@@ -437,9 +434,9 @@ class _CadastrarFilhoTelaState extends State<CadastrarFilhoTela> {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppCores.borda(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -457,7 +454,7 @@ class _CadastrarFilhoTelaState extends State<CadastrarFilhoTela> {
               const SizedBox(width: 8),
               Text(
                 titulo,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppCores.textoPrincipal(context)),
               ),
             ],
           ),
@@ -483,20 +480,20 @@ class _CadastrarFilhoTelaState extends State<CadastrarFilhoTela> {
       readOnly: readOnly,
       onTap: onTap,
       validator: validator,
-      style: const TextStyle(fontSize: 14),
+      style: TextStyle(fontSize: 14, color: AppCores.textoPrincipal(context)),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, size: 18, color: Colors.grey[600]),
+        prefixIcon: Icon(icon, size: 18, color: AppCores.textoSecundario(context)),
         filled: true,
-        fillColor: const Color(0xFFF8FAFC),
+        fillColor: AppCores.fundo(context),
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide(color: AppCores.borda(context)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide(color: AppCores.borda(context)),
         ),
       ),
     );

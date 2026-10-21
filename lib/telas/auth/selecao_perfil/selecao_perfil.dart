@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../theme/cores.dart';
 import '../../../widgets/card_perfil.dart';
 import '../../../widgets/box_seguranca.dart';
 import '../../../widgets/botoes.dart';
@@ -20,7 +21,7 @@ class _TelaSelecaoPerfilState extends State<TelaSelecaoPerfil> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F9),
+      backgroundColor: AppCores.fundo(context),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Center(
@@ -28,11 +29,11 @@ class _TelaSelecaoPerfilState extends State<TelaSelecaoPerfil> {
             constraints: const BoxConstraints(maxWidth: 420),
             padding: const EdgeInsets.all(24.0),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppCores.superficie(context),
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
+                  color: Colors.black.withValues(alpha: 0.06),
                   blurRadius: 20,
                   offset: const Offset(0, 6),
                 ),
@@ -62,7 +63,7 @@ class _TelaSelecaoPerfilState extends State<TelaSelecaoPerfil> {
         Text(
           'Selecione o perfil que melhor te representa para continuar o cadastro.',
           textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.grey[600], fontSize: 13.5),
+          style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 13.5),
         ),
         const SizedBox(height: 28),
 
@@ -92,7 +93,7 @@ class _TelaSelecaoPerfilState extends State<TelaSelecaoPerfil> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Já tem uma conta? ', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+            Text('Já tem uma conta? ', style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 13)),
             GestureDetector(
               onTap: () => Navigator.pushReplacementNamed(context, '/'),
               child: const Text('Fazer login', style: TextStyle(color: azulPrincipal, fontWeight: FontWeight.bold, fontSize: 13)),
@@ -134,7 +135,7 @@ class _TelaSelecaoPerfilState extends State<TelaSelecaoPerfil> {
         Text(
           'Agora é só preencher seus dados para criar sua conta.',
           textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.grey[600], fontSize: 13.5),
+          style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 13.5),
         ),
         const SizedBox(height: 28),
 

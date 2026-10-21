@@ -16,25 +16,27 @@ class CardPassosCadastro extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppCores.borda(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Complete seu cadastro',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87),
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppCores.textoPrincipal(context)),
           ),
           const SizedBox(height: 16),
           _buildItemPasso(
+            context,
             numero: '1',
             titulo: 'Conta criada',
             subtitulo: 'Parabéns! Sua conta foi criada com sucesso.',
             concluido: true,
           ),
           _buildItemPasso(
+            context,
             numero: '2',
             titulo: 'Cadastre um filho',
             subtitulo: 'Adicione pelo menos um filho para continuar.',
@@ -42,12 +44,14 @@ class CardPassosCadastro extends StatelessWidget {
             ativo: !temFilhos,
           ),
           _buildItemPasso(
+            context,
             numero: '3',
             titulo: 'Solicite uma vaga',
             subtitulo: 'Escolha um motorista e solicite uma vaga.',
             concluido: false,
           ),
           _buildItemPasso(
+            context,
             numero: '4',
             titulo: 'Acompanhe a rota',
             subtitulo: 'Acompanhe em tempo real o trajeto do seu filho.',
@@ -76,7 +80,8 @@ class CardPassosCadastro extends StatelessWidget {
     );
   }
 
-  Widget _buildItemPasso({
+  Widget _buildItemPasso(
+    BuildContext context, {
     required String numero,
     required String titulo,
     required String subtitulo,
@@ -86,7 +91,7 @@ class CardPassosCadastro extends StatelessWidget {
   }) {
     final Color corBase = concluido
         ? Colors.green
-        : (ativo ? Colors.amber.shade800 : Colors.grey.shade400);
+        : (ativo ? Colors.amber.shade800 : AppCores.textoSecundario(context));
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,7 +100,7 @@ class CardPassosCadastro extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 12,
-              backgroundColor: concluido ? Colors.green : (ativo ? Colors.amber.shade700 : Colors.grey.shade300),
+              backgroundColor: concluido ? Colors.green : (ativo ? Colors.amber.shade700 : Colors.grey.shade400),
               child: concluido
                   ? const Icon(Icons.check, size: 14, color: Colors.white)
                   : Text(numero, style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold)),
@@ -104,7 +109,7 @@ class CardPassosCadastro extends StatelessWidget {
               Container(
                 width: 2,
                 height: 36,
-                color: Colors.grey.shade200,
+                color: AppCores.borda(context),
               ),
           ],
         ),
@@ -114,7 +119,7 @@ class CardPassosCadastro extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(titulo, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: corBase)),
-              Text(subtitulo, style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+              Text(subtitulo, style: TextStyle(fontSize: 11, color: AppCores.textoSecundario(context))),
               const SizedBox(height: 10),
             ],
           ),
