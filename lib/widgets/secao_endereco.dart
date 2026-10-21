@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/viacep_service.dart';
+import '../theme/cores.dart';
 import 'campos.dart';
 
 class SecaoEndereco extends StatefulWidget {
@@ -54,12 +55,12 @@ class _SecaoEnderecoState extends State<SecaoEndereco> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Endereço',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 14,
-            color: Color(0xFF1E293B),
+            color: AppCores.textoPrincipal(context),
           ),
         ),
         const SizedBox(height: 8),
@@ -67,7 +68,7 @@ class _SecaoEnderecoState extends State<SecaoEndereco> {
         // Campo CEP com indicador visual de busca
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFFAFBFCF).withOpacity(0.08),
+            color: const Color(0xFFAFBFCF).withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(12),
           ),
           child: TextFormField(

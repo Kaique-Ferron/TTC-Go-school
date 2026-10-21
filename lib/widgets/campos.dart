@@ -26,7 +26,7 @@ class CampoTextoCustomizado extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFAFBFCF).withOpacity(0.08),
+        color: const Color(0xFFAFBFCF).withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
       ),
       child: TextFormField(

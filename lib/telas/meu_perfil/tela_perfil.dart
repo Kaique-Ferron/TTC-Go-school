@@ -17,6 +17,8 @@ import '../../widgets/secao_card_wrapper.dart';
 import '../../theme/cores.dart';
 import 'editar_perfil.dart';
 import 'mapa_casa_tela.dart';
+import '../configuracoes/configuracoes_tela.dart';
+import '../suporte/tela_suporte.dart';
 
 /// Tela de Perfil do Responsável — atualizada com o menu lateral (Drawer),
 /// layout responsivo e totalmente conectada ao Firestore em tempo real.
@@ -66,7 +68,7 @@ class TelaPerfil extends StatelessWidget {
     final logado = context.watch<SessaoProvider>().logado;
     if (!logado) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: AppCores.fundo(context),
         body: Center(
           child: TextButton(
             onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false),
@@ -78,12 +80,9 @@ class TelaPerfil extends StatelessWidget {
     final uid = FirebaseAuth.instance.currentUser!.uid;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppCores.fundo(context),
       appBar: AppBar(
         title: const Text('Meu Perfil'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
       ),
       // Integrado com a sua NavbarResponsavel já existente
       drawer: const NavbarResponsavel(itemSelecionado: 'Meu Perfil'),
@@ -95,7 +94,7 @@ class TelaPerfil extends StatelessWidget {
             end: Alignment.bottomRight,
             colors: [
               AppCores.azulPrincipal.withValues(alpha: 0.06),
-              const Color(0xFFF8FAFC),
+              AppCores.fundo(context),
               AppCores.laranjaMotorista.withValues(alpha: 0.05),
             ],
           ),
@@ -123,9 +122,9 @@ class TelaPerfil extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Gerencie suas informações e preferências.',
-                  style: TextStyle(color: Colors.grey, fontSize: 14),
+                  style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 14),
                 ),
                 const SizedBox(height: 20),
 
@@ -158,9 +157,9 @@ class TelaPerfil extends StatelessWidget {
                           flex: isWide ? 1 : 0,
                           child: Column(
                             children: [
-                              _buildSecaoPagamento(),
+                              _buildSecaoPagamento(context),
                               const SizedBox(height: 20),
-                              _buildSecaoEstatisticas(uid),
+                              _buildSecaoEstatisticas(context, uid),
                               const SizedBox(height: 20),
                               _buildSecaoConfiguracoes(context),
                             ],
@@ -193,9 +192,9 @@ class TelaPerfil extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppCores.borda(context)),
       ),
       child: Column(
         children: [
@@ -226,8 +225,8 @@ class TelaPerfil extends StatelessWidget {
                       ),
                       child: Container(
                         padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                        child: const Icon(Icons.edit, size: 16, color: Colors.grey),
+                        decoration: BoxDecoration(color: AppCores.superficie(context), shape: BoxShape.circle),
+                        child: Icon(Icons.edit, size: 16, color: AppCores.textoSecundario(context)),
                       ),
                     ),
                   ),
@@ -261,15 +260,17 @@ class TelaPerfil extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 10),
-                    _buildItemInfo(Icons.email_outlined, email ?? '—', AppCores.azulPrincipal),
+                    _buildItemInfo(context, Icons.email_outlined, email ?? '—', AppCores.azulPrincipal),
                     const SizedBox(height: 8),
                     _buildItemInfo(
+                      context,
                       Icons.phone_outlined,
                       telefone != null && telefone.isNotEmpty ? telefone : 'Não informado',
                       AppCores.azulClaro,
                     ),
                     const SizedBox(height: 8),
                     _buildItemInfo(
+                      context,
                       Icons.location_on_outlined,
                       endereco != null && endereco.isNotEmpty ? endereco : 'Endereço não informado',
                       AppCores.laranjaMotorista,
@@ -287,6 +288,7 @@ class TelaPerfil extends StatelessWidget {
                         children: [
                           Expanded(
                             child: _buildItemInfo(
+                              context,
                               Icons.home_work_outlined,
                               casaLat != null
                                   ? 'Localização da casa marcada no mapa'
@@ -294,7 +296,7 @@ class TelaPerfil extends StatelessWidget {
                               AppCores.laranjaClaro,
                             ),
                           ),
-                          Icon(Icons.chevron_right, size: 18, color: Colors.grey[400]),
+                          Icon(Icons.chevron_right, size: 18, color: AppCores.textoSecundario(context)),
                         ],
                       ),
                     ),
@@ -336,9 +338,9 @@ class TelaPerfil extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppCores.borda(context)),
       ),
       child: Column(
         children: [
@@ -381,7 +383,7 @@ class TelaPerfil extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   child: Text(
                     'Nenhum filho cadastrado ainda.',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                    style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 13),
                   ),
                 );
               }
@@ -436,13 +438,13 @@ class TelaPerfil extends StatelessWidget {
   }
 
   // 3. Método de Pagamento
-  Widget _buildSecaoPagamento() {
+  Widget _buildSecaoPagamento(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppCores.borda(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -470,7 +472,7 @@ class TelaPerfil extends StatelessWidget {
               ),
             ],
           ),
-          Text('Gerencie seu método de pagamento.', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+          Text('Gerencie seu método de pagamento.', style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 12)),
           const SizedBox(height: 16),
           const CardCartao(ultimosDigitos: '1234', validade: '08/28', titular: 'Marcos Silva'),
           const SizedBox(height: 12),
@@ -493,12 +495,12 @@ class TelaPerfil extends StatelessWidget {
   }
 
   // 4. Estatísticas Conectadas ao Firestore Stream
-  Widget _buildSecaoEstatisticas(String uid) {
+  Widget _buildSecaoEstatisticas(BuildContext context, String uid) {
     return SecaoCardWrapper(
       titulo: 'Estatísticas',
       subtitulo: 'Acompanhe seus dados na plataforma.',
       icone: Icons.insights,
-      corIcone: AppCores.azulEscuro,
+      corIcone: AppCores.corIconeLegivel(context, AppCores.azulEscuro),
       acaoHeader: TextButton(
         onPressed: () {},
         child: const Text('Ver todas', style: TextStyle(fontSize: 12, color: azulPrincipal)),
@@ -557,16 +559,28 @@ class TelaPerfil extends StatelessWidget {
   Widget _buildSecaoConfiguracoes(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppCores.borda(context)),
       ),
       child: Column(
         children: [
           _linhaConfig(context, icone: Icons.notifications_outlined, texto: 'Notificações', corIcone: AppCores.laranjaClaro),
-          _linhaConfig(context, icone: Icons.help_outline, texto: 'Ajuda e suporte', corIcone: AppCores.azulPrincipal),
-          _linhaConfig(context, icone: Icons.info_outline, texto: 'Sobre o GoSchool', corIcone: AppCores.azulEscuro),
-          _linhaConfig(context, icone: Icons.settings_outlined, texto: 'Configurações', corIcone: AppCores.laranjaEscuro),
+          _linhaConfig(
+            context,
+            icone: Icons.help_outline,
+            texto: 'Ajuda e suporte',
+            corIcone: AppCores.azulPrincipal,
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaSuporte())),
+          ),
+          _linhaConfig(context, icone: Icons.info_outline, texto: 'Sobre o GoSchool', corIcone: AppCores.corIconeLegivel(context, AppCores.azulEscuro)),
+          _linhaConfig(
+            context,
+            icone: Icons.settings_outlined,
+            texto: 'Configurações',
+            corIcone: AppCores.corIconeLegivel(context, AppCores.laranjaEscuro),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ConfiguracoesTela())),
+          ),
           _linhaConfig(
             context,
             icone: Icons.logout,
@@ -580,7 +594,7 @@ class TelaPerfil extends StatelessWidget {
     );
   }
 
-  Widget _buildItemInfo(IconData icone, String texto, Color cor) {
+  Widget _buildItemInfo(BuildContext context, IconData icone, String texto, Color cor) {
     return Row(
       children: [
         Container(
@@ -592,7 +606,7 @@ class TelaPerfil extends StatelessWidget {
         Expanded(
           child: Text(
             texto,
-            style: TextStyle(color: Colors.grey[700], fontSize: 13),
+            style: TextStyle(color: AppCores.textoPrincipal(context), fontSize: 13),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -609,13 +623,13 @@ class TelaPerfil extends StatelessWidget {
     bool ultimo = false,
     VoidCallback? onTap,
   }) {
-    final Color corEfetiva = cor ?? Colors.grey[800]!;
-    final Color corDoIcone = cor ?? corIcone ?? Colors.grey[600]!;
+    final Color corEfetiva = cor ?? AppCores.textoPrincipal(context);
+    final Color corDoIcone = cor ?? corIcone ?? AppCores.textoSecundario(context);
     return InkWell(
       onTap: onTap ?? () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Em breve!'))),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-        decoration: BoxDecoration(border: ultimo ? null : Border(bottom: BorderSide(color: Colors.grey.shade100))),
+        decoration: BoxDecoration(border: ultimo ? null : Border(bottom: BorderSide(color: AppCores.borda(context)))),
         child: Row(
           children: [
             Container(
@@ -630,7 +644,7 @@ class TelaPerfil extends StatelessWidget {
                 style: TextStyle(fontSize: 14, fontWeight: cor != null ? FontWeight.bold : FontWeight.w500, color: corEfetiva),
               ),
             ),
-            if (cor == null) Icon(Icons.chevron_right, size: 18, color: Colors.grey[400]),
+            if (cor == null) Icon(Icons.chevron_right, size: 18, color: AppCores.textoSecundario(context)),
           ],
         ),
       ),

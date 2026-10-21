@@ -53,7 +53,7 @@ class _TelaRecuperarSenhaState extends State<TelaRecuperarSenha> {
     final Color corPerfil = AppCores.porPerfil(_perfil);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F9),
+      backgroundColor: AppCores.fundo(context),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Center(
@@ -61,11 +61,11 @@ class _TelaRecuperarSenhaState extends State<TelaRecuperarSenha> {
             constraints: const BoxConstraints(maxWidth: 420),
             padding: const EdgeInsets.all(24.0),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppCores.superficie(context),
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
+                  color: Colors.black.withValues(alpha: 0.06),
                   blurRadius: 20,
                   offset: const Offset(0, 6),
                 ),
@@ -83,7 +83,7 @@ class _TelaRecuperarSenhaState extends State<TelaRecuperarSenha> {
                   Text(
                     'Informe seu e-mail cadastrado para receber o link de recuperação.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey[600], fontSize: 13.5),
+                    style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 13.5),
                   ),
                   const SizedBox(height: 24),
 
@@ -120,7 +120,7 @@ class _TelaRecuperarSenhaState extends State<TelaRecuperarSenha> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Lembrou sua senha? ', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                      Text('Lembrou sua senha? ', style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 13)),
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
                         child: Text('Fazer login', style: TextStyle(color: corPerfil, fontWeight: FontWeight.bold, fontSize: 13)),

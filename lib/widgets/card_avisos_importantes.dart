@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/cores.dart';
 
 class CardAvisosImportantes extends StatelessWidget {
   const CardAvisosImportantes({super.key});
@@ -8,9 +9,9 @@ class CardAvisosImportantes extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppCores.borda(context)),
       ),
       child: Column(
         children: [
@@ -31,15 +32,15 @@ class CardAvisosImportantes extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          _buildItemAviso('O motorista saiu para buscar a criança.', '07:32'),
+          _buildItemAviso(context, 'O motorista saiu para buscar a criança.', '07:32'),
           const Divider(height: 12),
-          _buildItemAviso('Previsão de chegada na escola: 08:15.', '07:20'),
+          _buildItemAviso(context, 'Previsão de chegada na escola: 08:15.', '07:20'),
         ],
       ),
     );
   }
 
-  Widget _buildItemAviso(String mensagem, String hora) {
+  Widget _buildItemAviso(BuildContext context, String mensagem, String hora) {
     return Row(
       children: [
         const Icon(Icons.notifications_outlined, size: 16, color: Colors.amber),
@@ -49,11 +50,11 @@ class CardAvisosImportantes extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(mensagem, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
-              Text(hora, style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+              Text(hora, style: TextStyle(fontSize: 10, color: AppCores.textoSecundario(context))),
             ],
           ),
         ),
-        Icon(Icons.chevron_right, size: 16, color: Colors.grey.shade400),
+        Icon(Icons.chevron_right, size: 16, color: AppCores.textoSecundario(context)),
       ],
     );
   }

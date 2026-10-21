@@ -24,9 +24,9 @@ class CardMotoristaRota extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppCores.borda(context)),
       ),
       child: Column(
         children: [
@@ -47,10 +47,10 @@ class CardMotoristaRota extends StatelessWidget {
                       children: [
                         const Icon(Icons.star, size: 12, color: Colors.amber),
                         const SizedBox(width: 2),
-                        Text('$avaliacao ($totalAvaliacoes avaliações)', style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                        Text('$avaliacao ($totalAvaliacoes avaliações)', style: TextStyle(fontSize: 11, color: AppCores.textoSecundario(context))),
                       ],
                     ),
-                    Text(veiculoEPlaca, style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                    Text(veiculoEPlaca, style: TextStyle(fontSize: 11, color: AppCores.textoSecundario(context))),
                     Row(
                       children: const [
                         CircleAvatar(radius: 3, backgroundColor: Colors.green),
@@ -61,7 +61,7 @@ class CardMotoristaRota extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, color: Colors.grey.shade400),
+              Icon(Icons.chevron_right, color: AppCores.textoSecundario(context)),
             ],
           ),
           const SizedBox(height: 14),

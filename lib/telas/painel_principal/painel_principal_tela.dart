@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../models/filho.dart';
 import '../../services/firestore_service.dart';
 import '../../services/sessao_provider.dart';
+import '../../theme/cores.dart';
 import '../../widgets/navbar_responsavel.dart';
 import '../../widgets/nav_inferior_responsavel.dart';
 import '../../widgets/card_transporte_andamento.dart';
@@ -21,7 +22,7 @@ class PainelPrincipalTela extends StatelessWidget {
     final logado = context.watch<SessaoProvider>().logado;
     if (!logado) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: AppCores.fundo(context),
         body: Center(
           child: TextButton(
             onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false),
@@ -34,7 +35,7 @@ class PainelPrincipalTela extends StatelessWidget {
     final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppCores.fundo(context),
       appBar: AppBar(
         title: const Text('Painel Principal'),
         backgroundColor: const Color(0xFF0F172A), // Topo escuro azul conforme protótipo
@@ -49,8 +50,8 @@ class PainelPrincipalTela extends StatelessWidget {
       ),
 
       // BOTÃO DE 3 RISCOS / PONTIHNOS HABILITADO
-      drawer: const NavbarResponsavel(itemSelecionado: 'Painel Principal'),
-      bottomNavigationBar: const NavInferiorResponsavel(abaSelecionada: 'Painel'),
+      drawer: const NavbarResponsavel(itemSelecionado: 'Início'),
+      bottomNavigationBar: const NavInferiorResponsavel(abaSelecionada: 'Início'),
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         stream: FirebaseFirestore.instance.collection('usuarios').doc(uid).snapshots(),
         builder: (context, snapshotUser) {
@@ -72,11 +73,11 @@ class PainelPrincipalTela extends StatelessWidget {
                     // Saudação com o nome real lido do Firebase
                     Text(
                       'Olá, $nomeResponsavel! 👋',
-                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppCores.textoPrincipal(context)),
                     ),
                     Text(
                       'Terça-feira, 21 de outubro',
-                      style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                      style: TextStyle(fontSize: 13, color: AppCores.textoSecundario(context)),
                     ),
                     const SizedBox(height: 20),
 

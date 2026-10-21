@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../theme/cores.dart';
 import 'logo_goschool.dart';
 
 class NavbarResponsavel extends StatelessWidget {
@@ -15,7 +16,6 @@ class NavbarResponsavel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      backgroundColor: Colors.white,
       elevation: 0,
       child: SafeArea(
         child: Column(
@@ -53,9 +53,9 @@ class NavbarResponsavel extends StatelessWidget {
                 children: [
                   _buildItemMenu(
                     context,
-                    titulo: 'Painel Principal',
+                    titulo: 'Início',
                     icone: Icons.home_outlined,
-                    rota: '/painel-principal',
+                    rota: '/inicio',
                   ),
                   _buildItemMenu(
                     context,
@@ -105,7 +105,9 @@ class NavbarResponsavel extends StatelessWidget {
               width: double.infinity,
               margin: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFEEF3FF),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? azulPrincipal.withValues(alpha: 0.14)
+                    : const Color(0xFFEEF3FF),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Stack(
@@ -154,16 +156,16 @@ class NavbarResponsavel extends StatelessWidget {
         ),
         tileColor: isSelected
             ? azulPrincipal
-            : (titulo == 'Configurações' && !isSelected ? const Color(0xFFF1F5F9) : Colors.transparent),
+            : (titulo == 'Configurações' && !isSelected ? AppCores.fundo(context) : Colors.transparent),
         leading: Icon(
           icone,
-          color: isSelected ? Colors.white : Colors.grey[700],
+          color: isSelected ? Colors.white : AppCores.textoSecundario(context),
           size: 22,
         ),
         title: Text(
           titulo,
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.grey[800],
+            color: isSelected ? Colors.white : AppCores.textoPrincipal(context),
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
             fontSize: 14.5,
           ),
@@ -181,7 +183,7 @@ class NavbarResponsavel extends StatelessWidget {
                      rota == '/configuracoes' ||
                      rota == '/procurar-motorista' ||
                      rota == '/chat' ||
-                     rota == '/painel-principal') {
+                     rota == '/inicio') {
             if (!isSelected) {
               Navigator.pushNamed(context, rota);
             }

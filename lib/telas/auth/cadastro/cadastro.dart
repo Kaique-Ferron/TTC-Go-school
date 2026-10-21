@@ -127,14 +127,14 @@ class _TelaCadastroState extends State<TelaCadastro> {
     final Color corPerfil = AppCores.porPerfil(perfil);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F9),
+      backgroundColor: AppCores.fundo(context),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Center(
           child: Container(
             constraints: const BoxConstraints(maxWidth: 420),
             padding: const EdgeInsets.all(24.0),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
+            decoration: BoxDecoration(color: AppCores.superficie(context), borderRadius: BorderRadius.circular(24)),
             child: Form(
               key: _formKey,
               child: Column(
@@ -156,7 +156,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                     child: Chip(
                       avatar: Icon(isResponsavel ? Icons.person : Icons.directions_bus, size: 16, color: corPerfil),
                       label: Text(perfil, style: TextStyle(color: corPerfil, fontSize: 12, fontWeight: FontWeight.bold)),
-                      backgroundColor: corPerfil.withOpacity(0.1),
+                      backgroundColor: corPerfil.withValues(alpha: 0.1),
                       side: BorderSide.none,
                     ),
                   ),
@@ -164,7 +164,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
 
                   Center(child: Text('Cadastro de $perfil', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
                   const SizedBox(height: 4),
-                  Center(child: Text('Preencha seus dados para criar sua conta.', style: TextStyle(color: Colors.grey[600], fontSize: 13))),
+                  Center(child: Text('Preencha seus dados para criar sua conta.', style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 13))),
                   const SizedBox(height: 20),
 
                   // Upload Foto
@@ -177,7 +177,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                           child: Icon(Icons.camera_alt_outlined, color: Colors.grey[600], size: 28),
                         ),
                         const SizedBox(height: 6),
-                        Text('Adicionar foto (opcional)', style: TextStyle(color: Colors.grey[500], fontSize: 11)),
+                        Text('Adicionar foto (opcional)', style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 11)),
                       ],
                     ),
                   ),
@@ -251,7 +251,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                   const SizedBox(height: 16),
 
                   // Segurança
-                  const Text('Segurança da Conta', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1E293B))),
+                  Text('Segurança da Conta', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppCores.textoPrincipal(context))),
                   const SizedBox(height: 8),
 
                   // Campo Senha
@@ -293,7 +293,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Já tem uma conta? ', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                      Text('Já tem uma conta? ', style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 13)),
                       GestureDetector(
                         onTap: () => Navigator.of(context).popUntil((route) => route.isFirst),
                         child: Text('Fazer login', style: TextStyle(color: corPerfil, fontWeight: FontWeight.bold, fontSize: 13)),

@@ -5,6 +5,7 @@ import '../services/firestore_service.dart';
 import '../telas/chat/tela_chat.dart';
 import '../telas/contratacao/tela_contratacao.dart';
 import '../theme/cores.dart';
+import 'avaliacao_media.dart';
 
 /// Modal exibido ao Responsável quando ele toca num motorista na aba
 /// Serviços — mostra foto de perfil, valor da mensalidade e quantas
@@ -41,7 +42,7 @@ class _ModalDetalhesMotoristaState extends State<ModalDetalhesMotorista> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => TelaChat(conversaId: conversaId, meuUid: meuUid, outroNome: motorista.nome),
+          builder: (_) => TelaChat(conversaId: conversaId, meuUid: meuUid, outroUid: motorista.uid, outroNome: motorista.nome),
         ),
       );
     } finally {
@@ -53,7 +54,7 @@ class _ModalDetalhesMotoristaState extends State<ModalDetalhesMotorista> {
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      backgroundColor: Colors.white,
+      backgroundColor: AppCores.superficie(context),
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: Container(
         constraints: const BoxConstraints(maxWidth: 420),
@@ -66,9 +67,9 @@ class _ModalDetalhesMotoristaState extends State<ModalDetalhesMotorista> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Detalhes do Motorista',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppCores.textoPrincipal(context)),
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
@@ -98,7 +99,9 @@ class _ModalDetalhesMotoristaState extends State<ModalDetalhesMotorista> {
                     children: [
                       Text(motorista.nome, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 2),
-                      Text('${motorista.veiculo} • ${motorista.placa}', style: TextStyle(color: Colors.grey[600], fontSize: 12.5)),
+                      Text('${motorista.veiculo} • ${motorista.placa}', style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 12.5)),
+                      const SizedBox(height: 4),
+                      AvaliacaoMedia(motoristaUid: motorista.uid, iconSize: 14, fontSize: 12.5),
                     ],
                   ),
                 ),
@@ -126,7 +129,7 @@ class _ModalDetalhesMotoristaState extends State<ModalDetalhesMotorista> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Mensalidade', style: TextStyle(color: Colors.grey[700], fontSize: 12, fontWeight: FontWeight.w600)),
+                        Text('Mensalidade', style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 12, fontWeight: FontWeight.w600)),
                         Text(
                           'R\$ ${motorista.valorMensalidade.toStringAsFixed(2).replaceAll('.', ',')} / mês',
                           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppCores.verde),
@@ -216,9 +219,9 @@ class _ModalDetalhesMotoristaState extends State<ModalDetalhesMotorista> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: AppCores.fundo(context),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppCores.borda(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -227,13 +230,13 @@ class _ModalDetalhesMotoristaState extends State<ModalDetalhesMotorista> {
             children: [
               Icon(icone, size: 15, color: cor),
               const SizedBox(width: 6),
-              Text(titulo, style: TextStyle(color: Colors.grey[600], fontSize: 11, fontWeight: FontWeight.bold)),
+              Text(titulo, style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 11, fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 6),
           Text(
             '$quantidade criança${quantidade == 1 ? '' : 's'}',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E293B)),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppCores.textoPrincipal(context)),
           ),
         ],
       ),
@@ -243,9 +246,9 @@ class _ModalDetalhesMotoristaState extends State<ModalDetalhesMotorista> {
   Widget _linhaInfo(IconData icone, String texto) {
     return Row(
       children: [
-        Icon(icone, size: 16, color: Colors.grey[600]),
+        Icon(icone, size: 16, color: AppCores.textoSecundario(context)),
         const SizedBox(width: 8),
-        Text(texto, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
+        Text(texto, style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 13)),
       ],
     );
   }

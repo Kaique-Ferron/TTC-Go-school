@@ -2,17 +2,20 @@ import 'package:flutter/material.dart';
 import '../../models/mensagem_model.dart';
 import '../../services/firestore_service.dart';
 import '../../theme/cores.dart';
+import '../../widgets/dialog_avaliar_motorista.dart';
 
 /// Thread de mensagens de uma conversa entre Responsável e Motorista.
 class TelaChat extends StatefulWidget {
   final String conversaId;
   final String meuUid;
+  final String outroUid;
   final String outroNome;
 
   const TelaChat({
     super.key,
     required this.conversaId,
     required this.meuUid,
+    required this.outroUid,
     required this.outroNome,
   });
 
@@ -24,12 +27,28 @@ class _TelaChatState extends State<TelaChat> {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
   bool _enviando = false;
+  bool _souMotorista = false;
+
+  @override
+  void initState() {
+    super.initState();
+    FirestoreService.instance.usuarioStream(widget.meuUid).first.then((usuario) {
+      if (mounted) setState(() => _souMotorista = usuario?.tipoPerfil == 'motorista');
+    });
+  }
 
   @override
   void dispose() {
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _abrirAvaliacao() {
+    showDialog(
+      context: context,
+      builder: (_) => DialogAvaliarMotorista(motoristaUid: widget.outroUid, motoristaNome: widget.outroNome),
+    );
   }
 
   Future<void> _enviar() async {
@@ -52,12 +71,17 @@ class _TelaChatState extends State<TelaChat> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F9),
+      backgroundColor: AppCores.fundo(context),
       appBar: AppBar(
         title: Text(widget.outroNome),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
+        actions: [
+          if (!_souMotorista && widget.outroUid.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.star_outline),
+              tooltip: 'Avaliar motorista',
+              onPressed: _abrirAvaliacao,
+            ),
+        ],
       ),
       body: Column(
         children: [
@@ -74,7 +98,7 @@ class _TelaChatState extends State<TelaChat> {
                   return Center(
                     child: Text(
                       'Diga olá para ${widget.outroNome}!',
-                      style: TextStyle(color: Colors.grey[500], fontSize: 13.5),
+                      style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 13.5),
                     ),
                   );
                 }
@@ -97,8 +121,8 @@ class _TelaChatState extends State<TelaChat> {
             child: Container(
               padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
               decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border(top: BorderSide(color: Colors.grey.shade200)),
+                color: AppCores.superficie(context),
+                border: Border(top: BorderSide(color: AppCores.borda(context))),
               ),
               child: Row(
                 children: [
@@ -109,10 +133,11 @@ class _TelaChatState extends State<TelaChat> {
                       maxLines: 4,
                       textInputAction: TextInputAction.send,
                       onSubmitted: (_) => _enviar(),
+                      style: TextStyle(color: AppCores.textoPrincipal(context)),
                       decoration: InputDecoration(
                         hintText: 'Escreva uma mensagem...',
                         filled: true,
-                        fillColor: const Color(0xFFF1F3F7),
+                        fillColor: AppCores.fundo(context),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(22), borderSide: BorderSide.none),
                       ),
@@ -150,14 +175,14 @@ class _TelaChatState extends State<TelaChat> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.72),
         decoration: BoxDecoration(
-          color: minha ? AppCores.azulPrincipal : Colors.white,
+          color: minha ? AppCores.azulPrincipal : AppCores.superficie(context),
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
             bottomLeft: Radius.circular(minha ? 16 : 4),
             bottomRight: Radius.circular(minha ? 4 : 16),
           ),
-          border: minha ? null : Border.all(color: Colors.grey.shade200),
+          border: minha ? null : Border.all(color: AppCores.borda(context)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -165,12 +190,12 @@ class _TelaChatState extends State<TelaChat> {
           children: [
             Text(
               mensagem.texto,
-              style: TextStyle(color: minha ? Colors.white : const Color(0xFF1E293B), fontSize: 14),
+              style: TextStyle(color: minha ? Colors.white : AppCores.textoPrincipal(context), fontSize: 14),
             ),
             const SizedBox(height: 4),
             Text(
               '${mensagem.enviadaEm.hour.toString().padLeft(2, '0')}:${mensagem.enviadaEm.minute.toString().padLeft(2, '0')}',
-              style: TextStyle(color: minha ? Colors.white70 : Colors.grey[500], fontSize: 10),
+              style: TextStyle(color: minha ? Colors.white70 : AppCores.textoSecundario(context), fontSize: 10),
             ),
           ],
         ),

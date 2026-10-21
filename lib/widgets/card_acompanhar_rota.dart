@@ -20,9 +20,9 @@ class CardAcompanharRota extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppCores.borda(context)),
       ),
       child: Column(
         children: [
@@ -145,11 +145,11 @@ class CardAcompanharRota extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildEtapaLinha('Embarque', '07:40', Icons.directions_bus, AppCores.laranjaMotorista),
-              _buildDivisorLinha(true),
-              _buildEtapaLinha('A caminho', '08:00', Icons.directions_bus, AppCores.azulPrincipal),
-              _buildDivisorLinha(false),
-              _buildEtapaLinha('Escola', '08:15', Icons.home_work, Colors.grey),
+              _buildEtapaLinha(context, 'Embarque', '07:40', Icons.directions_bus, AppCores.laranjaMotorista),
+              _buildDivisorLinha(context, true),
+              _buildEtapaLinha(context, 'A caminho', '08:00', Icons.directions_bus, AppCores.azulPrincipal),
+              _buildDivisorLinha(context, false),
+              _buildEtapaLinha(context, 'Escola', '08:15', Icons.home_work, AppCores.textoSecundario(context)),
             ],
           ),
         ],
@@ -157,26 +157,27 @@ class CardAcompanharRota extends StatelessWidget {
     );
   }
 
-  Widget _buildEtapaLinha(String rotulo, String hora, IconData icone, Color cor) {
+  Widget _buildEtapaLinha(BuildContext context, String rotulo, String hora, IconData icone, Color cor) {
+    final corIcone = AppCores.corIconeLegivel(context, cor);
     return Column(
       children: [
         Container(
           padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(color: cor.withValues(alpha: 0.15), shape: BoxShape.circle),
-          child: Icon(icone, size: 14, color: cor),
+          decoration: BoxDecoration(color: corIcone.withValues(alpha: 0.15), shape: BoxShape.circle),
+          child: Icon(icone, size: 14, color: corIcone),
         ),
         const SizedBox(height: 4),
-        Text(rotulo, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-        Text(hora, style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
+        Text(rotulo, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppCores.textoPrincipal(context))),
+        Text(hora, style: TextStyle(fontSize: 10, color: AppCores.textoSecundario(context))),
       ],
     );
   }
 
-  Widget _buildDivisorLinha(bool ativo) {
+  Widget _buildDivisorLinha(BuildContext context, bool ativo) {
     return Expanded(
       child: Container(
         height: 2,
-        color: ativo ? AppCores.azulPrincipal : Colors.grey.shade300,
+        color: ativo ? AppCores.azulPrincipal : AppCores.borda(context),
       ),
     );
   }

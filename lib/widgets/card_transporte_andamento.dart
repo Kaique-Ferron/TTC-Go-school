@@ -14,9 +14,9 @@ class CardTransporteAndamento extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFFEFF6FF),
+          color: AppCores.azulPrincipal.withValues(alpha: Theme.of(context).brightness == Brightness.dark ? 0.16 : 0.06),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.blue.shade100),
+          border: Border.all(color: Colors.blue.shade100.withValues(alpha: Theme.of(context).brightness == Brightness.dark ? 0.3 : 1)),
         ),
         child: Row(
           children: [
@@ -43,7 +43,7 @@ class CardTransporteAndamento extends StatelessWidget {
                   ),
                   Text(
                     'Acompanhe o percurso da sua criança em tempo real.',
-                    style: TextStyle(fontSize: 11.5, color: Colors.grey.shade600),
+                    style: TextStyle(fontSize: 11.5, color: AppCores.textoSecundario(context)),
                   ),
                 ],
               ),

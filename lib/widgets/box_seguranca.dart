@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/cores.dart';
 
 class BoxSeguranca extends StatelessWidget {
   final String titulo;
@@ -13,11 +14,12 @@ class BoxSeguranca extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const Color azulPrincipal = Color(0xFF1D58E2);
+    final bool escuro = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFEFF4FF),
+        color: escuro ? azulPrincipal.withValues(alpha: 0.14) : const Color(0xFFEFF4FF),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -38,8 +40,8 @@ class BoxSeguranca extends StatelessWidget {
               children: [
                 Text(
                   titulo,
-                  style: const TextStyle(
-                    color: azulPrincipal,
+                  style: TextStyle(
+                    color: escuro ? Colors.lightBlue.shade200 : azulPrincipal,
                     fontWeight: FontWeight.bold,
                     fontSize: 13.5,
                   ),
@@ -48,7 +50,7 @@ class BoxSeguranca extends StatelessWidget {
                 Text(
                   subtitulo,
                   style: TextStyle(
-                    color: Colors.grey[700],
+                    color: AppCores.textoSecundario(context),
                     fontSize: 12,
                     height: 1.3,
                   ),

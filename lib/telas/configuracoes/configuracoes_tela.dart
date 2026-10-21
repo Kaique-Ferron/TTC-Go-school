@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../services/sessao_provider.dart';
+import '../../../services/preferencias_provider.dart';
 import '../../../theme/cores.dart';
 import '../../../widgets/navbar_responsavel.dart';
 import '../../../widgets/nav_inferior_responsavel.dart';
+import '../suporte/tela_suporte.dart';
+import '../suporte/tela_politica_privacidade.dart';
 
 class ConfiguracoesTela extends StatefulWidget {
   const ConfiguracoesTela({super.key});
@@ -13,9 +16,18 @@ class ConfiguracoesTela extends StatefulWidget {
 }
 
 class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
-  // Aparência
-  String _temaSelecionado = 'Escuro';
-  String _tamanhoFonte = 'Média';
+  // Aparência — valor inicial vem do que já está salvo (PreferenciasProvider),
+  // não mais um texto fixo que ignorava a preferência real do usuário.
+  late String _temaSelecionado;
+  late String _tamanhoFonte;
+
+  @override
+  void initState() {
+    super.initState();
+    final prefs = context.read<PreferenciasProvider>();
+    _temaSelecionado = prefs.tema;
+    _tamanhoFonte = prefs.tamanhoFonte;
+  }
 
   // Notificações
   bool _notifPush = true;
@@ -29,21 +41,18 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
   bool _compartilharLocalizacaoRota = true;
   bool _permitirGpsApenasUso = true;
 
-  bool _salvando = false;
+  /// Aplica a aparência na hora (sem botão de "salvar" separado): atualiza o
+  /// estado local pro seletor refletir o toque imediatamente e já manda pro
+  /// PreferenciasProvider, que troca o tema do app inteiro e persiste no
+  /// Firestore em paralelo.
+  void _mudarTema(String tema) {
+    setState(() => _temaSelecionado = tema);
+    context.read<PreferenciasProvider>().salvar(tema: tema, tamanhoFonte: _tamanhoFonte);
+  }
 
-  Future<void> _salvarAlteracoes() async {
-    setState(() => _salvando = true);
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    if (mounted) {
-      setState(() => _salvando = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Configurações salvas com sucesso!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    }
+  void _mudarTamanhoFonte(String tamanho) {
+    setState(() => _tamanhoFonte = tamanho);
+    context.read<PreferenciasProvider>().salvar(tema: _temaSelecionado, tamanhoFonte: tamanho);
   }
 
   @override
@@ -51,7 +60,7 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
     final logado = context.watch<SessaoProvider>().logado;
     if (!logado) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: AppCores.fundo(context),
         body: Center(
           child: TextButton(
             onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false),
@@ -62,12 +71,9 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppCores.fundo(context),
       appBar: AppBar(
         title: const Text('Configurações'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
       ),
       drawer: const NavbarResponsavel(itemSelecionado: 'Configurações'),
       bottomNavigationBar: const NavInferiorResponsavel(abaSelecionada: 'Perfil'),
@@ -76,9 +82,9 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Personalize sua experiência no GoSchool.',
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+              style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 14),
             ),
             const SizedBox(height: 20),
 
@@ -92,7 +98,7 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
                 _buildSeletorTresOpcoes(
                   opcoes: ['Claro', 'Escuro', 'Automático'],
                   selecionado: _temaSelecionado,
-                  onSelect: (v) => setState(() => _temaSelecionado = v),
+                  onSelect: _mudarTema,
                 ),
                 const SizedBox(height: 16),
                 const Text('Tamanho da fonte', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
@@ -100,7 +106,7 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
                 _buildSeletorTresOpcoes(
                   opcoes: ['Pequena', 'Média', 'Grande'],
                   selecionado: _tamanhoFonte,
-                  onSelect: (v) => setState(() => _tamanhoFonte = v),
+                  onSelect: _mudarTamanhoFonte,
                 ),
               ],
             ),
@@ -183,7 +189,11 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
                 _buildLink(
                   icone: Icons.privacy_tip_outlined,
                   titulo: 'Política de privacidade',
-                  subtitulo: 'Saiba como protegemos seus dados.',
+                  subtitulo: 'LGPD e como protegemos seus dados.',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const TelaPoliticaPrivacidade()),
+                  ),
                 ),
               ],
             ),
@@ -251,47 +261,35 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
                   icone: Icons.help_outline,
                   titulo: 'Central de ajuda',
                   subtitulo: 'Tutoriais, guias e artigos úteis.',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const TelaSuporte()),
+                  ),
                 ),
                 const Divider(height: 1),
                 _buildLink(
                   icone: Icons.phone_outlined,
                   titulo: 'Falar com suporte',
                   subtitulo: 'Nossa equipe está pronta para te ajudar.',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const TelaSuporte(abrirDireto: SecaoSuporte.contato)),
+                  ),
                 ),
                 const Divider(height: 1),
                 _buildLink(
                   icone: Icons.question_answer_outlined,
                   titulo: 'Perguntas frequentes',
                   subtitulo: 'Tire suas dúvidas rapidamente.',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const TelaSuporte(abrirDireto: SecaoSuporte.faq)),
+                  ),
                 ),
               ],
             ),
 
-            const SizedBox(height: 30),
-
-            // BOTÃO SALVAR
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton.icon(
-                onPressed: _salvando ? null : _salvarAlteracoes,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppCores.azulPrincipal,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                icon: _salvando
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                      )
-                    : const Icon(Icons.check, color: Colors.white),
-                label: Text(
-                  _salvando ? 'Salvando...' : 'Salvar Alterações',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
-                ),
-              ),
-            ),
+            const SizedBox(height: 10),
           ],
         ),
       ),
@@ -306,9 +304,9 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppCores.borda(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -319,7 +317,7 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
               const SizedBox(width: 8),
               Text(
                 titulo,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppCores.textoPrincipal(context)),
               ),
             ],
           ),
@@ -338,7 +336,7 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
+        color: AppCores.fundo(context),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -359,7 +357,7 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      color: isSelected ? Colors.white : Colors.black87,
+                      color: isSelected ? Colors.white : AppCores.textoPrincipal(context),
                     ),
                   ),
                 ),
@@ -395,8 +393,8 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(titulo, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600)),
-                Text(subtitulo, style: TextStyle(fontSize: 11.5, color: Colors.grey.shade600)),
+                Text(titulo, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppCores.textoPrincipal(context))),
+                Text(subtitulo, style: TextStyle(fontSize: 11.5, color: AppCores.textoSecundario(context))),
               ],
             ),
           ),
@@ -415,13 +413,15 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
     required String titulo,
     String? subtitulo,
     String? sufixoTexto,
+    VoidCallback? onTap,
   }) {
     return InkWell(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Em breve!')),
-        );
-      },
+      onTap: onTap ??
+          () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Em breve!')),
+            );
+          },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12.0),
         child: Row(
@@ -439,17 +439,17 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(titulo, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600)),
+                  Text(titulo, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppCores.textoPrincipal(context))),
                   if (subtitulo != null)
-                    Text(subtitulo, style: TextStyle(fontSize: 11.5, color: Colors.grey.shade600)),
+                    Text(subtitulo, style: TextStyle(fontSize: 11.5, color: AppCores.textoSecundario(context))),
                 ],
               ),
             ),
             if (sufixoTexto != null) ...[
-              Text(sufixoTexto, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+              Text(sufixoTexto, style: TextStyle(fontSize: 12, color: AppCores.textoSecundario(context))),
               const SizedBox(width: 4),
             ],
-            Icon(Icons.chevron_right, size: 18, color: Colors.grey.shade400),
+            Icon(Icons.chevron_right, size: 18, color: AppCores.textoSecundario(context)),
           ],
         ),
       ),

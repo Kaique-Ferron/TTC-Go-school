@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/cores.dart';
 
 class ModalInfoFilho extends StatelessWidget {
   final String nome;
@@ -30,7 +31,7 @@ class ModalInfoFilho extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      backgroundColor: Colors.white,
+      backgroundColor: AppCores.superficie(context),
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: Container(
         constraints: const BoxConstraints(maxWidth: 420),
@@ -43,9 +44,9 @@ class ModalInfoFilho extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Informações Complementares',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppCores.textoPrincipal(context)),
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
@@ -91,7 +92,7 @@ class ModalInfoFilho extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 2),
-                      Text(idadeEAno, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                      Text(idadeEAno, style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 13)),
                     ],
                   ),
                 ),
@@ -102,17 +103,17 @@ class ModalInfoFilho extends StatelessWidget {
             // Cards de Dados (Grid 2x2)
             Row(
               children: [
-                Expanded(child: _buildBlocoInfo('ESCOLA', escola)),
+                Expanded(child: _buildBlocoInfo(context, 'ESCOLA', escola)),
                 const SizedBox(width: 12),
-                Expanded(child: _buildBlocoInfo('PERÍODO', periodo)),
+                Expanded(child: _buildBlocoInfo(context, 'PERÍODO', periodo)),
               ],
             ),
             const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(child: _buildBlocoInfo('TIPO SANGUÍNEO', tipoSanguineo)),
+                Expanded(child: _buildBlocoInfo(context, 'TIPO SANGUÍNEO', tipoSanguineo)),
                 const SizedBox(width: 12),
-                Expanded(child: _buildBlocoInfo('ALERGIAS', alergias)),
+                Expanded(child: _buildBlocoInfo(context, 'ALERGIAS', alergias)),
               ],
             ),
             const SizedBox(height: 24),
@@ -130,7 +131,7 @@ class ModalInfoFilho extends StatelessWidget {
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.red.shade400, width: 1.5),
                         borderRadius: BorderRadius.circular(16),
-                        color: Colors.white,
+                        color: AppCores.superficie(context),
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -181,25 +182,25 @@ class ModalInfoFilho extends StatelessWidget {
     );
   }
 
-  Widget _buildBlocoInfo(String rotulo, String valor) {
+  Widget _buildBlocoInfo(BuildContext context, String rotulo, String valor) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: AppCores.fundo(context),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppCores.borda(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             rotulo,
-            style: TextStyle(color: Colors.grey[500], fontSize: 10, fontWeight: FontWeight.bold),
+            style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 10, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
           Text(
             valor,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E293B)),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppCores.textoPrincipal(context)),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),

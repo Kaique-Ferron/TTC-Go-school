@@ -22,7 +22,7 @@ class SeletorTurno extends StatelessWidget {
           'Turno da Escola',
           style: TextStyle(
             fontSize: 12,
-            color: Colors.grey[700],
+            color: AppCores.textoSecundario(context),
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -39,17 +39,17 @@ class SeletorTurno extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     decoration: BoxDecoration(
-                      color: selecionado ? AppCores.azulPrincipal : Colors.grey.shade100,
+                      color: selecionado ? AppCores.azulPrincipal : AppCores.fundo(context),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: selecionado ? AppCores.azulPrincipal : Colors.grey.shade300,
+                        color: selecionado ? AppCores.azulPrincipal : AppCores.borda(context),
                       ),
                     ),
                     child: Center(
                       child: Text(
                         turno,
                         style: TextStyle(
-                          color: selecionado ? Colors.white : Colors.black87,
+                          color: selecionado ? Colors.white : AppCores.textoPrincipal(context),
                           fontWeight: selecionado ? FontWeight.bold : FontWeight.normal,
                           fontSize: 13,
                         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/cores.dart';
 
 class CardEstatistica extends StatelessWidget {
   final IconData icon;
@@ -21,9 +22,9 @@ class CardEstatistica extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppCores.borda(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -46,10 +47,10 @@ class CardEstatistica extends StatelessWidget {
                   valor,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: AppCores.textoPrincipal(context),
                   ),
                 ),
               ),
@@ -60,7 +61,7 @@ class CardEstatistica extends StatelessWidget {
             rotulo,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+            style: TextStyle(fontSize: 12, color: AppCores.textoSecundario(context)),
           ),
         ],
       ),

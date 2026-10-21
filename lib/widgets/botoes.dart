@@ -78,7 +78,7 @@ class SeletorPerfilTab extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: AppCores.borda(context)),
         borderRadius: BorderRadius.circular(12),
       ),
       padding: const EdgeInsets.all(4),
@@ -99,14 +99,14 @@ class SeletorPerfilTab extends StatelessWidget {
                   children: [
                     Icon(
                       Icons.person,
-                      color: isResponsavel ? Colors.white : Colors.grey[600],
+                      color: isResponsavel ? Colors.white : AppCores.textoSecundario(context),
                       size: 18,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       'Responsável',
                       style: TextStyle(
-                        color: isResponsavel ? Colors.white : Colors.grey[700],
+                        color: isResponsavel ? Colors.white : AppCores.textoSecundario(context),
                         fontWeight: FontWeight.bold,
                       ),
                     ),

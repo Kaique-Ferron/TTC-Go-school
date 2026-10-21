@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import '../../config/mapa_config.dart';
 import '../../models/motorista_model.dart';
 import '../../services/firestore_service.dart';
+import '../../theme/cores.dart';
 import '../../widgets/modal_detalhes_motorista.dart';
 import '../../widgets/motorista_card.dart';
 import '../meu_perfil/mapa_casa_tela.dart';
@@ -37,16 +38,16 @@ class AbaInicio extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 22),
-          const Text(
+          Text(
             'A segurança do seu filho\nna palma da sua mão',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 27, fontWeight: FontWeight.w900, color: Color(0xFF1E293B), height: 1.25),
+            style: TextStyle(fontSize: 27, fontWeight: FontWeight.w900, color: AppCores.textoPrincipal(context), height: 1.25),
           ),
           const SizedBox(height: 14),
-          const Text(
+          Text(
             'Acompanhe o trajeto de ida e volta da escola em tempo real e tenha paz de espírito todos os dias.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF64748B), height: 1.5),
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppCores.textoSecundario(context), height: 1.5),
           ),
           const SizedBox(height: 26),
 
@@ -79,20 +80,20 @@ class AbaInicio extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppCores.superficie(context),
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: Colors.grey.shade100),
+              border: Border.all(color: AppCores.borda(context)),
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4)),
+                BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4)),
               ],
             ),
             child: Row(
               children: [
-                Expanded(child: _buildEstatistica('50+', 'Motoristas\nverificados')),
-                Container(width: 1, height: 36, color: Colors.grey.shade200),
-                Expanded(child: _buildEstatistica('500+', 'Famílias\natendidas')),
-                Container(width: 1, height: 36, color: Colors.grey.shade200),
-                Expanded(child: _buildEstatistica('4.9 ★', 'Avaliação\nmédia')),
+                Expanded(child: _buildEstatistica(context, '50+', 'Motoristas\nverificados')),
+                Container(width: 1, height: 36, color: AppCores.borda(context)),
+                Expanded(child: _buildEstatistica(context, '500+', 'Famílias\natendidas')),
+                Container(width: 1, height: 36, color: AppCores.borda(context)),
+                Expanded(child: _buildEstatistica(context, '4.9 ★', 'Avaliação\nmédia')),
               ],
             ),
           ),
@@ -103,7 +104,7 @@ class AbaInicio extends StatelessWidget {
     );
   }
 
-  Widget _buildEstatistica(String numero, String rotulo) {
+  Widget _buildEstatistica(BuildContext context, String numero, String rotulo) {
     return Column(
       children: [
         Text(numero, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: Color(0xFF1D58E2))),
@@ -111,7 +112,7 @@ class AbaInicio extends StatelessWidget {
         Text(
           rotulo,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 10.5, color: Colors.grey[600], height: 1.3),
+          style: TextStyle(fontSize: 10.5, color: AppCores.textoSecundario(context), height: 1.3),
         ),
       ],
     );
@@ -148,9 +149,9 @@ class _CardLocalizacaoCasa extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppCores.superficie(context),
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: Colors.grey.shade100),
+              border: Border.all(color: AppCores.borda(context)),
               boxShadow: [
                 BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4)),
               ],
@@ -169,19 +170,19 @@ class _CardLocalizacaoCasa extends StatelessWidget {
                     children: [
                       Text(
                         temCasa ? 'Casa' : 'Localização da casa',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E293B)),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppCores.textoPrincipal(context)),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         temCasa ? 'Casa: $enderecoCasa' : 'Definir localização da casa',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                        style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 12),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
-                Icon(Icons.chevron_right, color: Colors.grey[400]),
+                Icon(Icons.chevron_right, color: AppCores.textoSecundario(context)),
               ],
             ),
           ),
@@ -284,17 +285,20 @@ class _MapaTrajeto extends StatelessWidget {
                   child: IgnorePointer(
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(20)),
-                        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+                      decoration: BoxDecoration(
+                        color: AppCores.superficie(context),
+                        borderRadius: const BorderRadius.all(Radius.circular(20)),
+                        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10)],
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.open_in_full, color: Color(0xFF1D58E2), size: 14),
-                          SizedBox(width: 4),
-                          Text('Toque para abrir', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                          const Icon(Icons.open_in_full, color: Color(0xFF1D58E2), size: 14),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Toque para abrir',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppCores.textoPrincipal(context)),
+                          ),
                         ],
                       ),
                     ),
@@ -335,12 +339,12 @@ class AbaMotoristas extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Motoristas Disponíveis',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppCores.textoPrincipal(context)),
           ),
           const SizedBox(height: 4),
-          Text('Todos verificados e avaliados pela comunidade.', style: TextStyle(fontSize: 12.5, color: Colors.grey[600])),
+          Text('Todos verificados e avaliados pela comunidade.', style: TextStyle(fontSize: 12.5, color: AppCores.textoSecundario(context))),
           const SizedBox(height: 18),
 
           StreamBuilder<List<Motorista>>(
@@ -356,7 +360,7 @@ class AbaMotoristas extends StatelessWidget {
               if (motoristas.isEmpty) {
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Text('Nenhum motorista cadastrado ainda.', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                  child: Text('Nenhum motorista cadastrado ainda.', style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 13)),
                 );
               }
               return ListView.builder(

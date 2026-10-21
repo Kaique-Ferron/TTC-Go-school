@@ -15,7 +15,7 @@ class NavInferiorResponsavel extends StatelessWidget {
       currentIndex: _indiceDaAba(abaSelecionada),
       type: BottomNavigationBarType.fixed,
       selectedItemColor: AppCores.azulPrincipal,
-      unselectedItemColor: Colors.grey[500],
+      unselectedItemColor: AppCores.textoSecundario(context),
       selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5),
       unselectedLabelStyle: const TextStyle(fontSize: 11.5),
       onTap: (index) => _navegar(context, index),
@@ -47,7 +47,7 @@ class NavInferiorResponsavel extends StatelessWidget {
         Navigator.pushReplacementNamed(context, '/meus-filhos');
         break;
       case 1:
-        Navigator.pushReplacementNamed(context, '/landpage');
+        Navigator.pushReplacementNamed(context, '/inicio');
         break;
       case 2:
         Navigator.pushReplacementNamed(context, '/meu-perfil');
