@@ -62,12 +62,12 @@ class ListaContatos extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.person_search_outlined, size: 44, color: Colors.grey[400]),
+                  Icon(Icons.person_search_outlined, size: 44, color: AppCores.textoSecundario(context)),
                   const SizedBox(height: 12),
                   Text(
                     mensagemVazia,
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey[600], fontSize: 14, fontWeight: FontWeight.w600),
+                    style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 14, fontWeight: FontWeight.w600),
                   ),
                 ],
               ),
@@ -79,7 +79,7 @@ class ListaContatos extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 8),
           shrinkWrap: true,
           itemCount: lista.length,
-          separatorBuilder: (_, _) => Divider(height: 1, color: Colors.grey.shade100, indent: 80),
+          separatorBuilder: (_, _) => Divider(height: 1, color: AppCores.borda(context), indent: 80),
           itemBuilder: (context, index) {
             final contato = lista[index];
             return ListTile(
@@ -96,7 +96,7 @@ class ListaContatos extends StatelessWidget {
                 contato.nome.isNotEmpty ? contato.nome : 'Sem nome',
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5),
               ),
-              trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+              trailing: Icon(Icons.chevron_right, color: AppCores.textoSecundario(context)),
               onTap: () => _abrirConversa(context, contato),
             );
           },
@@ -157,7 +157,7 @@ class _ErroContatos extends StatelessWidget {
             SelectableText(
               erro,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[600], fontSize: 11.5),
+              style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 11.5),
             ),
           ],
         ),
@@ -185,12 +185,9 @@ class TelaNovoChat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppCores.fundo(context),
       appBar: AppBar(
         title: Text(titulo),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
       ),
       body: ListaContatos(meuUid: meuUid, meuNome: meuNome, contatos: contatos),
     );
