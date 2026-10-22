@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import '../theme/cores.dart';
 
 /// Barra de navegação inferior para as telas principais do Responsável
-/// (Início, Meus Filhos, Perfil) — navegação primária, no padrão de apps
-/// de transporte (Uber, 99), em vez de deixar tudo escondido no Drawer.
+/// (Meus Filhos, Início, Mensagens, Perfil) — navegação primária, no padrão
+/// de apps de transporte (Uber, 99), em vez de deixar tudo escondido no
+/// Drawer. Mensagens fica aqui (1 toque) em vez de só dentro do menu ☰.
 class NavInferiorResponsavel extends StatelessWidget {
-  final String abaSelecionada; // 'Início', 'Meus Filhos' ou 'Perfil'
+  final String abaSelecionada; // 'Meus Filhos', 'Início', 'Mensagens' ou 'Perfil'
 
   const NavInferiorResponsavel({super.key, required this.abaSelecionada});
 
@@ -22,6 +23,7 @@ class NavInferiorResponsavel extends StatelessWidget {
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.people_outline), activeIcon: Icon(Icons.people_rounded), label: 'Meus Filhos'),
         BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home_rounded), label: 'Início'),
+        BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), activeIcon: Icon(Icons.chat_bubble), label: 'Mensagens'),
         BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person_rounded), label: 'Perfil'),
       ],
     );
@@ -33,9 +35,11 @@ class NavInferiorResponsavel extends StatelessWidget {
         return 0;
       case 'Início':
         return 1;
+      case 'Mensagens':
+        return 2;
       case 'Perfil':
       default:
-        return 2;
+        return 3;
     }
   }
 
@@ -50,6 +54,9 @@ class NavInferiorResponsavel extends StatelessWidget {
         Navigator.pushReplacementNamed(context, '/inicio');
         break;
       case 2:
+        Navigator.pushReplacementNamed(context, '/chat');
+        break;
+      case 3:
         Navigator.pushReplacementNamed(context, '/meu-perfil');
         break;
     }

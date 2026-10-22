@@ -1,0 +1,141 @@
+rules_version = '2';
+
+// Regras de segurança do Firestore — GoSchool.
+//
+// Não existia nenhum arquivo de regras versionado neste repositório antes
+// disso (nem referência em firebase.json), então o controle de acesso real
+// ao banco era desconhecido/não auditável a partir do código. Este arquivo
+// reflete o schema documentado em firestore/MIGRATIONS.md e os métodos de
+// lib/services/firestore_service.dart.
+//
+// LIMITAÇÃO CONHECIDA (não resolvida aqui, documentada pra decisão futura):
+// a tela "Procurar Motorista" lê o documento INTEIRO de usuarios/{uid} de
+// cada motorista (motoristasStream(), via Motorista.fromUsuarioMap) só pra
+// exibir nome/veículo/placa/valor. Regras do Firestore não filtram CAMPOS
+// dentro de um documento — só se o documento inteiro pode ou não ser lido.
+// Então, pra essa tela funcionar, qualquer responsável logado consegue ler
+// TAMBÉM o cpf/cnh/endereço/licença do motorista, que estão no mesmo
+// documento. A correção de verdade é separar um "perfil público" do
+// motorista (ex.: usuarios/{uid}/publico/dados, só com os campos exibidos
+// na busca) do documento de conta completo — isso exige mudar
+// salvarUsuario/motoristasStream/Motorista.fromUsuarioMap, não é só regra.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // ===== usuarios/{uid} — conta de Responsável ou Motorista =====
+    match /usuarios/{uid} {
+      // Dono sempre pode ler o próprio documento. Qualquer usuário logado
+      // pode ler documentos de MOTORISTA — necessário pra aba "Procurar
+      // Motorista" (ver limitação de exposição de campos no topo do arquivo).
+      allow read: if isOwner(uid) || (isSignedIn() && resource.data.tipoPerfil == 'motorista');
+
+      allow create: if isOwner(uid)
+        && request.resource.data.uid == uid
+        && request.resource.data.tipoPerfil in ['responsavel', 'motorista'];
+
+      // Dono pode atualizar o próprio perfil, mas não pode trocar o próprio
+      // uid nem o tipoPerfil depois de criado (evita virar "motorista" só
+      // editando o documento). As duas condições toleram documentos antigos
+      // sem esses campos (contas criadas antes de uid/tipoPerfil existirem
+      // no schema) — só bloqueia quando o campo existe E está sendo trocado
+      // pra outro valor, nunca quando ele simplesmente nunca existiu.
+      allow update: if isOwner(uid)
+        && (!('uid' in resource.data) || request.resource.data.uid == uid)
+        && (!('tipoPerfil' in resource.data) || request.resource.data.tipoPerfil == resource.data.tipoPerfil);
+
+      // Sem fluxo de exclusão de conta no app — bloqueado por padrão.
+      allow delete: if false;
+
+      // ---- usuarios/{uid}/filhos — só o próprio Responsável ----
+      match /filhos/{filhoId} {
+        allow read, write: if isOwner(uid);
+      }
+
+      // ---- usuarios/{uid}/mensalidades — só o próprio Motorista ----
+      match /mensalidades/{mensalidadeId} {
+        allow read, write: if isOwner(uid);
+      }
+
+      // ---- usuarios/{uid}/contratacoes — gravado pelo Responsável ----
+      // (uid aqui é o responsavelUid). Leitura por collection group pro
+      // Motorista fica no bloco separado com {path=**} logo abaixo —
+      // o Firestore exige esse wildcard pra permitir collectionGroup().
+      match /contratacoes/{contratacaoId} {
+        allow read, create, update, delete: if isOwner(uid);
+      }
+
+      // ---- usuarios/{uid}/chamadas — só o próprio Motorista. O
+      // responsável é avisado via mensagem real no chat (marcarPresenca),
+      // não por leitura direta desse documento.
+      match /chamadas/{chamadaId} {
+        allow read, write: if isOwner(uid);
+      }
+
+      // ---- usuarios/{uid}/avaliacoes/{responsavelUid} — avaliação do
+      // Motorista (uid aqui é o motoristaUid). Leitura pública (logado) pra
+      // mostrar a média/lista ao navegar motoristas, mesmo sem ter
+      // contratado ainda. Escrita só pelo próprio responsável avaliando
+      // (id do documento = seu próprio uid), nota validada de 1 a 5.
+      match /avaliacoes/{responsavelUid} {
+        allow read: if isSignedIn();
+        allow create, update: if isOwner(responsavelUid)
+          && request.resource.data.responsavelUid == responsavelUid
+          && request.resource.data.nota is int
+          && request.resource.data.nota >= 1
+          && request.resource.data.nota <= 5;
+        allow delete: if false;
+      }
+    }
+
+    // Permite a consulta collectionGroup('contratacoes') usada por
+    // meusResponsaveisStream (Motorista vendo quem o contratou) — só
+    // devolve/permite ler documentos onde o próprio Motorista é o
+    // motoristaUid gravado no documento, não a subcoleção inteira de
+    // nenhum Responsável.
+    match /{path=**}/contratacoes/{contratacaoId} {
+      allow read: if isSignedIn() && resource.data.motoristaUid == request.auth.uid;
+    }
+
+    // ===== conversas/{conversaId} — chat Responsável-Motorista =====
+    match /conversas/{conversaId} {
+      // obterOuCriarConversa faz um get() pra checar se a conversa já existe
+      // antes de criar — nesse caso resource é null (documento ainda não
+      // existe), e tentar ler resource.data nessa hora quebra a regra e nega
+      // o acesso mesmo pra criar a conversa pela primeira vez. allow get
+      // trata esse caso liberando a checagem de existência; allow list segue
+      // restrito (resource sempre existe numa query, participantes real).
+      allow get: if isSignedIn() && (resource == null || request.auth.uid in resource.data.participantes);
+      allow list: if isSignedIn() && request.auth.uid in resource.data.participantes;
+      allow update: if isSignedIn() && request.auth.uid in resource.data.participantes;
+      allow create: if isSignedIn()
+        && request.auth.uid in request.resource.data.participantes
+        && request.resource.data.participantes.size() == 2;
+      allow delete: if false;
+
+      match /mensagens/{mensagemId} {
+        allow read: if isSignedIn()
+          && request.auth.uid in get(/databases/$(database)/documents/conversas/$(conversaId)).data.participantes;
+        allow create: if isSignedIn()
+          && request.auth.uid in get(/databases/$(database)/documents/conversas/$(conversaId)).data.participantes
+          && request.resource.data.remetenteUid == request.auth.uid;
+        // Mensagens são imutáveis depois de enviadas.
+        allow update, delete: if false;
+      }
+    }
+
+    // Nega por padrão qualquer caminho não coberto acima (defesa extra —
+    // o Firestore já nega por padrão quando nenhuma regra casa).
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

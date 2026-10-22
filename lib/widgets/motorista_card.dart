@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/motorista_model.dart';
 import '../theme/cores.dart';
+import 'foto_perfil_provider.dart';
 
 /// Card reutilizável para exibir um motorista na lista de "Motoristas Disponíveis".
 class MotoristaCard extends StatelessWidget {
@@ -43,9 +44,7 @@ class MotoristaCard extends StatelessWidget {
                 CircleAvatar(
                   radius: 28,
                   backgroundColor: _backgroundColorAvatar,
-                  backgroundImage: motorista.fotoPerfil.isNotEmpty
-                      ? NetworkImage(motorista.fotoPerfil)
-                      : null,
+                  backgroundImage: fotoPerfilProvider(motorista.fotoPerfil),
                   child: motorista.fotoPerfil.isEmpty
                       ? const Icon(Icons.person, size: 30, color: _primaryColor)
                       : null,
@@ -59,7 +58,11 @@ class MotoristaCard extends StatelessWidget {
                     children: [
                       Text(
                         motorista.nome,
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppCores.textoPrincipal(context)),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppCores.textoPrincipal(context),
+                        ),
                       ),
                       const SizedBox(height: 4),
                       _buildDetailItem(
@@ -69,27 +72,46 @@ class MotoristaCard extends StatelessWidget {
                         '${motorista.veiculo} • ${motorista.placa}',
                         isHighlighted: true,
                       ),
-                      if (motorista.corridas.isNotEmpty || motorista.tempo.isNotEmpty) ...[
+                      if (motorista.corridas.isNotEmpty ||
+                          motorista.tempo.isNotEmpty) ...[
                         const SizedBox(height: 6),
                         Wrap(
                           spacing: 14,
                           runSpacing: 4,
                           children: [
                             if (motorista.corridas.isNotEmpty)
-                              _buildDetailItem(context, Icons.check_circle, Colors.green, '${motorista.corridas} corridas'),
+                              _buildDetailItem(
+                                context,
+                                Icons.check_circle,
+                                Colors.green,
+                                '${motorista.corridas} corridas',
+                              ),
                             if (motorista.tempo.isNotEmpty)
-                              _buildDetailItem(context, Icons.access_time_filled, const Color(0xFFFFC107), motorista.tempo),
+                              _buildDetailItem(
+                                context,
+                                Icons.access_time_filled,
+                                const Color(0xFFFFC107),
+                                motorista.tempo,
+                              ),
                           ],
                         ),
                       ],
                       const SizedBox(height: 6),
-                      _buildDetailItem(context, Icons.badge, AppCores.textoSecundario(context), 'Registro ${motorista.crm}'),
+                      _buildDetailItem(
+                        context,
+                        Icons.badge,
+                        AppCores.textoSecundario(context),
+                        'Registro ${motorista.crm}',
+                      ),
                     ],
                   ),
                 ),
 
                 // Ícone de navegação
-                Icon(Icons.chevron_right, color: AppCores.textoSecundario(context)),
+                Icon(
+                  Icons.chevron_right,
+                  color: AppCores.textoSecundario(context),
+                ),
               ],
             ),
           ),
@@ -99,7 +121,13 @@ class MotoristaCard extends StatelessWidget {
   }
 
   /// Componente auxiliar estilizado para os detalhes do motorista
-  Widget _buildDetailItem(BuildContext context, IconData icon, Color color, String text, {bool isHighlighted = false}) {
+  Widget _buildDetailItem(
+    BuildContext context,
+    IconData icon,
+    Color color,
+    String text, {
+    bool isHighlighted = false,
+  }) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
