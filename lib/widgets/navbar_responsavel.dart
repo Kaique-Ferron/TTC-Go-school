@@ -15,6 +15,7 @@ class NavbarResponsavel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    
     return Drawer(
       elevation: 0,
       child: SafeArea(

@@ -14,6 +14,8 @@ import '../../widgets/navbar_responsavel.dart';
 import '../../widgets/pulsante.dart';
 import '../../widgets/card_estatistica.dart';
 import '../../widgets/secao_card_wrapper.dart';
+import '../../widgets/avaliacao_media.dart';
+import '../../widgets/foto_perfil_provider.dart';
 import '../../theme/cores.dart';
 import 'editar_perfil.dart';
 import 'mapa_casa_tela.dart';
@@ -48,7 +50,10 @@ class TelaPerfil extends StatelessWidget {
           await FirestoreService.instance.excluirFilho(uid, filho.id!);
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Perfil do filho removido!'), backgroundColor: Colors.red),
+              const SnackBar(
+                content: Text('Perfil do filho removido!'),
+                backgroundColor: Colors.red,
+              ),
             );
           }
         },
@@ -71,8 +76,14 @@ class TelaPerfil extends StatelessWidget {
         backgroundColor: AppCores.fundo(context),
         body: Center(
           child: TextButton(
-            onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false),
-            child: const Text('Sessão expirada. Toque para fazer login novamente.'),
+            onPressed: () => Navigator.pushNamedAndRemoveUntil(
+              context,
+              '/',
+              (route) => false,
+            ),
+            child: const Text(
+              'Sessão expirada. Toque para fazer login novamente.',
+            ),
           ),
         ),
       );
@@ -81,12 +92,12 @@ class TelaPerfil extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppCores.fundo(context),
-      appBar: AppBar(
-        title: const Text('Meu Perfil'),
-      ),
+      appBar: AppBar(title: const Text('Meu Perfil')),
       // Integrado com a sua NavbarResponsavel já existente
       drawer: const NavbarResponsavel(itemSelecionado: 'Meu Perfil'),
-      bottomNavigationBar: const NavInferiorResponsavel(abaSelecionada: 'Perfil'),
+      bottomNavigationBar: const NavInferiorResponsavel(
+        abaSelecionada: 'Perfil',
+      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -100,80 +111,101 @@ class TelaPerfil extends StatelessWidget {
           ),
         ),
         child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-        stream: FirebaseFirestore.instance.collection('usuarios').doc(uid).snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return const Center(child: Text('Erro ao carregar dados do perfil.'));
-          }
+          stream: FirebaseFirestore.instance
+              .collection('usuarios')
+              .doc(uid)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return const Center(
+                child: Text('Erro ao carregar dados do perfil.'),
+              );
+            }
 
-          final dados = snapshot.data?.data();
-          final nome = (dados?['nome'] as String?)?.trim();
-          final telefone = (dados?['telefone'] as String?)?.trim();
-          final endereco = (dados?['endereco'] as String?)?.trim();
-          final email = (dados?['email'] as String?) ?? FirebaseAuth.instance.currentUser?.email;
-          final casaLat = (dados?['casa_lat'] as num?)?.toDouble();
-          final casaLng = (dados?['casa_lng'] as num?)?.toDouble();
+            final dados = snapshot.data?.data();
+            final nome = (dados?['nome'] as String?)?.trim();
+            final telefone = (dados?['telefone'] as String?)?.trim();
+            final endereco = (dados?['endereco'] as String?)?.trim();
+            final email =
+                (dados?['email'] as String?) ??
+                FirebaseAuth.instance.currentUser?.email;
+            final casaLat = (dados?['casa_lat'] as num?)?.toDouble();
+            final casaLng = (dados?['casa_lng'] as num?)?.toDouble();
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Gerencie suas informações e preferências.',
-                  style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 14),
-                ),
-                const SizedBox(height: 20),
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Gerencie suas informações e preferências.',
+                    style: TextStyle(
+                      color: AppCores.textoSecundario(context),
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
 
-                // Grid Responsivo (2 Colunas para telas largas / 1 Coluna para Mobile)
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    bool isWide = constraints.maxWidth > 850;
+                  // Grid Responsivo (2 Colunas para telas largas / 1 Coluna para Mobile)
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      bool isWide = constraints.maxWidth > 850;
 
-                    return Flex(
-                      direction: isWide ? Axis.horizontal : Axis.vertical,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // --- COLUNA ESQUERDA: DADOS PESSOAIS + MEUS FILHOS ---
-                        Expanded(
-                          flex: isWide ? 1 : 0,
-                          child: Column(
-                            children: [
-                              _buildCardDadosPessoais(context, dados, nome, email, telefone, endereco, casaLat, casaLng),
-                              const SizedBox(height: 20),
-                              _buildSecaoFilhos(context, uid),
-                            ],
+                      return Flex(
+                        direction: isWide ? Axis.horizontal : Axis.vertical,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // --- COLUNA ESQUERDA: DADOS PESSOAIS + MEUS FILHOS ---
+                          Expanded(
+                            flex: isWide ? 1 : 0,
+                            child: Column(
+                              children: [
+                                _buildCardDadosPessoais(
+                                  context,
+                                  dados,
+                                  nome,
+                                  email,
+                                  telefone,
+                                  endereco,
+                                  casaLat,
+                                  casaLng,
+                                ),
+                                const SizedBox(height: 20),
+                                _buildSecaoMotoristaSelecionado(context, uid),
+                                const SizedBox(height: 20),
+                                _buildSecaoFilhos(context, uid),
+                              ],
+                            ),
                           ),
-                        ),
 
-                        if (isWide) const SizedBox(width: 20),
-                        if (!isWide) const SizedBox(height: 20),
+                          if (isWide) const SizedBox(width: 20),
+                          if (!isWide) const SizedBox(height: 20),
 
-                        // --- COLUNA DIREITA: PAGAMENTO + ESTATÍSTICAS + CONFIGURAÇÕES ---
-                        Expanded(
-                          flex: isWide ? 1 : 0,
-                          child: Column(
-                            children: [
-                              _buildSecaoPagamento(context),
-                              const SizedBox(height: 20),
-                              _buildSecaoEstatisticas(context, uid),
-                              const SizedBox(height: 20),
-                              _buildSecaoConfiguracoes(context),
-                            ],
+                          // --- COLUNA DIREITA: PAGAMENTO + ESTATÍSTICAS + CONFIGURAÇÕES ---
+                          Expanded(
+                            flex: isWide ? 1 : 0,
+                            child: Column(
+                              children: [
+                                _buildSecaoPagamento(context),
+                                const SizedBox(height: 20),
+                                _buildSecaoEstatisticas(context, uid),
+                                const SizedBox(height: 20),
+                                _buildSecaoConfiguracoes(context),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ],
-            ),
-          );
-        },
-      ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -207,12 +239,27 @@ class TelaPerfil extends StatelessWidget {
                     padding: const EdgeInsets.all(3),
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(colors: [AppCores.azulPrincipal, AppCores.laranjaMotorista]),
+                      gradient: LinearGradient(
+                        colors: [
+                          AppCores.azulPrincipal,
+                          AppCores.laranjaMotorista,
+                        ],
+                      ),
                     ),
-                    child: const CircleAvatar(
+                    child: CircleAvatar(
                       radius: 38,
-                      backgroundColor: Color(0xFFE8F0FE),
-                      child: Icon(Icons.person, size: 44, color: azulPrincipal),
+                      backgroundColor: const Color(0xFFE8F0FE),
+                      backgroundImage: fotoPerfilProvider(
+                        dados?['fotoPerfil'] as String?,
+                      ),
+                      child:
+                          (dados?['fotoPerfil'] as String?)?.isNotEmpty == true
+                          ? null
+                          : const Icon(
+                              Icons.person,
+                              size: 44,
+                              color: azulPrincipal,
+                            ),
                     ),
                   ),
                   Positioned(
@@ -221,12 +268,21 @@ class TelaPerfil extends StatelessWidget {
                     child: GestureDetector(
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => EditarPerfilTela(dadosAtuais: dados)),
+                        MaterialPageRoute(
+                          builder: (_) => EditarPerfilTela(dadosAtuais: dados),
+                        ),
                       ),
                       child: Container(
                         padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(color: AppCores.superficie(context), shape: BoxShape.circle),
-                        child: Icon(Icons.edit, size: 16, color: AppCores.textoSecundario(context)),
+                        decoration: BoxDecoration(
+                          color: AppCores.superficie(context),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.edit,
+                          size: 16,
+                          color: AppCores.textoSecundario(context),
+                        ),
                       ),
                     ),
                   ),
@@ -241,38 +297,59 @@ class TelaPerfil extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            nome != null && nome.isNotEmpty ? nome : 'Sem nome cadastrado',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            nome != null && nome.isNotEmpty
+                                ? nome
+                                : 'Sem nome cadastrado',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFE8F0FE),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Text(
                             'Responsável',
-                            style: TextStyle(color: azulPrincipal, fontSize: 10, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              color: azulPrincipal,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 10),
-                    _buildItemInfo(context, Icons.email_outlined, email ?? '—', AppCores.azulPrincipal),
+                    _buildItemInfo(
+                      context,
+                      Icons.email_outlined,
+                      email ?? '—',
+                      AppCores.azulPrincipal,
+                    ),
                     const SizedBox(height: 8),
                     _buildItemInfo(
                       context,
                       Icons.phone_outlined,
-                      telefone != null && telefone.isNotEmpty ? telefone : 'Não informado',
+                      telefone != null && telefone.isNotEmpty
+                          ? telefone
+                          : 'Não informado',
                       AppCores.azulClaro,
                     ),
                     const SizedBox(height: 8),
                     _buildItemInfo(
                       context,
                       Icons.location_on_outlined,
-                      endereco != null && endereco.isNotEmpty ? endereco : 'Endereço não informado',
+                      endereco != null && endereco.isNotEmpty
+                          ? endereco
+                          : 'Endereço não informado',
                       AppCores.laranjaMotorista,
                     ),
                     const SizedBox(height: 8),
@@ -281,7 +358,10 @@ class TelaPerfil extends StatelessWidget {
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => MapaCasaTela(latitudeAtual: casaLat, longitudeAtual: casaLng),
+                          builder: (_) => MapaCasaTela(
+                            latitudeAtual: casaLat,
+                            longitudeAtual: casaLng,
+                          ),
                         ),
                       ),
                       child: Row(
@@ -296,7 +376,11 @@ class TelaPerfil extends StatelessWidget {
                               AppCores.laranjaClaro,
                             ),
                           ),
-                          Icon(Icons.chevron_right, size: 18, color: AppCores.textoSecundario(context)),
+                          Icon(
+                            Icons.chevron_right,
+                            size: 18,
+                            color: AppCores.textoSecundario(context),
+                          ),
                         ],
                       ),
                     ),
@@ -314,22 +398,220 @@ class TelaPerfil extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => EditarPerfilTela(dadosAtuais: dados)),
+                MaterialPageRoute(
+                  builder: (_) => EditarPerfilTela(dadosAtuais: dados),
+                ),
               ),
               style: OutlinedButton.styleFrom(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 side: const BorderSide(color: azulPrincipal),
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
-              icon: const Icon(Icons.edit_outlined, size: 16, color: azulPrincipal),
+              icon: const Icon(
+                Icons.edit_outlined,
+                size: 16,
+                color: azulPrincipal,
+              ),
               label: const Text(
                 'Editar dados de cadastro e perfil',
-                style: TextStyle(fontSize: 13, color: azulPrincipal, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: azulPrincipal,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  // Motorista selecionado — mostra o motorista contratado no momento (lido
+  // em tempo real da contratação ativa), ou um convite pra procurar um caso
+  // ainda não tenha contratado nenhum.
+  Widget _buildSecaoMotoristaSelecionado(BuildContext context, String uid) {
+    return StreamBuilder<Map<String, dynamic>?>(
+      stream: FirestoreService.instance.contratacaoAtivaStream(uid),
+      builder: (context, snapshot) {
+        final contratacao = snapshot.data;
+
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppCores.superficie(context),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppCores.borda(context)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppCores.laranjaMotorista.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.directions_bus_outlined,
+                      size: 16,
+                      color: AppCores.laranjaMotorista,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Motorista selecionado',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              if (contratacao == null)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Você ainda não contratou nenhum motorista.',
+                      style: TextStyle(
+                        color: AppCores.textoSecundario(context),
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: azulPrincipal),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                        onPressed: () =>
+                            Navigator.pushNamed(context, '/procurar-motorista'),
+                        icon: const Icon(Icons.search, color: azulPrincipal),
+                        label: const Text(
+                          'Procurar motorista',
+                          style: TextStyle(
+                            color: azulPrincipal,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              else
+                Builder(
+                  builder: (context) {
+                    final motoristaUid =
+                        (contratacao['motoristaUid'] as String?) ?? '';
+                    final motoristaNome =
+                        (contratacao['motoristaNome'] as String?) ??
+                        'Motorista';
+                    final veiculo =
+                        (contratacao['motoristaVeiculo'] as String?) ?? '';
+                    final placa =
+                        (contratacao['motoristaPlaca'] as String?) ?? '';
+                    final periodo = (contratacao['periodo'] as String?) ?? '';
+                    final valorTotal =
+                        (contratacao['valorTotal'] as num?)?.toDouble() ?? 0;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const CircleAvatar(
+                              radius: 26,
+                              backgroundColor: Color(0xFFFFF1E6),
+                              child: Icon(
+                                Icons.person,
+                                size: 28,
+                                color: AppCores.laranjaMotorista,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    motoristaNome,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    [
+                                      veiculo,
+                                      placa,
+                                    ].where((s) => s.isNotEmpty).join(' • '),
+                                    style: TextStyle(
+                                      color: AppCores.textoSecundario(context),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  if (motoristaUid.isNotEmpty)
+                                    AvaliacaoMedia(
+                                      motoristaUid: motoristaUid,
+                                      iconSize: 13,
+                                      fontSize: 12,
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppCores.fundo(context),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                periodo.isNotEmpty
+                                    ? 'Período: $periodo'
+                                    : 'Período não informado',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppCores.textoSecundario(context),
+                                ),
+                              ),
+                              Text(
+                                'R\$ ${valorTotal.toStringAsFixed(2).replaceAll('.', ',')}/mês',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppCores.verde,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -355,15 +637,25 @@ class TelaPerfil extends StatelessWidget {
                       color: AppCores.azulClaro.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.family_restroom, size: 16, color: AppCores.azulClaro),
+                    child: const Icon(
+                      Icons.family_restroom,
+                      size: 16,
+                      color: AppCores.azulClaro,
+                    ),
                   ),
                   const SizedBox(width: 8),
-                  const Text('Meus filhos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Meus filhos',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ],
               ),
               TextButton(
                 onPressed: () => Navigator.pushNamed(context, '/meus-filhos'),
-                child: const Text('Ver todos', style: TextStyle(color: azulPrincipal)),
+                child: const Text(
+                  'Ver todos',
+                  style: TextStyle(color: azulPrincipal),
+                ),
               ),
             ],
           ),
@@ -383,7 +675,10 @@ class TelaPerfil extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   child: Text(
                     'Nenhum filho cadastrado ainda.',
-                    style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 13),
+                    style: TextStyle(
+                      color: AppCores.textoSecundario(context),
+                      fontSize: 13,
+                    ),
                   ),
                 );
               }
@@ -402,7 +697,8 @@ class TelaPerfil extends StatelessWidget {
                         horario: entrada.value.horario,
                         status: entrada.value.status,
                         corAcento: AppCores.corFilho(entrada.key),
-                        onTap: () => _abrirModalDetalhes(context, uid, entrada.value),
+                        onTap: () =>
+                            _abrirModalDetalhes(context, uid, entrada.value),
                       ),
                     )
                     .toList(),
@@ -420,13 +716,18 @@ class TelaPerfil extends StatelessWidget {
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 45),
                     side: const BorderSide(color: azulPrincipal),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   onPressed: () => Navigator.pushNamed(context, '/meus-filhos'),
                   icon: const Icon(Icons.add, color: azulPrincipal),
                   label: const Text(
                     'Adicionar filho',
-                    style: TextStyle(color: azulPrincipal, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: azulPrincipal,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               );
@@ -460,33 +761,58 @@ class TelaPerfil extends StatelessWidget {
                       color: AppCores.laranjaClaro.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.credit_card, size: 16, color: AppCores.laranjaClaro),
+                    child: const Icon(
+                      Icons.credit_card,
+                      size: 16,
+                      color: AppCores.laranjaClaro,
+                    ),
                   ),
                   const SizedBox(width: 8),
-                  const Text('Método de pagamento', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Método de pagamento',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ],
               ),
               TextButton(
                 onPressed: () {},
-                child: const Text('Editar', style: TextStyle(color: azulPrincipal)),
+                child: const Text(
+                  'Editar',
+                  style: TextStyle(color: azulPrincipal),
+                ),
               ),
             ],
           ),
-          Text('Gerencie seu método de pagamento.', style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 12)),
+          Text(
+            'Gerencie seu método de pagamento.',
+            style: TextStyle(
+              color: AppCores.textoSecundario(context),
+              fontSize: 12,
+            ),
+          ),
           const SizedBox(height: 16),
-          const CardCartao(ultimosDigitos: '1234', validade: '08/28', titular: 'Marcos Silva'),
+          const CardCartao(
+            ultimosDigitos: '1234',
+            validade: '08/28',
+            titular: 'Marcos Silva',
+          ),
           const SizedBox(height: 12),
           OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
               minimumSize: const Size(double.infinity, 45),
               side: const BorderSide(color: azulPrincipal),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             onPressed: () {},
             icon: const Icon(Icons.add, color: azulPrincipal),
             label: const Text(
               'Adicionar cartão',
-              style: TextStyle(color: azulPrincipal, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: azulPrincipal,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -503,7 +829,10 @@ class TelaPerfil extends StatelessWidget {
       corIcone: AppCores.corIconeLegivel(context, AppCores.azulEscuro),
       acaoHeader: TextButton(
         onPressed: () {},
-        child: const Text('Ver todas', style: TextStyle(fontSize: 12, color: azulPrincipal)),
+        child: const Text(
+          'Ver todas',
+          style: TextStyle(fontSize: 12, color: azulPrincipal),
+        ),
       ),
       child: StreamBuilder<List<Filho>>(
         stream: FirestoreService.instance.filhosStream(uid),
@@ -565,21 +894,37 @@ class TelaPerfil extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _linhaConfig(context, icone: Icons.notifications_outlined, texto: 'Notificações', corIcone: AppCores.laranjaClaro),
+          _linhaConfig(
+            context,
+            icone: Icons.notifications_outlined,
+            texto: 'Notificações',
+            corIcone: AppCores.laranjaClaro,
+          ),
           _linhaConfig(
             context,
             icone: Icons.help_outline,
             texto: 'Ajuda e suporte',
             corIcone: AppCores.azulPrincipal,
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaSuporte())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const TelaSuporte()),
+            ),
           ),
-          _linhaConfig(context, icone: Icons.info_outline, texto: 'Sobre o GoSchool', corIcone: AppCores.corIconeLegivel(context, AppCores.azulEscuro)),
+          _linhaConfig(
+            context,
+            icone: Icons.info_outline,
+            texto: 'Sobre o GoSchool',
+            corIcone: AppCores.corIconeLegivel(context, AppCores.azulEscuro),
+          ),
           _linhaConfig(
             context,
             icone: Icons.settings_outlined,
             texto: 'Configurações',
             corIcone: AppCores.corIconeLegivel(context, AppCores.laranjaEscuro),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ConfiguracoesTela())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ConfiguracoesTela()),
+            ),
           ),
           _linhaConfig(
             context,
@@ -594,19 +939,30 @@ class TelaPerfil extends StatelessWidget {
     );
   }
 
-  Widget _buildItemInfo(BuildContext context, IconData icone, String texto, Color cor) {
+  Widget _buildItemInfo(
+    BuildContext context,
+    IconData icone,
+    String texto,
+    Color cor,
+  ) {
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.all(7),
-          decoration: BoxDecoration(color: cor.withValues(alpha: 0.12), shape: BoxShape.circle),
+          decoration: BoxDecoration(
+            color: cor.withValues(alpha: 0.12),
+            shape: BoxShape.circle,
+          ),
           child: Icon(icone, size: 15, color: cor),
         ),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
             texto,
-            style: TextStyle(color: AppCores.textoPrincipal(context), fontSize: 13),
+            style: TextStyle(
+              color: AppCores.textoPrincipal(context),
+              fontSize: 13,
+            ),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -624,27 +980,48 @@ class TelaPerfil extends StatelessWidget {
     VoidCallback? onTap,
   }) {
     final Color corEfetiva = cor ?? AppCores.textoPrincipal(context);
-    final Color corDoIcone = cor ?? corIcone ?? AppCores.textoSecundario(context);
+    final Color corDoIcone =
+        cor ?? corIcone ?? AppCores.textoSecundario(context);
     return InkWell(
-      onTap: onTap ?? () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Em breve!'))),
+      onTap:
+          onTap ??
+          () => ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Em breve!'))),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-        decoration: BoxDecoration(border: ultimo ? null : Border(bottom: BorderSide(color: AppCores.borda(context)))),
+        decoration: BoxDecoration(
+          border: ultimo
+              ? null
+              : Border(bottom: BorderSide(color: AppCores.borda(context))),
+        ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(color: corDoIcone.withValues(alpha: 0.12), shape: BoxShape.circle),
+              decoration: BoxDecoration(
+                color: corDoIcone.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
               child: Icon(icone, size: 17, color: corDoIcone),
             ),
             const SizedBox(width: 14),
             Expanded(
               child: Text(
                 texto,
-                style: TextStyle(fontSize: 14, fontWeight: cor != null ? FontWeight.bold : FontWeight.w500, color: corEfetiva),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: cor != null ? FontWeight.bold : FontWeight.w500,
+                  color: corEfetiva,
+                ),
               ),
             ),
-            if (cor == null) Icon(Icons.chevron_right, size: 18, color: AppCores.textoSecundario(context)),
+            if (cor == null)
+              Icon(
+                Icons.chevron_right,
+                size: 18,
+                color: AppCores.textoSecundario(context),
+              ),
           ],
         ),
       ),

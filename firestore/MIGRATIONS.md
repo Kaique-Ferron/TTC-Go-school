@@ -40,6 +40,27 @@ que antes eram só UI local sem efeito nenhum no app. Gravados por
 escala de fonte no `MaterialApp` inteiro. Usuários cadastrados antes disso
 não têm esses dois campos — o `Usuario.fromMap` usa os padrões acima nesse caso.
 
+### `fotoPerfil` — sem Firebase Storage (plano Spark/gratuito)
+
+| Campo        | Tipo   | Observação                                             |
+|--------------|--------|---------------------------------------------------------|
+| `fotoPerfil` | string | URL `https://...` **ou** `data:image/jpeg;base64,...`   |
+
+O Firebase Storage exige o plano pago (Blaze) pra funcionar — mesmo
+ficando dentro da cota gratuita, precisa de cartão cadastrado. Como o
+projeto roda no plano gratuito (Spark), a foto de perfil é redimensionada
+pequena (`ImagePicker` com `maxWidth`/`maxHeight: 240`, `imageQuality: 60`)
+e gravada como string base64 **direto no documento do usuário**, em vez de
+em `Firebase Storage` + salvar só a URL. Há uma checagem de tamanho
+(`bytes.length > 700 * 1024`) pra nunca estourar o limite de 1MB por
+documento do Firestore.
+
+Código: `_selecionarEAtualizarFoto` em `lib/telas/motorista/tela_motorista.dart`
+e `lib/telas/meu_perfil/editar_perfil.dart`. Toda exibição da foto passa por
+`fotoPerfilProvider()` (`lib/widgets/foto_perfil_provider.dart`), que decide
+entre `MemoryImage` (base64) e `NetworkImage` (URL antiga, se um dia o
+projeto migrar pro plano Blaze e voltar a usar Storage).
+
 ---
 
 ## 002 — `usuarios/{uid}/filhos` (subcoleção)
@@ -178,3 +199,42 @@ A média exibida nos cards/modal é calculada no cliente (`AvaliacaoMedia`,
 via `StreamBuilder` sobre `avaliacoesStream`) — sem campo de média
 pré-calculado no documento do motorista. Não precisa de índice especial
 (é uma subcoleção simples, sem collection group).
+
+---
+
+## 007 — `usuarios/{motoristaUid}/chamadas` (subcoleção) — Chamada da Van
+
+Criada em: 2026-10. Tela acessada pelo menu (☰) do Motorista → "Chamada":
+confirma, pra cada criança da rota, se ela está presente na van num
+dia/período. Em vez de um sistema de notificação push separado (que não
+existia e mais ninguém leria), cada marcação manda uma mensagem real no
+chat já existente pro responsável daquela criança.
+
+Código: `lib/models/crianca_rota.dart`, `lib/services/firestore_service.dart`
+→ `criancasDaRotaStream`, `chamadaStream`, `marcarPresenca`, `chamadaIdPara`.
+UI: `lib/telas/motorista/tela_chamada.dart`.
+
+Caminho: `usuarios/{motoristaUid}/chamadas/{chamadaId}`
+
+`chamadaId` é determinístico: `'{yyyy-MM-dd}_{periodo}'` (ex.:
+`2026-10-22_Manhã`) — uma chamada por dia/período; marcar de novo no mesmo
+dia atualiza em vez de duplicar.
+
+| Campo         | Tipo      | Observação                                          |
+|---------------|-----------|------------------------------------------------------|
+| `periodo`     | string    | `'Manhã'` ou `'Tarde'`                                |
+| `atualizadoEm`| timestamp | `FieldValue.serverTimestamp()`, atualizado a cada marcação |
+| `criancas`    | map       | `{ [filhoId]: { nome, responsavelUid, presente, confirmadoEm } }` |
+
+`criancas` é um **map** (não array) justamente pra permitir atualizar uma
+única criança via `set(..., SetOptions(merge: true))` sem precisar reler e
+regravar a chamada inteira.
+
+A lista de crianças da rota (`criancasDaRotaStream`) reusa a mesma consulta
+collection group de `meusResponsaveisStream` (seção 005) — mesmo índice,
+sem precisar de um novo. O filtro `status == 'Ativo'` é feito no cliente
+pra não exigir um índice composto adicional.
+
+Regra do Firestore: só o próprio Motorista lê/escreve sua subcoleção de
+chamadas; o responsável nunca lê esse documento diretamente, só recebe a
+mensagem no chat.

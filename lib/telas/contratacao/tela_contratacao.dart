@@ -5,6 +5,7 @@ import '../../models/motorista_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
 import '../../theme/cores.dart';
+import '../../widgets/foto_perfil_provider.dart';
 
 /// Tela de contratação de um motorista pelo Responsável: escolhe o período,
 /// seleciona quais filhos vão usar o transporte, confere o resumo com o
@@ -41,7 +42,8 @@ class _TelaContratacaoState extends State<TelaContratacao> {
   bool get _temTarde => widget.motorista.criancasTarde > 0;
 
   String? get _uid => widget.uidParaTeste ?? AuthService.instance.uidAtual;
-  FirestoreService get _servico => widget.servicoParaTeste ?? FirestoreService.instance;
+  FirestoreService get _servico =>
+      widget.servicoParaTeste ?? FirestoreService.instance;
 
   // Criado uma única vez em initState — se fosse recriado a cada build (ex.:
   // ao marcar um filho ou trocar o período), o StreamBuilder reinterpretaria
@@ -62,7 +64,10 @@ class _TelaContratacaoState extends State<TelaContratacao> {
     }
   }
 
-  Future<void> _confirmarContratacao(List<Filho> todosOsFilhos, String uid) async {
+  Future<void> _confirmarContratacao(
+    List<Filho> todosOsFilhos,
+    String uid,
+  ) async {
     if (_periodo == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Selecione um período (Manhã ou Tarde).')),
@@ -78,8 +83,11 @@ class _TelaContratacaoState extends State<TelaContratacao> {
 
     setState(() => _enviando = true);
     try {
-      final filhosSelecionados = todosOsFilhos.where((f) => _filhosSelecionadosIds.contains(f.id)).toList();
-      final valorTotal = widget.motorista.valorMensalidade * filhosSelecionados.length;
+      final filhosSelecionados = todosOsFilhos
+          .where((f) => _filhosSelecionadosIds.contains(f.id))
+          .toList();
+      final valorTotal =
+          widget.motorista.valorMensalidade * filhosSelecionados.length;
       final meuUsuario = await _servico.usuarioStream(uid).first;
 
       await _servico.registrarContratacao(uid, {
@@ -101,7 +109,9 @@ class _TelaContratacaoState extends State<TelaContratacao> {
       await showDialog(
         context: context,
         builder: (dialogContext) => Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(28),
             child: Column(
@@ -109,11 +119,21 @@ class _TelaContratacaoState extends State<TelaContratacao> {
               children: [
                 Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: AppCores.verde.withValues(alpha: 0.12), shape: BoxShape.circle),
-                  child: const Icon(Icons.check_circle, color: AppCores.verde, size: 42),
+                  decoration: BoxDecoration(
+                    color: AppCores.verde.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_circle,
+                    color: AppCores.verde,
+                    size: 42,
+                  ),
                 ),
                 const SizedBox(height: 18),
-                const Text('Contratação confirmada!', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Contratação confirmada!',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 8),
                 Text(
                   '${widget.motorista.nome} vai transportar ${filhosSelecionados.length == 1 ? filhosSelecionados.first.nome : '${filhosSelecionados.length} filhos'} no período da $_periodo.',
@@ -127,10 +147,18 @@ class _TelaContratacaoState extends State<TelaContratacao> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppCores.azulPrincipal,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     onPressed: () => Navigator.pop(dialogContext),
-                    child: const Text('Entendi', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'Entendi',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -144,7 +172,10 @@ class _TelaContratacaoState extends State<TelaContratacao> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao confirmar: $e'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text('Erro ao confirmar: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       if (mounted) setState(() => _enviando = false);
@@ -185,7 +216,13 @@ class _TelaContratacaoState extends State<TelaContratacao> {
                           _cardMotorista(m),
                           const SizedBox(height: 24),
 
-                          const Text('1. Escolha o período', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                          const Text(
+                            '1. Escolha o período',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           const SizedBox(height: 10),
                           Row(
                             children: [
@@ -197,7 +234,8 @@ class _TelaContratacaoState extends State<TelaContratacao> {
                                   disponivel: _temManha,
                                   vagas: m.criancasManha,
                                   selecionado: _periodo == 'Manhã',
-                                  onTap: () => setState(() => _periodo = 'Manhã'),
+                                  onTap: () =>
+                                      setState(() => _periodo = 'Manhã'),
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -209,14 +247,21 @@ class _TelaContratacaoState extends State<TelaContratacao> {
                                   disponivel: _temTarde,
                                   vagas: m.criancasTarde,
                                   selecionado: _periodo == 'Tarde',
-                                  onTap: () => setState(() => _periodo = 'Tarde'),
+                                  onTap: () =>
+                                      setState(() => _periodo = 'Tarde'),
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 24),
 
-                          const Text('2. Selecione o(s) filho(s)', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                          const Text(
+                            '2. Selecione o(s) filho(s)',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           const SizedBox(height: 10),
 
                           if (filhos.isEmpty)
@@ -229,18 +274,27 @@ class _TelaContratacaoState extends State<TelaContratacao> {
                               ),
                               child: Column(
                                 children: [
-                                  Icon(Icons.family_restroom, size: 36, color: Colors.grey[400]),
+                                  Icon(
+                                    Icons.family_restroom,
+                                    size: 36,
+                                    color: Colors.grey[400],
+                                  ),
                                   const SizedBox(height: 10),
                                   Text(
                                     'Cadastre um filho primeiro em "Meus filhos" para poder contratar o transporte.',
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 13,
+                                    ),
                                   ),
                                 ],
                               ),
                             )
                           else
-                            ...filhos.map((filho) => _cardFilhoSelecionavel(filho)),
+                            ...filhos.map(
+                              (filho) => _cardFilhoSelecionavel(filho),
+                            ),
                         ],
                       ),
                     ),
@@ -250,7 +304,13 @@ class _TelaContratacaoState extends State<TelaContratacao> {
                       padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 16, offset: const Offset(0, -4))],
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.06),
+                            blurRadius: 16,
+                            offset: const Offset(0, -4),
+                          ),
+                        ],
                       ),
                       child: SafeArea(
                         top: false,
@@ -265,7 +325,10 @@ class _TelaContratacaoState extends State<TelaContratacao> {
                                     qtdSelecionados == 0
                                         ? 'Nenhum filho selecionado'
                                         : '$qtdSelecionados filho${qtdSelecionados == 1 ? '' : 's'} selecionado${qtdSelecionados == 1 ? '' : 's'}',
-                                    style: TextStyle(color: Colors.grey[600], fontSize: 12.5),
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 12.5,
+                                    ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -274,7 +337,11 @@ class _TelaContratacaoState extends State<TelaContratacao> {
                                 Flexible(
                                   child: Text(
                                     'Total: R\$ ${total.toStringAsFixed(2).replaceAll('.', ',')}/mês',
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppCores.verde),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                      color: AppCores.verde,
+                                    ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     textAlign: TextAlign.end,
@@ -288,14 +355,36 @@ class _TelaContratacaoState extends State<TelaContratacao> {
                               child: ElevatedButton.icon(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppCores.azulPrincipal,
-                                  padding: const EdgeInsets.symmetric(vertical: 15),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 15,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                 ),
-                                onPressed: _enviando ? null : () => _confirmarContratacao(filhos, uid),
+                                onPressed: _enviando
+                                    ? null
+                                    : () => _confirmarContratacao(filhos, uid),
                                 icon: _enviando
-                                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                                    : const Icon(Icons.check_circle_outline, color: Colors.white),
-                                label: const Text('Confirmar contratação', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                    ? const SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Icon(
+                                        Icons.check_circle_outline,
+                                        color: Colors.white,
+                                      ),
+                                label: const Text(
+                                  'Confirmar contratação',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
                             ),
                           ],
@@ -316,7 +405,10 @@ class _TelaContratacaoState extends State<TelaContratacao> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppCores.azulPrincipal.withValues(alpha: 0.06), AppCores.roxo.withValues(alpha: 0.05)],
+          colors: [
+            AppCores.azulPrincipal.withValues(alpha: 0.06),
+            AppCores.roxo.withValues(alpha: 0.05),
+          ],
         ),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: Colors.grey.shade200),
@@ -326,21 +418,40 @@ class _TelaContratacaoState extends State<TelaContratacao> {
           CircleAvatar(
             radius: 30,
             backgroundColor: const Color(0xFFE8EEFC),
-            backgroundImage: m.fotoPerfil.isNotEmpty ? NetworkImage(m.fotoPerfil) : null,
-            child: m.fotoPerfil.isEmpty ? const Icon(Icons.person, size: 32, color: AppCores.azulPrincipal) : null,
+            backgroundImage: fotoPerfilProvider(m.fotoPerfil),
+            child: m.fotoPerfil.isEmpty
+                ? const Icon(
+                    Icons.person,
+                    size: 32,
+                    color: AppCores.azulPrincipal,
+                  )
+                : null,
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(m.nome, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(
+                  m.nome,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 2),
-                Text('${m.veiculo} • ${m.placa}', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                Text(
+                  '${m.veiculo} • ${m.placa}',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                ),
                 const SizedBox(height: 6),
                 Text(
                   'R\$ ${m.valorMensalidade.toStringAsFixed(2).replaceAll('.', ',')} / mês por filho',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppCores.verde),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: AppCores.verde,
+                  ),
                 ),
               ],
             ),
@@ -369,16 +480,28 @@ class _TelaContratacaoState extends State<TelaContratacao> {
           decoration: BoxDecoration(
             color: selecionado ? cor.withValues(alpha: 0.1) : Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: selecionado ? cor : Colors.grey.shade200, width: selecionado ? 1.6 : 1),
+            border: Border.all(
+              color: selecionado ? cor : Colors.grey.shade200,
+              width: selecionado ? 1.6 : 1,
+            ),
           ),
           child: Column(
             children: [
               Icon(icone, color: cor, size: 22),
               const SizedBox(height: 6),
-              Text(titulo, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: selecionado ? cor : const Color(0xFF1E293B))),
+              Text(
+                titulo,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: selecionado ? cor : const Color(0xFF1E293B),
+                ),
+              ),
               const SizedBox(height: 2),
               Text(
-                disponivel ? '$vagas vaga${vagas == 1 ? '' : 's'}' : 'Sem vagas',
+                disponivel
+                    ? '$vagas vaga${vagas == 1 ? '' : 's'}'
+                    : 'Sem vagas',
                 style: TextStyle(fontSize: 10.5, color: Colors.grey[600]),
               ),
             ],
@@ -393,9 +516,14 @@ class _TelaContratacaoState extends State<TelaContratacao> {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: selecionado ? AppCores.azulPrincipal.withValues(alpha: 0.06) : Colors.white,
+        color: selecionado
+            ? AppCores.azulPrincipal.withValues(alpha: 0.06)
+            : Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: selecionado ? AppCores.azulPrincipal : Colors.grey.shade200, width: selecionado ? 1.6 : 1),
+        border: Border.all(
+          color: selecionado ? AppCores.azulPrincipal : Colors.grey.shade200,
+          width: selecionado ? 1.6 : 1,
+        ),
       ),
       // Material(transparent) entre o Container colorido e o CheckboxListTile
       // pra o ink splash do toque pintar por cima da cor de fundo, em vez de
@@ -416,9 +544,17 @@ class _TelaContratacaoState extends State<TelaContratacao> {
           },
           activeColor: AppCores.azulPrincipal,
           controlAffinity: ListTileControlAffinity.trailing,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          title: Text(filho.nome, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-          subtitle: Text('${filho.idadeEAno} • ${filho.escola}', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          title: Text(
+            filho.nome,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          ),
+          subtitle: Text(
+            '${filho.idadeEAno} • ${filho.escola}',
+            style: TextStyle(color: Colors.grey[600], fontSize: 12),
+          ),
         ),
       ),
     );

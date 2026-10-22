@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../models/avaliacao_model.dart';
 import '../models/contato_chat.dart';
 import '../models/conversa_model.dart';
+import '../models/crianca_rota.dart';
 import '../models/filho.dart';
 import '../models/mensagem_model.dart';
 import '../models/mensalidade_model.dart';
@@ -124,6 +125,19 @@ class FirestoreService {
         .map((snap) => snap.docs.isNotEmpty);
   }
 
+  /// Dados completos da contratação ativa do Responsável (o motorista que
+  /// ele selecionou agora) — usado na seção "Motorista selecionado" da tela
+  /// de Perfil. Retorna null se não houver nenhuma contratação ativa.
+  Stream<Map<String, dynamic>?> contratacaoAtivaStream(String responsavelUid) {
+    return _usuarios
+        .doc(responsavelUid)
+        .collection('contratacoes')
+        .where('status', isEqualTo: 'Ativo')
+        .limit(1)
+        .snapshots()
+        .map((snap) => snap.docs.isEmpty ? null : snap.docs.first.data());
+  }
+
   /// Motoristas que o Responsável já contratou — vira a lista de contatos pra
   /// começar uma conversa nova sem passar pela aba Serviços de novo.
   Stream<List<ContatoChat>> meusMotoristasContratadosStream(String responsavelUid) {
@@ -160,6 +174,101 @@ class FirestoreService {
       }
       return lista;
     });
+  }
+
+  // ===== Chamada (Motorista confirma presença das crianças na van) =====
+  // Caminho: usuarios/{motoristaUid}/chamadas/{chamadaId}
+  // chamadaId = '{yyyy-MM-dd}_{periodo}' — idempotente, uma chamada por
+  // dia/período (marcar de novo no mesmo dia atualiza, não duplica).
+  // Ver firestore/MIGRATIONS.md para o schema completo.
+
+  CollectionReference<Map<String, dynamic>> _chamadas(String motoristaUid) =>
+      _usuarios.doc(motoristaUid).collection('chamadas');
+
+  String chamadaIdPara(DateTime data, String periodo) {
+    final d =
+        '${data.year.toString().padLeft(4, '0')}-${data.month.toString().padLeft(2, '0')}-${data.day.toString().padLeft(2, '0')}';
+    return '${d}_$periodo';
+  }
+
+  /// Todas as crianças nas rotas ativas desse motorista, pra montar a lista
+  /// da chamada. Reusa a mesma consulta (e o mesmo índice) de
+  /// meusResponsaveisStream; filtra status == 'Ativo' no cliente pra não
+  /// precisar de um índice composto novo no collection group.
+  Stream<List<CriancaRota>> criancasDaRotaStream(String motoristaUid) {
+    return _db.collectionGroup('contratacoes').where('motoristaUid', isEqualTo: motoristaUid).snapshots().map((
+      snap,
+    ) {
+      final lista = <CriancaRota>[];
+      for (final doc in snap.docs) {
+        final dados = doc.data();
+        if (dados['status'] != 'Ativo') continue;
+        final responsavelUid = doc.reference.parent.parent?.id;
+        if (responsavelUid == null) continue;
+        final responsavelNome = (dados['responsavelNome'] as String?) ?? '';
+        final periodo = (dados['periodo'] as String?) ?? '';
+        final filhosIds = (dados['filhosIds'] as List?)?.cast<String>() ?? [];
+        final filhosNomes = (dados['filhosNomes'] as List?)?.cast<String>() ?? [];
+        for (var i = 0; i < filhosIds.length; i++) {
+          lista.add(
+            CriancaRota(
+              filhoId: filhosIds[i],
+              nome: i < filhosNomes.length ? filhosNomes[i] : 'Criança',
+              periodo: periodo,
+              responsavelUid: responsavelUid,
+              responsavelNome: responsavelNome,
+            ),
+          );
+        }
+      }
+      return lista;
+    });
+  }
+
+  /// Chamada de um dia/período — mapa filhoId -> {nome, presente, confirmadoEm}.
+  /// Null se ainda não foi feita nenhuma marcação nesse dia/período.
+  Stream<Map<String, dynamic>?> chamadaStream(String motoristaUid, String chamadaId) {
+    return _chamadas(motoristaUid).doc(chamadaId).snapshots().map((doc) => doc.data());
+  }
+
+  /// Marca presença/ausência de uma criança na chamada do dia (grava com
+  /// merge, então chamar de novo só atualiza aquela criança, sem apagar as
+  /// outras já marcadas). Também manda uma mensagem real no chat pro
+  /// responsável — reusa a infraestrutura de chat já existente em vez de
+  /// criar um sistema de notificação paralelo que mais ninguém leria.
+  Future<void> marcarPresenca({
+    required String motoristaUid,
+    required String motoristaNome,
+    required String chamadaId,
+    required String periodo,
+    required CriancaRota crianca,
+    required bool presente,
+  }) async {
+    await _chamadas(motoristaUid).doc(chamadaId).set({
+      'periodo': periodo,
+      'atualizadoEm': FieldValue.serverTimestamp(),
+      'criancas': {
+        crianca.filhoId: {
+          'nome': crianca.nome,
+          'responsavelUid': crianca.responsavelUid,
+          'presente': presente,
+          'confirmadoEm': FieldValue.serverTimestamp(),
+        },
+      },
+    }, SetOptions(merge: true));
+
+    final conversaId = await obterOuCriarConversa(
+      meuUid: motoristaUid,
+      meuNome: motoristaNome,
+      outroUid: crianca.responsavelUid,
+      outroNome: crianca.responsavelNome,
+    );
+    final agora = DateTime.now();
+    final hora = '${agora.hour.toString().padLeft(2, '0')}:${agora.minute.toString().padLeft(2, '0')}';
+    final texto = presente
+        ? '✅ ${crianca.nome} embarcou na van às $hora.'
+        : '⚠️ ${crianca.nome} foi marcado(a) como ausente na chamada de hoje.';
+    await enviarMensagem(conversaId: conversaId, remetenteUid: motoristaUid, texto: texto);
   }
 
   // ===== Chat (conversas entre Responsável e Motorista) =====

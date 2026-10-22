@@ -52,5 +52,32 @@ void main() {
       expect(mapa['cpf'], '01234567890');
       expect(mapa['telefone'], '011987654321');
     });
+
+    test('tema, tamanhoFonte e fotoPerfil fazem round-trip sem perder dados', () {
+      const usuario = Usuario(
+        nome: 'Ana',
+        email: 'ana@teste.com',
+        telefone: '11999999999',
+        cpf: '99988877766',
+        perfil: 'Motorista',
+        tema: 'Escuro',
+        tamanhoFonte: 'Grande',
+        fotoPerfil: 'data:image/jpeg;base64,/9j/abc123',
+      );
+
+      final reconstruido = Usuario.fromMap(usuario.toMap());
+
+      expect(reconstruido.tema, 'Escuro');
+      expect(reconstruido.tamanhoFonte, 'Grande');
+      expect(reconstruido.fotoPerfil, 'data:image/jpeg;base64,/9j/abc123');
+    });
+
+    test('fromMap usa os padrões de tema/tamanhoFonte/fotoPerfil quando o documento é antigo (sem esses campos)', () {
+      final usuario = Usuario.fromMap({'nome': 'Usuário Antigo'});
+
+      expect(usuario.tema, 'Automático');
+      expect(usuario.tamanhoFonte, 'Média');
+      expect(usuario.fotoPerfil, '');
+    });
   });
 }

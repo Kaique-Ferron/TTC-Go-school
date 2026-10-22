@@ -39,21 +39,38 @@ class PreferenciasProvider extends ChangeNotifier {
   }
 
   /// Acompanha as preferências do usuário logado em tempo real (reage a
-  /// mudanças feitas em outro dispositivo, e volta ao padrão no logout).
-  /// Idempotente: chamar de novo com o mesmo uid não recria a assinatura.
+  /// mudanças feitas em outro dispositivo, e volta ao padrão num logout de
+  /// verdade). Idempotente: chamar de novo com o mesmo uid não recria a
+  /// assinatura.
+  ///
+  /// NÃO reseta tema/fonte pro padrão só por receber uid null uma vez —
+  /// `AuthGate` chama isso a cada rebuild, e uma instabilidade passageira
+  /// do Firebase Auth (ex.: currentUser fica null por um instante durante
+  /// algum evento de interação) bastava pra piscar o tema de volta pro
+  /// padrão sem o usuário ter feito nada. Só reseta quando o uid null
+  /// "gruda" (se confirma de novo no próximo frame).
   void escutarUsuario(String? uid) {
     if (uid == _uidAssinado) return;
+    final uidAnterior = _uidAssinado;
     _uidAssinado = uid;
     _assinatura?.cancel();
 
     if (uid == null) {
-      _tema = 'Automático';
-      _tamanhoFonte = 'Média';
-      notifyListeners();
+      if (uidAnterior == null) return; // já estava deslogado, nada a fazer
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Só confirma o reset se, no próximo frame, o app ainda concorda
+        // que não há ninguém logado — descarta blips passageiros.
+        if (_uidAssinado != null) return;
+        _tema = 'Automático';
+        _tamanhoFonte = 'Média';
+        notifyListeners();
+      });
       return;
     }
 
-    _assinatura = FirestoreService.instance.usuarioStream(uid).listen((usuario) {
+    _assinatura = FirestoreService.instance.usuarioStream(uid).listen((
+      usuario,
+    ) {
       if (usuario == null) return;
       _tema = usuario.tema;
       _tamanhoFonte = usuario.tamanhoFonte;
@@ -61,14 +78,29 @@ class PreferenciasProvider extends ChangeNotifier {
     });
   }
 
-  Future<void> salvar({required String tema, required String tamanhoFonte}) async {
+  Future<void> salvar({
+    required String tema,
+    required String tamanhoFonte,
+  }) async {
     _tema = tema;
     _tamanhoFonte = tamanhoFonte;
     notifyListeners(); // aplica na hora, sem esperar o round-trip do Firestore
 
-    final uid = AuthService.instance.uidAtual;
-    if (uid == null) return;
-    await FirestoreService.instance.salvarPreferencias(uid, tema: tema, tamanhoFonte: tamanhoFonte);
+    // A troca já foi aplicada acima — se a persistência falhar (sem
+    // internet, Firebase não inicializado, etc.), não deixa a exceção
+    // escapar sem tratamento; o usuário já vê o tema novo, só não vai
+    // persistir entre sessões até o próximo salvar() bem-sucedido.
+    try {
+      final uid = AuthService.instance.uidAtual;
+      if (uid == null) return;
+      await FirestoreService.instance.salvarPreferencias(
+        uid,
+        tema: tema,
+        tamanhoFonte: tamanhoFonte,
+      );
+    } catch (_) {
+      // Ver comentário acima — a preferência já foi aplicada localmente.
+    }
   }
 
   @override

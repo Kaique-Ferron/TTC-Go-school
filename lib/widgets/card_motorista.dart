@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/motorista_model.dart';
 import '../theme/cores.dart';
 import 'avaliacao_media.dart';
+import 'foto_perfil_provider.dart';
 
 /// Card de um motorista real (vindo do Firestore) na tela de "Procurar
 /// Motorista". Mostra só dados que realmente existem no cadastro — nada de
@@ -39,9 +40,13 @@ class CardMotorista extends StatelessWidget {
               CircleAvatar(
                 radius: 28,
                 backgroundColor: AppCores.azulPrincipal.withValues(alpha: 0.1),
-                backgroundImage: motorista.fotoPerfil.isNotEmpty ? NetworkImage(motorista.fotoPerfil) : null,
+                backgroundImage: fotoPerfilProvider(motorista.fotoPerfil),
                 child: motorista.fotoPerfil.isEmpty
-                    ? const Icon(Icons.person, size: 32, color: AppCores.azulPrincipal)
+                    ? const Icon(
+                        Icons.person,
+                        size: 32,
+                        color: AppCores.azulPrincipal,
+                      )
                     : null,
               ),
               const SizedBox(width: 12),
@@ -54,25 +59,44 @@ class CardMotorista extends StatelessWidget {
                         Expanded(
                           child: Text(
                             motorista.nome,
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppCores.textoPrincipal(context)),
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: AppCores.textoPrincipal(context),
+                            ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         const SizedBox(width: 4),
-                        const Icon(Icons.verified, size: 16, color: AppCores.azulPrincipal),
+                        const Icon(
+                          Icons.verified,
+                          size: 16,
+                          color: AppCores.azulPrincipal,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 4),
-                    AvaliacaoMedia(motoristaUid: motorista.uid, iconSize: 13, fontSize: 12),
+                    AvaliacaoMedia(
+                      motoristaUid: motorista.uid,
+                      iconSize: 13,
+                      fontSize: 12,
+                    ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.directions_bus_outlined, size: 13, color: AppCores.textoSecundario(context)),
+                        Icon(
+                          Icons.directions_bus_outlined,
+                          size: 13,
+                          color: AppCores.textoSecundario(context),
+                        ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             '${motorista.veiculo} • ${motorista.placa}',
-                            style: TextStyle(fontSize: 11, color: AppCores.textoSecundario(context)),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppCores.textoSecundario(context),
+                            ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -85,12 +109,23 @@ class CardMotorista extends StatelessWidget {
           ),
 
           const SizedBox(height: 12),
-          Text('Registro: ${motorista.crm}', style: TextStyle(fontSize: 11, color: AppCores.textoSecundario(context), fontWeight: FontWeight.w500)),
+          Text(
+            'Registro: ${motorista.crm}',
+            style: TextStyle(
+              fontSize: 11,
+              color: AppCores.textoSecundario(context),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
 
           const SizedBox(height: 12),
           Text(
             '$vagas vaga${vagas == 1 ? '' : 's'} ${vagas == 1 ? 'disponível' : 'disponíveis'}',
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.green),
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.green,
+            ),
           ),
           const SizedBox(height: 12),
 
@@ -100,22 +135,32 @@ class CardMotorista extends StatelessWidget {
             child: ElevatedButton.icon(
               onPressed: temFilhoCadastrado ? onVerDetalhes : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: temFilhoCadastrado ? AppCores.azulPrincipal : AppCores.fundo(context),
+                backgroundColor: temFilhoCadastrado
+                    ? AppCores.azulPrincipal
+                    : AppCores.fundo(context),
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 padding: const EdgeInsets.symmetric(vertical: 10),
               ),
               icon: Icon(
-                temFilhoCadastrado ? Icons.visibility_outlined : Icons.lock_outlined,
+                temFilhoCadastrado
+                    ? Icons.visibility_outlined
+                    : Icons.lock_outlined,
                 size: 15,
-                color: temFilhoCadastrado ? Colors.white : AppCores.textoSecundario(context),
+                color: temFilhoCadastrado
+                    ? Colors.white
+                    : AppCores.textoSecundario(context),
               ),
               label: Text(
                 'Ver detalhes',
                 style: TextStyle(
                   fontSize: 12.5,
                   fontWeight: FontWeight.bold,
-                  color: temFilhoCadastrado ? Colors.white : AppCores.textoSecundario(context),
+                  color: temFilhoCadastrado
+                      ? Colors.white
+                      : AppCores.textoSecundario(context),
                 ),
               ),
             ),
@@ -126,7 +171,10 @@ class CardMotorista extends StatelessWidget {
             Center(
               child: Text(
                 'Cadastre um filho para desbloquear esta função.',
-                style: TextStyle(fontSize: 10, color: AppCores.textoSecundario(context)),
+                style: TextStyle(
+                  fontSize: 10,
+                  color: AppCores.textoSecundario(context),
+                ),
               ),
             ),
           ],

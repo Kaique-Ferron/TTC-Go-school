@@ -4,6 +4,7 @@ import '../../models/usuario.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
 import '../../theme/cores.dart';
+import '../../widgets/nav_inferior_responsavel.dart';
 import 'tela_chat.dart';
 import 'tela_novo_chat.dart';
 
@@ -23,6 +24,18 @@ class TelaConversas extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Mensagens'),
       ),
+      // Só o Responsável tem essa barra de baixo (o Motorista navega pelo
+      // menu ☰ do ShellMotorista) — StreamBuilder leve só pra saber o
+      // perfil, já que essa tela é compartilhada pelos dois.
+      bottomNavigationBar: uid == null
+          ? null
+          : StreamBuilder<Usuario?>(
+              stream: FirestoreService.instance.usuarioStream(uid),
+              builder: (context, snap) {
+                if (snap.data?.tipoPerfil == 'motorista') return const SizedBox.shrink();
+                return const NavInferiorResponsavel(abaSelecionada: 'Mensagens');
+              },
+            ),
       body: uid == null
           ? const Center(child: Text('Utilizador não autenticado.'))
           : StreamBuilder<Usuario?>(

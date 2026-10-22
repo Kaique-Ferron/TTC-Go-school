@@ -16,19 +16,6 @@ class ConfiguracoesTela extends StatefulWidget {
 }
 
 class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
-  // Aparência — valor inicial vem do que já está salvo (PreferenciasProvider),
-  // não mais um texto fixo que ignorava a preferência real do usuário.
-  late String _temaSelecionado;
-  late String _tamanhoFonte;
-
-  @override
-  void initState() {
-    super.initState();
-    final prefs = context.read<PreferenciasProvider>();
-    _temaSelecionado = prefs.tema;
-    _tamanhoFonte = prefs.tamanhoFonte;
-  }
-
   // Notificações
   bool _notifPush = true;
   bool _notifEmbarque = true;
@@ -41,30 +28,38 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
   bool _compartilharLocalizacaoRota = true;
   bool _permitirGpsApenasUso = true;
 
-  /// Aplica a aparência na hora (sem botão de "salvar" separado): atualiza o
-  /// estado local pro seletor refletir o toque imediatamente e já manda pro
-  /// PreferenciasProvider, que troca o tema do app inteiro e persiste no
-  /// Firestore em paralelo.
+  /// Aplica a aparência na hora (sem botão de "salvar" separado): manda
+  /// direto pro PreferenciasProvider, que troca o tema do app inteiro,
+  /// persiste no Firestore e notifica — essa tela observa o provider
+  /// (context.watch), então o seletor reflete sozinho, sem cópia local que
+  /// pudesse ficar dessincronizada do valor de verdade.
   void _mudarTema(String tema) {
-    setState(() => _temaSelecionado = tema);
-    context.read<PreferenciasProvider>().salvar(tema: tema, tamanhoFonte: _tamanhoFonte);
+    final prefs = context.read<PreferenciasProvider>();
+    prefs.salvar(tema: tema, tamanhoFonte: prefs.tamanhoFonte);
   }
 
   void _mudarTamanhoFonte(String tamanho) {
-    setState(() => _tamanhoFonte = tamanho);
-    context.read<PreferenciasProvider>().salvar(tema: _temaSelecionado, tamanhoFonte: tamanho);
+    final prefs = context.read<PreferenciasProvider>();
+    prefs.salvar(tema: prefs.tema, tamanhoFonte: tamanho);
   }
 
   @override
   Widget build(BuildContext context) {
     final logado = context.watch<SessaoProvider>().logado;
+    final prefs = context.watch<PreferenciasProvider>();
     if (!logado) {
       return Scaffold(
         backgroundColor: AppCores.fundo(context),
         body: Center(
           child: TextButton(
-            onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false),
-            child: const Text('Sessão expirada. Toque para fazer login novamente.'),
+            onPressed: () => Navigator.pushNamedAndRemoveUntil(
+              context,
+              '/',
+              (route) => false,
+            ),
+            child: const Text(
+              'Sessão expirada. Toque para fazer login novamente.',
+            ),
           ),
         ),
       );
@@ -72,11 +67,11 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
 
     return Scaffold(
       backgroundColor: AppCores.fundo(context),
-      appBar: AppBar(
-        title: const Text('Configurações'),
-      ),
+      appBar: AppBar(title: const Text('Configurações')),
       drawer: const NavbarResponsavel(itemSelecionado: 'Configurações'),
-      bottomNavigationBar: const NavInferiorResponsavel(abaSelecionada: 'Perfil'),
+      bottomNavigationBar: const NavInferiorResponsavel(
+        abaSelecionada: 'Perfil',
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -84,7 +79,10 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
           children: [
             Text(
               'Personalize sua experiência no GoSchool.',
-              style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 14),
+              style: TextStyle(
+                color: AppCores.textoSecundario(context),
+                fontSize: 14,
+              ),
             ),
             const SizedBox(height: 20),
 
@@ -93,19 +91,25 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
               titulo: '1. Aparência',
               icone: Icons.palette_outlined,
               children: [
-                const Text('Tema', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Tema',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 8),
                 _buildSeletorTresOpcoes(
                   opcoes: ['Claro', 'Escuro', 'Automático'],
-                  selecionado: _temaSelecionado,
+                  selecionado: prefs.tema,
                   onSelect: _mudarTema,
                 ),
                 const SizedBox(height: 16),
-                const Text('Tamanho da fonte', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Tamanho da fonte',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 8),
                 _buildSeletorTresOpcoes(
                   opcoes: ['Pequena', 'Média', 'Grande'],
-                  selecionado: _tamanhoFonte,
+                  selecionado: prefs.tamanhoFonte,
                   onSelect: _mudarTamanhoFonte,
                 ),
               ],
@@ -129,7 +133,8 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
                 _buildSwitch(
                   icone: Icons.directions_bus_outlined,
                   titulo: 'Embarque e desembarque do filho',
-                  subtitulo: 'Seja avisado quando seu filho embarcar ou desembarcar.',
+                  subtitulo:
+                      'Seja avisado quando seu filho embarcar ou desembarcar.',
                   valor: _notifEmbarque,
                   onChanged: (v) => setState(() => _notifEmbarque = v),
                 ),
@@ -147,7 +152,8 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
                   titulo: 'Lembretes de pagamento',
                   subtitulo: 'Avisos sobre vencimento e confirmações.',
                   valor: _notifLembretesPagamento,
-                  onChanged: (v) => setState(() => _notifLembretesPagamento = v),
+                  onChanged: (v) =>
+                      setState(() => _notifLembretesPagamento = v),
                 ),
                 const Divider(height: 1),
                 _buildSwitch(
@@ -167,10 +173,7 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
               titulo: '3. Privacidade e Segurança',
               icone: Icons.shield_outlined,
               children: [
-                _buildLink(
-                  icone: Icons.lock_outline,
-                  titulo: 'Alterar senha',
-                ),
+                _buildLink(icone: Icons.lock_outline, titulo: 'Alterar senha'),
                 const Divider(height: 1),
                 _buildSwitch(
                   icone: Icons.verified_user_outlined,
@@ -183,7 +186,8 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
                 _buildLink(
                   icone: Icons.devices_outlined,
                   titulo: 'Gerenciar dispositivos conectados',
-                  subtitulo: 'Veja e remova dispositivos conectados à sua conta.',
+                  subtitulo:
+                      'Veja e remova dispositivos conectados à sua conta.',
                 ),
                 const Divider(height: 1),
                 _buildLink(
@@ -192,7 +196,9 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
                   subtitulo: 'LGPD e como protegemos seus dados.',
                   onTap: () => Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const TelaPoliticaPrivacidade()),
+                    MaterialPageRoute(
+                      builder: (_) => const TelaPoliticaPrivacidade(),
+                    ),
                   ),
                 ),
               ],
@@ -208,9 +214,11 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
                 _buildSwitch(
                   icone: Icons.my_location_outlined,
                   titulo: 'Compartilhar localização durante a rota',
-                  subtitulo: 'Permite que o motorista veja a localização do seu filho.',
+                  subtitulo:
+                      'Permite que o motorista veja a localização do seu filho.',
                   valor: _compartilharLocalizacaoRota,
-                  onChanged: (v) => setState(() => _compartilharLocalizacaoRota = v),
+                  onChanged: (v) =>
+                      setState(() => _compartilharLocalizacaoRota = v),
                 ),
                 const Divider(height: 1),
                 _buildSwitch(
@@ -273,7 +281,10 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
                   subtitulo: 'Nossa equipe está pronta para te ajudar.',
                   onTap: () => Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const TelaSuporte(abrirDireto: SecaoSuporte.contato)),
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          const TelaSuporte(abrirDireto: SecaoSuporte.contato),
+                    ),
                   ),
                 ),
                 const Divider(height: 1),
@@ -283,7 +294,10 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
                   subtitulo: 'Tire suas dúvidas rapidamente.',
                   onTap: () => Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const TelaSuporte(abrirDireto: SecaoSuporte.faq)),
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          const TelaSuporte(abrirDireto: SecaoSuporte.faq),
+                    ),
                   ),
                 ),
               ],
@@ -317,7 +331,11 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
               const SizedBox(width: 8),
               Text(
                 titulo,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppCores.textoPrincipal(context)),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppCores.textoPrincipal(context),
+                ),
               ),
             ],
           ),
@@ -348,7 +366,9 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppCores.azulPrincipal : Colors.transparent,
+                  color: isSelected
+                      ? AppCores.azulPrincipal
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Center(
@@ -356,8 +376,12 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
                     opcao,
                     style: TextStyle(
                       fontSize: 13,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      color: isSelected ? Colors.white : AppCores.textoPrincipal(context),
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      color: isSelected
+                          ? Colors.white
+                          : AppCores.textoPrincipal(context),
                     ),
                   ),
                 ),
@@ -393,8 +417,21 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(titulo, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppCores.textoPrincipal(context))),
-                Text(subtitulo, style: TextStyle(fontSize: 11.5, color: AppCores.textoSecundario(context))),
+                Text(
+                  titulo,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppCores.textoPrincipal(context),
+                  ),
+                ),
+                Text(
+                  subtitulo,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: AppCores.textoSecundario(context),
+                  ),
+                ),
               ],
             ),
           ),
@@ -416,11 +453,12 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
     VoidCallback? onTap,
   }) {
     return InkWell(
-      onTap: onTap ??
+      onTap:
+          onTap ??
           () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Em breve!')),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Em breve!')));
           },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12.0),
@@ -439,17 +477,40 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(titulo, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppCores.textoPrincipal(context))),
+                  Text(
+                    titulo,
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppCores.textoPrincipal(context),
+                    ),
+                  ),
                   if (subtitulo != null)
-                    Text(subtitulo, style: TextStyle(fontSize: 11.5, color: AppCores.textoSecundario(context))),
+                    Text(
+                      subtitulo,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: AppCores.textoSecundario(context),
+                      ),
+                    ),
                 ],
               ),
             ),
             if (sufixoTexto != null) ...[
-              Text(sufixoTexto, style: TextStyle(fontSize: 12, color: AppCores.textoSecundario(context))),
+              Text(
+                sufixoTexto,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppCores.textoSecundario(context),
+                ),
+              ),
               const SizedBox(width: 4),
             ],
-            Icon(Icons.chevron_right, size: 18, color: AppCores.textoSecundario(context)),
+            Icon(
+              Icons.chevron_right,
+              size: 18,
+              color: AppCores.textoSecundario(context),
+            ),
           ],
         ),
       ),

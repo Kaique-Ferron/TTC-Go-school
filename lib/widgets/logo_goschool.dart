@@ -22,6 +22,7 @@ class LogoGoSchool extends StatelessWidget {
       width: imageHeight,
       height: imageHeight,
       alignment: Alignment.center,
+      clipBehavior: Clip.antiAlias,
       decoration: const BoxDecoration(
         color: Colors.white,
         shape: BoxShape.circle,

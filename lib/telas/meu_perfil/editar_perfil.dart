@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../services/viacep_service.dart';
 import '../../theme/cores.dart';
+import '../../widgets/foto_perfil_provider.dart';
 import 'mapa_casa_tela.dart';
 import '../../models/endereco.dart';
 
@@ -29,13 +32,16 @@ class _EditarPerfilTelaState extends State<EditarPerfilTela> {
 
   bool _salvando = false;
   bool _buscandoCep = false;
+  bool _enviandoFoto = false;
   double? _casaLat;
   double? _casaLng;
+  String? _fotoPerfilUrl;
 
   @override
   void initState() {
     super.initState();
     final d = widget.dadosAtuais;
+    _fotoPerfilUrl = d?['fotoPerfil'] as String?;
 
     _nomeController = TextEditingController(text: d?['nome'] ?? '');
     _emailController = TextEditingController(
@@ -65,35 +71,93 @@ class _EditarPerfilTelaState extends State<EditarPerfilTela> {
     super.dispose();
   }
 
-Future<void> _buscarCep() async {
-  final cep = _cepController.text.replaceAll(RegExp(r'\D'), '');
-  if (cep.length != 8) return;
+  Future<void> _buscarCep() async {
+    final cep = _cepController.text.replaceAll(RegExp(r'\D'), '');
+    if (cep.length != 8) return;
 
-  setState(() => _buscandoCep = true);
-  try {
-    // 1. Chama o método estático correto da sua classe
-    final Endereco? endereco = await ViaCepService.buscarCep(cep);
+    setState(() => _buscandoCep = true);
+    try {
+      // 1. Chama o método estático correto da sua classe
+      final Endereco? endereco = await ViaCepService.buscarCep(cep);
 
-    if (endereco != null && mounted) {
-      setState(() {
-        // 2. Acessa as propriedades do modelo Endereco diretamente
-        _enderecoController.text = endereco.logradouro ?? '';
-        _bairroController.text = endereco.bairro ?? '';
-        _cidadeUfController.text = '${endereco.localidade} - ${endereco.uf}';
-      });
+      if (endereco != null && mounted) {
+        setState(() {
+          // 2. Acessa as propriedades do modelo Endereco diretamente
+          _enderecoController.text = endereco.logradouro ?? '';
+          _bairroController.text = endereco.bairro ?? '';
+          _cidadeUfController.text = '${endereco.localidade} - ${endereco.uf}';
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erro ao buscar CEP. Verifique o número digitado.'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _buscandoCep = false);
     }
-  } catch (_) {
-    if (mounted) {
+  }
+
+  Future<void> _selecionarEAtualizarFoto() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    final ImagePicker picker = ImagePicker();
+    // maxWidth/maxHeight/imageQuality baixos de propósito: a foto vai
+    // direto dentro do documento do Firestore (sem Firebase Storage, que
+    // exige o plano pago Blaze), então precisa ficar bem pequena pra caber
+    // no limite de 1MB por documento.
+    final XFile? imagemSelecionada = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 240,
+      maxHeight: 240,
+      imageQuality: 60,
+    );
+    if (imagemSelecionada == null) return;
+
+    setState(() => _enviandoFoto = true);
+    try {
+      final bytes = await imagemSelecionada.readAsBytes();
+      if (bytes.length > 700 * 1024) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Essa foto é grande demais, tenta uma menor.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+      final dataUri = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+
+      await FirebaseFirestore.instance.collection('usuarios').doc(uid).update({
+        'fotoPerfil': dataUri,
+      });
+
+      if (!mounted) return;
+      setState(() => _fotoPerfilUrl = dataUri);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Erro ao buscar CEP. Verifique o número digitado.'),
+          content: Text('Foto de perfil atualizada!'),
+          backgroundColor: Colors.green,
         ),
       );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Não foi possível enviar a foto: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _enviandoFoto = false);
     }
-  } finally {
-    if (mounted) setState(() => _buscandoCep = false);
   }
-}
+
   Future<void> _salvarAlteracoes() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -154,9 +218,7 @@ Future<void> _buscarCep() async {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppCores.fundo(context),
-      appBar: AppBar(
-        title: const Text('Editar Cadastro e Perfil'),
-      ),
+      appBar: AppBar(title: const Text('Editar Cadastro e Perfil')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Form(
@@ -164,6 +226,57 @@ Future<void> _buscarCep() async {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // --- FOTO DE PERFIL ---
+              Center(
+                child: Stack(
+                  children: [
+                    CircleAvatar(
+                      radius: 44,
+                      backgroundColor: AppCores.azulPrincipal.withValues(
+                        alpha: 0.1,
+                      ),
+                      backgroundImage: fotoPerfilProvider(_fotoPerfilUrl),
+                      child: (_fotoPerfilUrl == null || _fotoPerfilUrl!.isEmpty)
+                          ? const Icon(
+                              Icons.person,
+                              size: 44,
+                              color: AppCores.azulPrincipal,
+                            )
+                          : null,
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: GestureDetector(
+                        onTap: _enviandoFoto ? null : _selecionarEAtualizarFoto,
+                        child: Container(
+                          padding: const EdgeInsets.all(7),
+                          decoration: const BoxDecoration(
+                            color: AppCores.azulPrincipal,
+                            shape: BoxShape.circle,
+                          ),
+                          child: _enviandoFoto
+                              ? const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.camera_alt,
+                                  size: 14,
+                                  color: Colors.white,
+                                ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
               // --- SEÇÃO 1: DADOS PESSOAIS ---
               _buildBlocoFormulario(
                 titulo: 'Dados Pessoais',
@@ -174,7 +287,8 @@ Future<void> _buscarCep() async {
                     controller: _nomeController,
                     label: 'Nome Completo',
                     icon: Icons.person,
-                    validator: (v) => v == null || v.isEmpty ? 'Informe o nome' : null,
+                    validator: (v) =>
+                        v == null || v.isEmpty ? 'Informe o nome' : null,
                   ),
                   const SizedBox(height: 14),
                   _buildCampoTexto(
@@ -182,7 +296,9 @@ Future<void> _buscarCep() async {
                     label: 'E-mail de Contato',
                     icon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
-                    validator: (v) => v == null || !v.contains('@') ? 'Informe um e-mail válido' : null,
+                    validator: (v) => v == null || !v.contains('@')
+                        ? 'Informe um e-mail válido'
+                        : null,
                   ),
                   const SizedBox(height: 14),
                   _buildCampoTexto(
@@ -190,7 +306,8 @@ Future<void> _buscarCep() async {
                     label: 'Telefone / WhatsApp',
                     icon: Icons.phone_outlined,
                     keyboardType: TextInputType.phone,
-                    validator: (v) => v == null || v.isEmpty ? 'Informe o telefone' : null,
+                    validator: (v) =>
+                        v == null || v.isEmpty ? 'Informe o telefone' : null,
                   ),
                 ],
               ),
@@ -277,12 +394,18 @@ Future<void> _buscarCep() async {
                 children: [
                   ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.my_location, color: AppCores.azulPrincipal),
+                    leading: const Icon(
+                      Icons.my_location,
+                      color: AppCores.azulPrincipal,
+                    ),
                     title: Text(
                       _casaLat != null
                           ? 'Localização marcada no mapa'
                           : 'Nenhuma localização exata salva',
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     subtitle: const Text(
                       'Toque para ajustar a posição da sua casa no mapa',
@@ -319,15 +442,23 @@ Future<void> _buscarCep() async {
                   onPressed: _salvando ? null : _salvarAlteracoes,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppCores.azulPrincipal,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   icon: _salvando
                       ? const SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
                         )
-                      : const Icon(Icons.check_circle_outline, color: Colors.white),
+                      : const Icon(
+                          Icons.check_circle_outline,
+                          color: Colors.white,
+                        ),
                   label: Text(
                     _salvando ? 'Salvando...' : 'Salvar Alterações',
                     style: const TextStyle(
@@ -374,7 +505,10 @@ Future<void> _buscarCep() async {
               const SizedBox(width: 8),
               Text(
                 titulo,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -401,10 +535,17 @@ Future<void> _buscarCep() async {
       style: TextStyle(fontSize: 14, color: AppCores.textoPrincipal(context)),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, size: 18, color: AppCores.textoSecundario(context)),
+        prefixIcon: Icon(
+          icon,
+          size: 18,
+          color: AppCores.textoSecundario(context),
+        ),
         filled: true,
         fillColor: AppCores.fundo(context),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 12,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: AppCores.borda(context)),

@@ -3,6 +3,8 @@ import '../services/auth_service.dart';
 import '../theme/cores.dart';
 import '../telas/chat/tela_conversas.dart';
 import '../telas/motorista/tela_financas_motorista.dart';
+import '../telas/motorista/tela_chamada.dart';
+import 'logo_goschool.dart';
 
 /// Shell responsivo compartilhado pelas telas do Motorista (Painel, Finanças, ...).
 /// Em telas largas (Web com janela maximizada) mostra o menu lateral fixo;
@@ -70,6 +72,8 @@ class _MenuMotorista extends StatelessWidget {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaFinancasMotorista()));
     } else if (destino == 'Mensagens') {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaConversas()));
+    } else if (destino == 'Chamada') {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaChamada()));
     } else if (destino == 'Meu Perfil') {
       if (Navigator.canPop(context)) Navigator.pop(context);
     }
@@ -82,9 +86,19 @@ class _MenuMotorista extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.all(24.0),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: Image.asset('assets/logo.jpg', width: 156, height: 48, fit: BoxFit.contain),
+          child: Row(
+            children: [
+              const LogoGoSchool(fontSize: 22),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: AppCores.laranjaMotorista,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Icon(Icons.directions_bus, color: Colors.white, size: 16),
+              ),
+            ],
           ),
         ),
         Divider(height: 1, color: AppCores.borda(context)),
@@ -99,6 +113,7 @@ class _MenuMotorista extends StatelessWidget {
                 const SizedBox(height: 16),
                 _buildMenuItem(context, Icons.home_outlined, 'Painel Principal'),
                 _buildMenuItem(context, Icons.alt_route, 'Minhas Rotas'),
+                _buildMenuItem(context, Icons.how_to_reg_outlined, 'Chamada'),
                 _buildMenuItem(context, Icons.person, 'Meu Perfil'),
                 _buildMenuItem(context, Icons.payments_outlined, 'Finanças'),
                 _buildMenuItem(context, Icons.chat_bubble_outline, 'Mensagens'),

@@ -14,6 +14,7 @@ class Usuario {
   final String veiculo; // 1. Declaração do campo
   final String tema; // 'Claro', 'Escuro' ou 'Automático'
   final String tamanhoFonte; // 'Pequena', 'Média' ou 'Grande'
+  final String fotoPerfil; // URL do Firebase Storage, vazio se nunca enviou
 
   const Usuario({
     required this.nome,
@@ -31,11 +32,13 @@ class Usuario {
     this.veiculo = '', // 2. Parâmetro no construtor
     this.tema = 'Automático',
     this.tamanhoFonte = 'Média',
+    this.fotoPerfil = '',
   });
 
   /// Valor normalizado do perfil para gravar no Firestore
   /// (campo 'tipoPerfil'): 'responsavel' ou 'motorista'.
-  String get tipoPerfil => perfil == 'Responsável' ? 'responsavel' : 'motorista';
+  String get tipoPerfil =>
+      perfil == 'Responsável' ? 'responsavel' : 'motorista';
 
   /// Endereço combinado em uma única string (rua, número - bairro), usado
   /// pela TelaPerfil/EditarPerfilTela, que leem o campo 'endereco' pronto.
@@ -67,6 +70,7 @@ class Usuario {
       'veiculo': veiculo, // 3. Adicionado ao toMap
       'tema': tema,
       'tamanhoFonte': tamanhoFonte,
+      'fotoPerfil': fotoPerfil,
     };
   }
 
@@ -87,6 +91,7 @@ class Usuario {
       veiculo: map['veiculo'] ?? '', // 4. Adicionado ao fromMap
       tema: map['tema'] ?? 'Automático',
       tamanhoFonte: map['tamanhoFonte'] ?? 'Média',
+      fotoPerfil: map['fotoPerfil'] ?? '',
     );
   }
 }
