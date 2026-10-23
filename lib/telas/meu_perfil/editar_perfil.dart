@@ -1,8 +1,9 @@
 import 'dart:convert';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' show FieldValue;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../services/firestore_service.dart';
 import '../../services/viacep_service.dart';
 import '../../theme/cores.dart';
 import '../../widgets/foto_perfil_provider.dart';
@@ -133,7 +134,7 @@ class _EditarPerfilTelaState extends State<EditarPerfilTela> {
       }
       final dataUri = 'data:image/jpeg;base64,${base64Encode(bytes)}';
 
-      await FirebaseFirestore.instance.collection('usuarios').doc(uid).update({
+      await FirestoreService.instance.atualizarUsuario(uid, {
         'fotoPerfil': dataUri,
       });
 
@@ -177,7 +178,7 @@ class _EditarPerfilTelaState extends State<EditarPerfilTela> {
       }
 
       // 2. Atualiza os dados cadastrais no documento do Firestore
-      await FirebaseFirestore.instance.collection('usuarios').doc(uid).update({
+      await FirestoreService.instance.atualizarUsuario(uid, {
         'nome': _nomeController.text.trim(),
         'email': _emailController.text.trim(),
         'telefone': _telefoneController.text.trim(),

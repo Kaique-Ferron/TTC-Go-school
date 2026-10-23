@@ -93,6 +93,7 @@ class Motorista {
     final placa = (map['placa'] as String?) ?? '';
     final licenca = (map['licenca'] as String?) ?? '';
     final nome = (map['nome'] as String?) ?? '';
+    final fotoPerfil = (map['fotoPerfil'] as String?) ?? '';
 
     // Mensalidade e capacidade por período ainda não existem no Firestore —
     // gera uma variação mockada, porém estável (mesmo motorista sempre com
@@ -105,7 +106,7 @@ class Motorista {
       corridas: '',
       tempo: '',
       crm: licenca.isNotEmpty ? licenca : '---',
-      fotoPerfil: '',
+      fotoPerfil: fotoPerfil,
       veiculo: veiculo.isNotEmpty ? veiculo : 'Veículo não informado',
       placa: placa.isNotEmpty ? placa : '---',
       valorMensalidade: 280.0 + (semente % 6) * 20,

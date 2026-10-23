@@ -78,6 +78,14 @@ class PainelPrincipalTela extends StatelessWidget {
               final String idadeEAno = filhos.isNotEmpty
                   ? filhos.first.idadeEAno
                   : '8 anos • 3º ano';
+              final String escolaFilho = filhos.isNotEmpty ? filhos.first.escola : '';
+              final String horarioFilho = filhos.isNotEmpty ? filhos.first.horario : '';
+              final double? casaLat = (dadosUsuario?['casa_lat'] as num?)?.toDouble();
+              final double? casaLng = (dadosUsuario?['casa_lng'] as num?)?.toDouble();
+              final String casaEndereco =
+                  (dadosUsuario?['casa_endereco'] as String?)?.trim().isNotEmpty == true
+                      ? dadosUsuario!['casa_endereco'] as String
+                      : (dadosUsuario?['endereco'] as String?) ?? '';
 
               return SingleChildScrollView(
                 padding: const EdgeInsets.all(20.0),
@@ -106,8 +114,15 @@ class PainelPrincipalTela extends StatelessWidget {
                     CardTransporteAndamento(onTap: () {}),
                     const SizedBox(height: 16),
 
-                    // 2. Card Acompanhar Rota (com mapa)
-                    CardAcompanharRota(onVerDetalhes: () {}),
+                    // 2. Card Acompanhar Rota (com mapa real)
+                    CardAcompanharRota(
+                      latitude: casaLat,
+                      longitude: casaLng,
+                      endereco: casaEndereco,
+                      escola: escolaFilho,
+                      horario: horarioFilho,
+                      onVerDetalhes: () {},
+                    ),
                     const SizedBox(height: 16),
 
                     // 3. Card Status do Filho

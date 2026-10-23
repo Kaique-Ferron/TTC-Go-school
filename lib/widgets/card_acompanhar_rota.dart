@@ -1,19 +1,41 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import '../config/mapa_config.dart';
 import '../theme/cores.dart';
 
+/// Card "Acompanhar rota" do Painel Principal do Responsável.
+///
+/// Antes mostrava um mapa falso: uma única imagem estática de um tile do
+/// OpenStreetMap de um lugar fixo qualquer (nada a ver com o endereço do
+/// usuário), com "próxima parada"/horários escritos direto no código.
+/// Agora é um mapa real (flutter_map), centrado na localização de casa que
+/// o próprio responsável marcou em "Editar Perfil" — e os textos vêm dos
+/// dados reais (endereço, escola e horário do filho).
+///
+/// Não existe (ainda) rastreamento em tempo real da van — isso exigiria o
+/// app do Motorista reportando a localização atual pro Firestore, o que é
+/// uma funcionalidade maior e separada. Por isso o card mostra o ponto de
+/// embarque/desembarque reais, não uma posição "ao vivo" do veículo.
 class CardAcompanharRota extends StatelessWidget {
-  final String proximaParada;
-  final String chegadaPrevista;
-  final String tempoRestante;
+  final double? latitude;
+  final double? longitude;
+  final String endereco;
+  final String escola;
+  final String horario;
   final VoidCallback? onVerDetalhes;
 
   const CardAcompanharRota({
     super.key,
-    this.proximaParada = 'Rua das Flores, 245',
-    this.chegadaPrevista = '08:15',
-    this.tempoRestante = 'Faltam 12 min',
+    this.latitude,
+    this.longitude,
+    this.endereco = '',
+    this.escola = '',
+    this.horario = '',
     this.onVerDetalhes,
   });
+
+  bool get _temLocalizacao => latitude != null && longitude != null;
 
   @override
   Widget build(BuildContext context) {
@@ -34,16 +56,20 @@ class CardAcompanharRota extends StatelessWidget {
                 children: [
                   Icon(Icons.map_outlined, color: Colors.blue.shade800, size: 20),
                   const SizedBox(width: 8),
-                  const Text(
+                  Text(
                     'Acompanhar rota',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppCores.textoPrincipal(context),
+                    ),
                   ),
                 ],
               ),
               GestureDetector(
                 onTap: onVerDetalhes,
-                child: Row(
-                  children: const [
+                child: const Row(
+                  children: [
                     Text('Ver detalhes', style: TextStyle(fontSize: 12, color: AppCores.laranjaMotorista, fontWeight: FontWeight.bold)),
                     Icon(Icons.chevron_right, size: 16, color: AppCores.laranjaMotorista),
                   ],
@@ -53,132 +79,168 @@ class CardAcompanharRota extends StatelessWidget {
           ),
           const SizedBox(height: 14),
 
-          // Área da Prévia do Mapa com Pins e Ícone da Van
-          Container(
-            height: 140,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE2E8F0),
-              borderRadius: BorderRadius.circular(16),
-              image: const DecorationImage(
-                image: NetworkImage('https://tile.openstreetmap.org/15/9326/19225.png'), // Imagem de mapa estático
-                fit: BoxFit.cover,
-                opacity: 0.8,
-              ),
-            ),
-            child: Stack(
-              children: [
-                // Badge Próxima Parada
-                Positioned(
-                  top: 10,
-                  left: 10,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0F172A),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
+          // Mapa real, centrado na casa do responsável (se já marcada em
+          // "Editar Perfil" > "Ponto no Mapa para o Transporte").
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: SizedBox(
+              height: 140,
+              width: double.infinity,
+              child: _temLocalizacao
+                  ? Stack(
                       children: [
-                        const Icon(Icons.location_on, size: 14, color: Colors.amber),
-                        const SizedBox(width: 4),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        FlutterMap(
+                          options: MapOptions(
+                            initialCenter: LatLng(latitude!, longitude!),
+                            initialZoom: 15,
+                            interactionOptions: const InteractionOptions(flags: InteractiveFlag.none),
+                          ),
                           children: [
-                            const Text('Próxima parada', style: TextStyle(color: Colors.white70, fontSize: 9)),
-                            Text(proximaParada, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                            TileLayer(
+                              urlTemplate: MapaConfig.tileUrlTemplate,
+                              userAgentPackageName: 'com.example.flutter_application_1',
+                            ),
+                            MarkerLayer(
+                              markers: [
+                                Marker(
+                                  point: LatLng(latitude!, longitude!),
+                                  width: 40,
+                                  height: 40,
+                                  alignment: Alignment.topCenter,
+                                  child: const Icon(Icons.location_on, color: Colors.red, size: 36),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
+                        if (endereco.isNotEmpty)
+                          Positioned(
+                            top: 10,
+                            left: 10,
+                            child: _badge(
+                              icon: Icons.location_on,
+                              corIcone: Colors.amber,
+                              rotulo: 'Ponto de embarque',
+                              valor: endereco,
+                            ),
+                          ),
                       ],
+                    )
+                  : Container(
+                      color: AppCores.fundo(context),
+                      padding: const EdgeInsets.all(16),
+                      alignment: Alignment.center,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.pin_drop_outlined, color: AppCores.textoSecundario(context), size: 28),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Marque sua localização em Editar Perfil para ver o mapa da rota',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 11, color: AppCores.textoSecundario(context)),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ),
-
-                // Card de Chegada Prevista
-                Positioned(
-                  top: 10,
-                  right: 10,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.92),
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 4)],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.access_time, size: 14, color: AppCores.azulPrincipal),
-                            const SizedBox(width: 4),
-                            Text('Chegada prevista $chegadaPrevista', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                        const SizedBox(height: 2),
-                        Row(
-                          children: [
-                            const Icon(Icons.directions_bus, size: 12, color: AppCores.azulPrincipal),
-                            const SizedBox(width: 4),
-                            Text(tempoRestante, style: const TextStyle(fontSize: 10, color: AppCores.azulPrincipal, fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // Ícone da Van no Centro do Rota
-                Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: const BoxDecoration(color: AppCores.azulPrincipal, shape: BoxShape.circle),
-                    child: const Icon(Icons.directions_bus, color: Colors.white, size: 20),
-                  ),
-                ),
-              ],
             ),
           ),
           const SizedBox(height: 16),
 
-          // Linha do tempo simples de progresso
+          // Trajeto: casa -> escola, com o horário combinado real (sem
+          // etapas/minutos inventados, já que não há rastreamento ao vivo).
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildEtapaLinha(context, 'Embarque', '07:40', Icons.directions_bus, AppCores.laranjaMotorista),
-              _buildDivisorLinha(context, true),
-              _buildEtapaLinha(context, 'A caminho', '08:00', Icons.directions_bus, AppCores.azulPrincipal),
-              _buildDivisorLinha(context, false),
-              _buildEtapaLinha(context, 'Escola', '08:15', Icons.home_work, AppCores.textoSecundario(context)),
+              _buildEtapaLinha(context, 'Casa', endereco.isEmpty ? '—' : endereco, Icons.home_outlined, AppCores.laranjaMotorista),
+              _buildDivisorLinha(context),
+              _buildEtapaLinha(context, 'Escola', escola.isEmpty ? '—' : escola, Icons.school_outlined, AppCores.azulPrincipal),
             ],
+          ),
+          if (horario.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.access_time, size: 14, color: AppCores.textoSecundario(context)),
+                const SizedBox(width: 4),
+                Text(
+                  'Horário combinado: $horario',
+                  style: TextStyle(fontSize: 11, color: AppCores.textoSecundario(context), fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _badge({
+    required IconData icon,
+    required Color corIcone,
+    required String rotulo,
+    required String valor,
+  }) {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 190),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F172A),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: corIcone),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(rotulo, style: const TextStyle(color: Colors.white70, fontSize: 9)),
+                Text(
+                  valor,
+                  style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildEtapaLinha(BuildContext context, String rotulo, String hora, IconData icone, Color cor) {
+  Widget _buildEtapaLinha(BuildContext context, String rotulo, String valor, IconData icone, Color cor) {
     final corIcone = AppCores.corIconeLegivel(context, cor);
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(color: corIcone.withValues(alpha: 0.15), shape: BoxShape.circle),
-          child: Icon(icone, size: 14, color: corIcone),
-        ),
-        const SizedBox(height: 4),
-        Text(rotulo, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppCores.textoPrincipal(context))),
-        Text(hora, style: TextStyle(fontSize: 10, color: AppCores.textoSecundario(context))),
-      ],
+    return Expanded(
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(color: corIcone.withValues(alpha: 0.15), shape: BoxShape.circle),
+            child: Icon(icone, size: 14, color: corIcone),
+          ),
+          const SizedBox(height: 4),
+          Text(rotulo, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppCores.textoPrincipal(context))),
+          Text(
+            valor,
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: TextStyle(fontSize: 10, color: AppCores.textoSecundario(context)),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildDivisorLinha(BuildContext context, bool ativo) {
-    return Expanded(
-      child: Container(
-        height: 2,
-        color: ativo ? AppCores.azulPrincipal : AppCores.borda(context),
-      ),
+  Widget _buildDivisorLinha(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Icon(Icons.arrow_forward, size: 16, color: AppCores.borda(context)),
     );
   }
 }

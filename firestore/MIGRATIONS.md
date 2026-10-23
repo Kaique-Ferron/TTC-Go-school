@@ -238,3 +238,42 @@ pra não exigir um índice composto adicional.
 Regra do Firestore: só o próprio Motorista lê/escreve sua subcoleção de
 chamadas; o responsável nunca lê esse documento diretamente, só recebe a
 mensagem no chat.
+
+---
+
+## 008 — `motoristas_publico/{uid}` (coleção) — Perfil público do Motorista
+
+Criada em: 2026-10. Correção de segurança: antes, `motoristasStream()`
+(aba "Serviços"/busca de motorista) lia o documento INTEIRO de
+`usuarios/{uid}` de cada motorista, porque a regra do Firestore liberava
+leitura de qualquer documento com `tipoPerfil == 'motorista'` pra qualquer
+usuário logado. Regra do Firestore não filtra CAMPO dentro do documento —
+só documento inteiro — então isso também expunha `cpf`/`cnh`/`endereço`
+(cep/rua/numero/bairro) de cada motorista, que ficam no mesmo documento,
+pra qualquer responsável logado, mesmo sem nunca ter contratado.
+
+Esta coleção guarda só o subconjunto que a busca de fato exibe:
+
+| Campo         | Tipo   | Observação                                  |
+|---------------|--------|----------------------------------------------|
+| `uid`         | string | mesmo id do documento                        |
+| `nome`        | string |                                                |
+| `veiculo`     | string |                                                |
+| `placa`       | string |                                                |
+| `licenca`     | string | exibido como "Registro" na busca              |
+| `fotoPerfil`  | string | `data:image/...` (base64) ou URL — ver seção de foto |
+
+Mantido em sincronia automaticamente por `FirestoreService.salvarUsuario` e
+`atualizarUsuario`: toda vez que o documento de um usuário com
+`tipoPerfil == 'motorista'` é salvo/atualizado, esses campos são
+espelhados aqui (`_sincronizarPerfilPublico`). Nenhuma tela escreve aqui
+diretamente.
+
+Regra do Firestore: qualquer usuário logado lê (é exatamente o que já era
+exibido); só o próprio motorista escreve, e só no próprio documento.
+`usuarios/{uid}` passou a permitir leitura só pro dono, documento completo.
+
+**Contas de motorista criadas antes dessa mudança não têm esse documento
+ainda** (não há backfill automático) — somem da busca até a próxima vez
+que o motorista salvar algo no perfil (editar cadastro, trocar foto, etc.),
+o que recria o espelho.

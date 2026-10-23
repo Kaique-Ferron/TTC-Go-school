@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/usuario.dart';
 import '../services/sessao_provider.dart';
 import '../services/firestore_service.dart';
+import '../services/notification_service.dart';
 import '../services/preferencias_provider.dart';
 
 import '../telas/auth/login/login.dart';
@@ -24,11 +25,13 @@ class AuthGate extends StatelessWidget {
     final logado = context.watch<SessaoProvider>().logado;
     if (!logado) {
       context.read<PreferenciasProvider>().escutarUsuario(null);
+      NotificationService.sincronizarInscricao(null);
       return const TelaLogin();
     }
 
     final uid = context.watch<SessaoProvider>().uid!;
     context.read<PreferenciasProvider>().escutarUsuario(uid);
+    NotificationService.sincronizarInscricao(uid);
 
     return StreamBuilder<Usuario?>(
       stream: FirestoreService.instance.usuarioStream(uid),
