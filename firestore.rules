@@ -8,17 +8,18 @@ rules_version = '2';
 // reflete o schema documentado em firestore/MIGRATIONS.md e os métodos de
 // lib/services/firestore_service.dart.
 //
-// LIMITAÇÃO CONHECIDA (não resolvida aqui, documentada pra decisão futura):
-// a tela "Procurar Motorista" lê o documento INTEIRO de usuarios/{uid} de
-// cada motorista (motoristasStream(), via Motorista.fromUsuarioMap) só pra
-// exibir nome/veículo/placa/valor. Regras do Firestore não filtram CAMPOS
-// dentro de um documento — só se o documento inteiro pode ou não ser lido.
-// Então, pra essa tela funcionar, qualquer responsável logado consegue ler
-// TAMBÉM o cpf/cnh/endereço/licença do motorista, que estão no mesmo
-// documento. A correção de verdade é separar um "perfil público" do
-// motorista (ex.: usuarios/{uid}/publico/dados, só com os campos exibidos
-// na busca) do documento de conta completo — isso exige mudar
-// salvarUsuario/motoristasStream/Motorista.fromUsuarioMap, não é só regra.
+// LIMITAÇÃO CORRIGIDA (ficava documentada aqui como pendente): a tela
+// "Procurar Motorista" lia o documento INTEIRO de usuarios/{uid} de cada
+// motorista só pra exibir nome/veículo/placa/licença — e como regra do
+// Firestore não filtra CAMPO dentro de um documento (só se o documento
+// inteiro pode ou não ser lido), isso também expunha cpf/cnh/endereço de
+// cada motorista pra qualquer responsável logado. Resolvido separando um
+// perfil público (motoristas_publico/{uid}, só com os campos exibidos na
+// busca) do documento de conta completo — ver salvarUsuario/
+// atualizarUsuario/motoristasStream em firestore_service.dart. Contas de
+// motorista criadas antes dessa mudança só ganham o perfil público na
+// próxima vez que salvarem algo no cadastro (editar perfil, trocar foto,
+// etc.) — não há backfill automático de contas existentes.
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -33,10 +34,10 @@ service cloud.firestore {
 
     // ===== usuarios/{uid} — conta de Responsável ou Motorista =====
     match /usuarios/{uid} {
-      // Dono sempre pode ler o próprio documento. Qualquer usuário logado
-      // pode ler documentos de MOTORISTA — necessário pra aba "Procurar
-      // Motorista" (ver limitação de exposição de campos no topo do arquivo).
-      allow read: if isOwner(uid) || (isSignedIn() && resource.data.tipoPerfil == 'motorista');
+      // Só o dono lê o documento completo (tem cpf/cnh/endereço). O que a
+      // busca de motoristas precisa mostrar vem de motoristas_publico/{uid}
+      // (bloco mais abaixo), não daqui.
+      allow read: if isOwner(uid);
 
       allow create: if isOwner(uid)
         && request.resource.data.uid == uid
@@ -94,6 +95,16 @@ service cloud.firestore {
           && request.resource.data.nota <= 5;
         allow delete: if false;
       }
+    }
+
+    // ===== motoristas_publico/{uid} — subconjunto público do perfil do
+    // Motorista (nome/veículo/placa/licença/foto), usado pela busca
+    // (motoristasStream). Qualquer usuário logado pode ler — é só o que já
+    // é exibido na tela de busca. Só o próprio motorista escreve, e só no
+    // próprio documento (uid aqui é o motoristaUid).
+    match /motoristas_publico/{uid} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(uid);
     }
 
     // Permite a consulta collectionGroup('contratacoes') usada por

@@ -9,6 +9,7 @@ import '../models/mensagem_model.dart';
 import '../models/mensalidade_model.dart';
 import '../models/motorista_model.dart';
 import '../models/usuario.dart';
+import 'notification_service.dart';
 
 class FirestoreService {
   FirestoreService._(this._db);
@@ -25,20 +26,52 @@ class FirestoreService {
   CollectionReference<Map<String, dynamic>> get _usuarios =>
       _db.collection('usuarios');
 
+  // Subconjunto público do perfil do Motorista (nome/veículo/placa/
+  // licença/foto) — ver comentário em salvarUsuario sobre por que isso
+  // existe separado do documento completo em usuarios/{uid}.
+  CollectionReference<Map<String, dynamic>> get _motoristasPublico =>
+      _db.collection('motoristas_publico');
+
   CollectionReference<Map<String, dynamic>> _filhos(String uid) =>
       _usuarios.doc(uid).collection('filhos');
 
-  Future<void> salvarUsuario(String uid, Usuario usuario) {
-    return _usuarios.doc(uid).set({
+  Future<void> salvarUsuario(String uid, Usuario usuario) async {
+    await _usuarios.doc(uid).set({
       ...usuario.toMap(),
       'uid': uid,
       'criadoEm': FieldValue.serverTimestamp(),
     });
+    if (usuario.tipoPerfil == 'motorista') {
+      await _sincronizarPerfilPublico(uid, usuario.toMap());
+    }
   }
 
   /// Atualiza campos específicos do usuário sem sobrescrever o documento inteiro.
-  Future<void> atualizarUsuario(String uid, Map<String, dynamic> dados) {
-    return _usuarios.doc(uid).update(dados);
+  ///
+  /// Se o usuário for Motorista, também espelha os campos públicos
+  /// (nome/veículo/placa/licença/foto) em motoristas_publico/{uid} — essa
+  /// cópia é o que a busca de motoristas (motoristasStream) lê, em vez do
+  /// documento completo de usuarios/{uid}. Antes, qualquer responsável
+  /// logado conseguia ler o documento INTEIRO de um motorista (regra do
+  /// Firestore não filtra campo, só documento), o que expunha cpf/cnh/
+  /// endereço junto com os dados exibidos na tela. Ver firestore.rules.
+  Future<void> atualizarUsuario(String uid, Map<String, dynamic> dados) async {
+    await _usuarios.doc(uid).update(dados);
+    final atual = (await _usuarios.doc(uid).get()).data();
+    if (atual != null && atual['tipoPerfil'] == 'motorista') {
+      await _sincronizarPerfilPublico(uid, atual);
+    }
+  }
+
+  Future<void> _sincronizarPerfilPublico(String uid, Map<String, dynamic> dados) {
+    return _motoristasPublico.doc(uid).set({
+      'uid': uid,
+      'nome': dados['nome'] ?? '',
+      'veiculo': dados['veiculo'] ?? '',
+      'placa': dados['placa'] ?? '',
+      'licenca': dados['licenca'] ?? '',
+      'fotoPerfil': dados['fotoPerfil'] ?? '',
+    });
   }
 
   /// Preferências de aparência (tema e tamanho da fonte) — ver
@@ -69,10 +102,11 @@ class FirestoreService {
     return _filhos(uid).doc(filhoId).delete();
   }
 
-  /// Motoristas reais cadastrados no app (usuarios com tipoPerfil = 'motorista'),
-  /// exibidos na aba "Serviços" da landpage.
+  /// Motoristas reais cadastrados no app, exibidos na aba "Serviços" da
+  /// landpage — lê o perfil PÚBLICO (motoristas_publico/{uid}), não o
+  /// documento completo em usuarios/{uid} (que tem cpf/cnh/endereço).
   Stream<List<Motorista>> motoristasStream() {
-    return _usuarios.where('tipoPerfil', isEqualTo: 'motorista').snapshots().map(
+    return _motoristasPublico.snapshots().map(
           (snap) => snap.docs.map((d) => Motorista.fromUsuarioMap(d.data())).toList(),
         );
   }
@@ -304,6 +338,18 @@ class FirestoreService {
         'criadoEm': FieldValue.serverTimestamp(),
       });
     }
+
+    // Espelha meu id de inscrição push nessa conversa (pra o outro
+    // participante conseguir me notificar de uma mensagem nova, sem
+    // precisar ler meu documento completo de usuarios/{uid}) — atualiza
+    // sempre que alguém abre a conversa, então o id tende a ficar fresco.
+    final meuPushId = NotificationService.subscriptionIdAtual;
+    if (meuPushId != null && meuPushId.isNotEmpty) {
+      await ref.set({
+        'participantesPushIds': {meuUid: meuPushId},
+      }, SetOptions(merge: true));
+    }
+
     return id;
   }
 
@@ -336,10 +382,48 @@ class FirestoreService {
       'texto': texto,
       'enviadaEm': FieldValue.serverTimestamp(),
     });
-    await ref.update({
+    final dadosConversa = {
       'ultimaMensagem': texto,
       'ultimaMensagemEm': FieldValue.serverTimestamp(),
-    });
+    };
+    await ref.update(dadosConversa);
+    await _notificarNovaMensagem(ref: ref, remetenteUid: remetenteUid, texto: texto);
+  }
+
+  /// Notifica (push real, via OneSignal) o OUTRO participante da conversa
+  /// sobre a mensagem que acabou de ser enviada. Nunca deixa uma falha
+  /// aqui travar o envio da mensagem em si — notificação é um extra.
+  Future<void> _notificarNovaMensagem({
+    required DocumentReference<Map<String, dynamic>> ref,
+    required String remetenteUid,
+    required String texto,
+  }) async {
+    try {
+      final dados = (await ref.get()).data();
+      if (dados == null) return;
+
+      final participantes = (dados['participantes'] as List?)?.cast<String>() ?? [];
+      final outroUid = participantes.firstWhere(
+        (uid) => uid != remetenteUid,
+        orElse: () => '',
+      );
+      if (outroUid.isEmpty) return;
+
+      final pushIds = dados['participantesPushIds'] as Map<String, dynamic>?;
+      final subscriptionId = pushIds?[outroUid] as String?;
+      if (subscriptionId == null || subscriptionId.isEmpty) return;
+
+      final nomes = dados['participantesNomes'] as Map<String, dynamic>?;
+      final remetenteNome = (nomes?[remetenteUid] as String?) ?? 'Nova mensagem';
+
+      await NotificationService.enviarPush(
+        subscriptionId: subscriptionId,
+        titulo: remetenteNome,
+        mensagem: texto,
+      );
+    } catch (_) {
+      // Ver comentário acima.
+    }
   }
 
   // ===== Avaliações (Responsável avalia o Motorista) =====

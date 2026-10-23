@@ -1,3 +1,4 @@
+import 'config/notificacoes_config.dart';
 import 'services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart'; // Adicionado
@@ -18,7 +19,7 @@ void main() async {
   // runApp() de ser chamado e a tela ficava em branco. No mobile continua
   // inicializando normalmente.
   try {
-    await NotificationService.initOneSignal("c28e1d00-4d1a-4072-8eb5-b3bcfba4aff6");
+    await NotificationService.initOneSignal(NotificacoesConfig.appId);
   } catch (e) {
     debugPrint('OneSignal não inicializado (esperado na Web): $e');
   }

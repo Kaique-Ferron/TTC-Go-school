@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/motorista_model.dart';
 import '../../services/auth_service.dart';
+import '../../theme/cores.dart';
 import '../../widgets/foto_perfil_provider.dart';
 import '../../widgets/shell_motorista.dart';
 
@@ -97,7 +98,7 @@ class TelaMotorista extends StatelessWidget {
                 crossAxisAlignment: WrapCrossAlignment.center,
                 alignment: WrapAlignment.spaceBetween,
                 children: [
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
@@ -105,13 +106,16 @@ class TelaMotorista extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
+                          color: AppCores.textoPrincipal(context),
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
                         'Gerencie suas informações e preferências.',
-                        style: TextStyle(color: Colors.grey, fontSize: 14),
+                        style: TextStyle(
+                          color: AppCores.textoSecundario(context),
+                          fontSize: 14,
+                        ),
                       ),
                     ],
                   ),
@@ -121,9 +125,9 @@ class TelaMotorista extends StatelessWidget {
                       Stack(
                         children: [
                           IconButton(
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.notifications_none,
-                              color: Colors.black54,
+                              color: AppCores.textoSecundario(context),
                             ),
                             onPressed: () {},
                           ),
@@ -173,15 +177,18 @@ class TelaMotorista extends StatelessWidget {
                         children: [
                           Text(
                             'Olá, ${motorista.nome.split(' ')[0]}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
-                              color: Color(0xFF1E293B),
+                              color: AppCores.textoPrincipal(context),
                             ),
                           ),
-                          const Text(
+                          Text(
                             'Motorista',
-                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppCores.textoSecundario(context),
+                            ),
                           ),
                         ],
                       ),
@@ -227,11 +234,15 @@ class TelaMotorista extends StatelessWidget {
                 direction: isWide ? Axis.horizontal : Axis.vertical,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(flex: isWide ? 1 : 0, child: _buildCardAgenda()),
+                  Expanded(
+                    flex: isWide ? 1 : 0,
+                    child: _buildCardAgenda(context),
+                  ),
                   SizedBox(width: isWide ? 24 : 0, height: isWide ? 0 : 20),
                   Expanded(
                     flex: isWide ? 1 : 0,
                     child: _buildCardResumo(
+                      context,
                       motorista,
                       passageiros,
                       rotasAtivas,
@@ -259,9 +270,9 @@ class TelaMotorista extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppCores.borda(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -313,10 +324,10 @@ class TelaMotorista extends StatelessWidget {
                   children: [
                     Text(
                       motorista.nome,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
-                        color: Color(0xFF1E293B),
+                        color: AppCores.textoPrincipal(context),
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -345,13 +356,14 @@ class TelaMotorista extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          _buildInfoRow(Icons.mail_outline, email),
+          _buildInfoRow(context, Icons.mail_outline, email),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.phone_outlined, telefone),
+          _buildInfoRow(context, Icons.phone_outlined, telefone),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.location_on_outlined, localizacao),
+          _buildInfoRow(context, Icons.location_on_outlined, localizacao),
           const SizedBox(height: 12),
           _buildInfoRow(
+            context,
             Icons.calendar_today_outlined,
             'Membro desde $membroDesde',
           ),
@@ -369,9 +381,9 @@ class TelaMotorista extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppCores.borda(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -379,12 +391,12 @@ class TelaMotorista extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Meu Veículo',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
+                  color: AppCores.textoPrincipal(context),
                 ),
               ),
               TextButton.icon(
@@ -418,44 +430,59 @@ class TelaMotorista extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _buildVehicleInfo(Icons.directions_bus_outlined, motorista.veiculo),
+          _buildVehicleInfo(
+            context,
+            Icons.directions_bus_outlined,
+            motorista.veiculo,
+          ),
           const Divider(height: 24),
-          _buildVehicleInfo(Icons.credit_card_outlined, motorista.placa),
+          _buildVehicleInfo(
+            context,
+            Icons.credit_card_outlined,
+            motorista.placa,
+          ),
           const Divider(height: 24),
-          _buildVehicleInfo(Icons.group_outlined, '$passageiros passageiros'),
+          _buildVehicleInfo(
+            context,
+            Icons.group_outlined,
+            '$passageiros passageiros',
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildCardAgenda() {
+  Widget _buildCardAgenda(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppCores.borda(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
-              Icon(Icons.calendar_month_outlined, color: Color(0xFF1E293B)),
-              SizedBox(width: 8),
+            children: [
+              Icon(
+                Icons.calendar_month_outlined,
+                color: AppCores.textoPrincipal(context),
+              ),
+              const SizedBox(width: 8),
               Text(
                 'Minha agenda',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
+                  color: AppCores.textoPrincipal(context),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 20),
           Material(
-            color: Colors.grey[50],
+            color: AppCores.fundo(context),
             borderRadius: BorderRadius.circular(12),
             child: ListTile(
               shape: RoundedRectangleBorder(
@@ -466,18 +493,27 @@ class TelaMotorista extends StatelessWidget {
                 color: Colors.orange,
                 size: 28,
               ),
-              title: const Text(
+              title: Text(
                 'Manhã',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppCores.textoPrincipal(context),
+                ),
               ),
-              subtitle: const Text('07:00 - 12:00'),
-              trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+              subtitle: Text(
+                '07:00 - 12:00',
+                style: TextStyle(color: AppCores.textoSecundario(context)),
+              ),
+              trailing: Icon(
+                Icons.chevron_right,
+                color: AppCores.textoSecundario(context),
+              ),
               onTap: () {},
             ),
           ),
           const SizedBox(height: 12),
           Material(
-            color: Colors.grey[50],
+            color: AppCores.fundo(context),
             borderRadius: BorderRadius.circular(12),
             child: ListTile(
               shape: RoundedRectangleBorder(
@@ -488,12 +524,21 @@ class TelaMotorista extends StatelessWidget {
                 color: Colors.blue,
                 size: 28,
               ),
-              title: const Text(
+              title: Text(
                 'Tarde',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppCores.textoPrincipal(context),
+                ),
               ),
-              subtitle: const Text('13:00 - 18:00'),
-              trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+              subtitle: Text(
+                '13:00 - 18:00',
+                style: TextStyle(color: AppCores.textoSecundario(context)),
+              ),
+              trailing: Icon(
+                Icons.chevron_right,
+                color: AppCores.textoSecundario(context),
+              ),
               onTap: () {},
             ),
           ),
@@ -525,6 +570,7 @@ class TelaMotorista extends StatelessWidget {
   }
 
   Widget _buildCardResumo(
+    BuildContext context,
     Motorista motorista,
     String passageiros,
     String rotasAtivas,
@@ -533,23 +579,23 @@ class TelaMotorista extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppCores.borda(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
-              Icon(Icons.bar_chart, color: Color(0xFF1D58E2)),
-              SizedBox(width: 8),
+            children: [
+              const Icon(Icons.bar_chart, color: Color(0xFF1D58E2)),
+              const SizedBox(width: 8),
               Text(
                 'Resumo da atividade',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
+                  color: AppCores.textoPrincipal(context),
                 ),
               ),
             ],
@@ -564,24 +610,28 @@ class TelaMotorista extends StatelessWidget {
             childAspectRatio: 1.5,
             children: [
               _buildResumoItem(
+                context,
                 Icons.alt_route,
                 'Rotas ativas',
                 rotasAtivas,
                 const Color(0xFF1D58E2),
               ),
               _buildResumoItem(
+                context,
                 Icons.group_outlined,
                 'Alunos transportados',
                 passageiros,
                 Colors.blueGrey,
               ),
               _buildResumoItem(
+                context,
                 Icons.directions_bus_outlined,
                 'Viagens concluídas',
                 motorista.corridas,
                 Colors.green,
               ),
               _buildResumoItem(
+                context,
                 Icons.star_outline,
                 'Avaliação',
                 avaliacao,
@@ -713,15 +763,18 @@ class TelaMotorista extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String text) {
+  Widget _buildInfoRow(BuildContext context, IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: Colors.grey),
+        Icon(icon, size: 18, color: AppCores.textoSecundario(context)),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(fontSize: 14, color: Colors.black87),
+            style: TextStyle(
+              fontSize: 14,
+              color: AppCores.textoPrincipal(context),
+            ),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -729,7 +782,7 @@ class TelaMotorista extends StatelessWidget {
     );
   }
 
-  Widget _buildVehicleInfo(IconData icon, String text) {
+  Widget _buildVehicleInfo(BuildContext context, IconData icon, String text) {
     return Row(
       children: [
         Icon(icon, size: 20, color: const Color(0xFF1D58E2)),
@@ -737,10 +790,10 @@ class TelaMotorista extends StatelessWidget {
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
+              color: AppCores.textoPrincipal(context),
             ),
             overflow: TextOverflow.ellipsis,
           ),
@@ -750,6 +803,7 @@ class TelaMotorista extends StatelessWidget {
   }
 
   Widget _buildResumoItem(
+    BuildContext context,
     IconData icon,
     String titulo,
     String valor,
@@ -758,9 +812,9 @@ class TelaMotorista extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: AppCores.fundo(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppCores.borda(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -773,7 +827,10 @@ class TelaMotorista extends StatelessWidget {
               Expanded(
                 child: Text(
                   titulo,
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppCores.textoSecundario(context),
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -782,10 +839,10 @@ class TelaMotorista extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             valor,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
+              color: AppCores.textoPrincipal(context),
             ),
           ),
         ],

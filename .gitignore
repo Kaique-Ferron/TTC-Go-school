@@ -16,3 +16,7 @@ build/
 # Android / iOS local configs
 android/local.properties
 ios/Flutter/Generated.xcconfig
+
+# Chaves locais (API keys) — nunca comitar. Veja lib/config/rotas_config.dart.
+run_dev.ps1
+run_dev.sh
