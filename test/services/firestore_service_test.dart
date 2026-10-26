@@ -147,4 +147,69 @@ void main() {
       expect(conversa.data()!['ultimaMensagem'], 'Oi de novo!');
     });
   });
+
+  group('paradasRotaStream (Minhas Rotas do Motorista)', () {
+    Future<void> criarContratacao(
+      String responsavelUid, {
+      required String motoristaUid,
+      required String periodo,
+      required List<String> filhosNomes,
+      double? lat,
+      double? lng,
+    }) {
+      return db
+          .collection('usuarios')
+          .doc(responsavelUid)
+          .collection('contratacoes')
+          .add({
+            'motoristaUid': motoristaUid,
+            'responsavelNome': 'Resp $responsavelUid',
+            'responsavelLat': lat,
+            'responsavelLng': lng,
+            'responsavelEndereco': 'Rua $responsavelUid',
+            'filhosNomes': filhosNomes,
+            'periodo': periodo,
+            'status': 'Ativo',
+          });
+    }
+
+    test('agrupa filhos do mesmo responsável/período numa única parada', () async {
+      await criarContratacao('resp1', motoristaUid: 'motorista1', periodo: 'Manhã', filhosNomes: ['Ana'], lat: -23.5, lng: -46.6);
+      await criarContratacao('resp2', motoristaUid: 'motorista1', periodo: 'Manhã', filhosNomes: ['Bia'], lat: -23.6, lng: -46.7);
+      // De outro motorista — não deve aparecer na rota do motorista1.
+      await criarContratacao('resp3', motoristaUid: 'motorista2', periodo: 'Manhã', filhosNomes: ['Caio']);
+
+      final paradas = await FirestoreService.comInstancia(db).paradasRotaStream('motorista1').first;
+
+      expect(paradas, hasLength(2));
+      expect(paradas.every((p) => p.temLocalizacao), isTrue);
+    });
+
+    test('contratação sem status Ativo não vira parada', () async {
+      final ref = await db
+          .collection('usuarios')
+          .doc('resp1')
+          .collection('contratacoes')
+          .add({
+            'motoristaUid': 'motorista1',
+            'responsavelNome': 'Resp',
+            'filhosNomes': ['Ana'],
+            'periodo': 'Manhã',
+            'status': 'Cancelado',
+          });
+      await ref.get(); // só garante que o doc existe antes de ler o stream
+
+      final paradas = await FirestoreService.comInstancia(db).paradasRotaStream('motorista1').first;
+
+      expect(paradas, isEmpty);
+    });
+
+    test('parada sem lat/lng marca temLocalizacao como falso', () async {
+      await criarContratacao('resp1', motoristaUid: 'motorista1', periodo: 'Tarde', filhosNomes: ['Ana']);
+
+      final paradas = await FirestoreService.comInstancia(db).paradasRotaStream('motorista1').first;
+
+      expect(paradas.single.temLocalizacao, isFalse);
+    });
+  });
 }

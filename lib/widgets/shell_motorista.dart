@@ -4,6 +4,7 @@ import '../theme/cores.dart';
 import '../telas/chat/tela_conversas.dart';
 import '../telas/motorista/tela_financas_motorista.dart';
 import '../telas/motorista/tela_chamada.dart';
+import '../telas/motorista/tela_rota.dart';
 import 'logo_goschool.dart';
 
 /// Shell responsivo compartilhado pelas telas do Motorista (Painel, Finanças, ...).
@@ -74,6 +75,8 @@ class _MenuMotorista extends StatelessWidget {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaConversas()));
     } else if (destino == 'Chamada') {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaChamada()));
+    } else if (destino == 'Minhas Rotas') {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaRota()));
     } else if (destino == 'Meu Perfil') {
       if (Navigator.canPop(context)) Navigator.pop(context);
     }

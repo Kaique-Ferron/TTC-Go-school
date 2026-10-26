@@ -89,6 +89,13 @@ class _TelaContratacaoState extends State<TelaContratacao> {
       final valorTotal =
           widget.motorista.valorMensalidade * filhosSelecionados.length;
       final meuUsuario = await _servico.usuarioStream(uid).first;
+      // lat/lng/endereço não fazem parte do model Usuario (são gravados à
+      // parte por MapaCasaTela/EditarPerfilTela) — lidos direto do
+      // documento aqui, só pra guardar uma cópia na contratação e o
+      // Motorista conseguir montar a rota sem precisar ler o documento
+      // completo do Responsável (que agora só o dono pode ler).
+      final meuDocumento = await FirebaseFirestore.instance.collection('usuarios').doc(uid).get();
+      final meusDados = meuDocumento.data();
 
       await _servico.registrarContratacao(uid, {
         'motoristaUid': widget.motorista.uid,
@@ -96,6 +103,11 @@ class _TelaContratacaoState extends State<TelaContratacao> {
         'motoristaVeiculo': widget.motorista.veiculo,
         'motoristaPlaca': widget.motorista.placa,
         'responsavelNome': meuUsuario?.nome ?? '',
+        'responsavelLat': meusDados?['casa_lat'],
+        'responsavelLng': meusDados?['casa_lng'],
+        'responsavelEndereco': (meusDados?['casa_endereco'] as String?)?.trim().isNotEmpty == true
+            ? meusDados!['casa_endereco']
+            : (meusDados?['endereco'] as String?) ?? '',
         'filhosIds': filhosSelecionados.map((f) => f.id).toList(),
         'filhosNomes': filhosSelecionados.map((f) => f.nome).toList(),
         'periodo': _periodo,

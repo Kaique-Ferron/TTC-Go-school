@@ -13,9 +13,30 @@ import '../../widgets/card_acompanhar_rota.dart';
 import '../../widgets/card_status_filho.dart';
 import '../../widgets/card_motorista_rota.dart';
 import '../../widgets/card_avisos_importantes.dart';
+import '../chat/tela_chat.dart';
 
 class PainelPrincipalTela extends StatelessWidget {
   const PainelPrincipalTela({super.key});
+
+  static const _diasDaSemana = [
+    'segunda-feira',
+    'terça-feira',
+    'quarta-feira',
+    'quinta-feira',
+    'sexta-feira',
+    'sábado',
+    'domingo',
+  ];
+  static const _meses = [
+    'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+    'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
+  ];
+
+  String get _dataDeHoje {
+    final agora = DateTime.now();
+    final dia = _diasDaSemana[agora.weekday - 1];
+    return '${dia[0].toUpperCase()}${dia.substring(1)}, ${agora.day} de ${_meses[agora.month - 1]}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +123,7 @@ class PainelPrincipalTela extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'Terça-feira, 21 de outubro',
+                      _dataDeHoje,
                       style: TextStyle(
                         fontSize: 13,
                         color: AppCores.textoSecundario(context),
@@ -129,10 +150,48 @@ class PainelPrincipalTela extends StatelessWidget {
                     CardStatusFilho(nomeFilho: nomeFilho, idadeEAno: idadeEAno),
                     const SizedBox(height: 16),
 
-                    // 4. Card Motorista em Rota
-                    CardMotoristaRota(
-                      nomeMotorista: 'Carlos Henrique',
-                      onConversar: () => Navigator.pushNamed(context, '/chat'),
+                    // 4. Card Motorista contratado (dados reais da contratação ativa)
+                    StreamBuilder<Map<String, dynamic>?>(
+                      stream: FirestoreService.instance.contratacaoAtivaStream(uid),
+                      builder: (context, snapshotContratacao) {
+                        final contratacao = snapshotContratacao.data;
+                        if (contratacao == null) return const SizedBox.shrink();
+
+                        final motoristaUid = (contratacao['motoristaUid'] as String?) ?? '';
+                        final motoristaNome = (contratacao['motoristaNome'] as String?) ?? 'Motorista';
+                        final veiculo = (contratacao['motoristaVeiculo'] as String?) ?? '';
+                        final placa = (contratacao['motoristaPlaca'] as String?) ?? '';
+                        final veiculoEPlaca = [
+                          if (veiculo.isNotEmpty) veiculo,
+                          if (placa.isNotEmpty) 'Placa: $placa',
+                        ].join(' • ');
+
+                        return CardMotoristaRota(
+                          motoristaUid: motoristaUid,
+                          nomeMotorista: motoristaNome,
+                          veiculoEPlaca: veiculoEPlaca,
+                          onConversar: () async {
+                            final conversaId = await FirestoreService.instance.obterOuCriarConversa(
+                              meuUid: uid,
+                              meuNome: nomeResponsavel,
+                              outroUid: motoristaUid,
+                              outroNome: motoristaNome,
+                            );
+                            if (!context.mounted) return;
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => TelaChat(
+                                  conversaId: conversaId,
+                                  meuUid: uid,
+                                  outroUid: motoristaUid,
+                                  outroNome: motoristaNome,
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
                     ),
                     const SizedBox(height: 16),
 

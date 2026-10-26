@@ -1,19 +1,26 @@
 import 'package:flutter/material.dart';
 import '../theme/cores.dart';
+import 'avaliacao_media.dart';
 
+/// Card do motorista contratado, no Painel Principal do Responsável.
+///
+/// Antes a nota/total de avaliações e o "Em rota" vinham fixos no código
+/// (sempre 4,9 de 32 avaliações, sempre "em rota" mesmo sem rastreamento
+/// real). Agora a nota reaproveita o [AvaliacaoMedia] (calculado de verdade
+/// em cima da subcoleção de avaliações, igual à busca de motoristas) e o
+/// selo mostra só o que é verdade: que esse motorista está contratado —
+/// não existe (ainda) rastreamento ao vivo da van pra dizer "em rota".
 class CardMotoristaRota extends StatelessWidget {
+  final String motoristaUid;
   final String nomeMotorista;
-  final double avaliacao;
-  final int totalAvaliacoes;
   final String veiculoEPlaca;
   final VoidCallback onConversar;
 
   const CardMotoristaRota({
     super.key,
+    required this.motoristaUid,
     required this.nomeMotorista,
-    this.avaliacao = 4.9,
-    this.totalAvaliacoes = 32,
-    this.veiculoEPlaca = 'Van Escolar • Placa: FJZ-3H42',
+    this.veiculoEPlaca = '',
     required this.onConversar,
   });
 
@@ -51,32 +58,21 @@ class CardMotoristaRota extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Row(
-                      children: [
-                        const Icon(Icons.star, size: 12, color: Colors.amber),
-                        const SizedBox(width: 2),
-                        Text(
-                          '$avaliacao ($totalAvaliacoes avaliações)',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: AppCores.textoSecundario(context),
-                          ),
+                    AvaliacaoMedia(motoristaUid: motoristaUid, iconSize: 12, fontSize: 11),
+                    if (veiculoEPlaca.isNotEmpty)
+                      Text(
+                        veiculoEPlaca,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppCores.textoSecundario(context),
                         ),
-                      ],
-                    ),
-                    Text(
-                      veiculoEPlaca,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppCores.textoSecundario(context),
                       ),
-                    ),
                     Row(
                       children: const [
-                        CircleAvatar(radius: 3, backgroundColor: Colors.green),
+                        Icon(Icons.verified, size: 12, color: Colors.green),
                         SizedBox(width: 4),
                         Text(
-                          'Em rota',
+                          'Motorista contratado',
                           style: TextStyle(
                             fontSize: 11,
                             color: Colors.green,

@@ -8,6 +8,7 @@ import '../models/filho.dart';
 import '../models/mensagem_model.dart';
 import '../models/mensalidade_model.dart';
 import '../models/motorista_model.dart';
+import '../models/parada_motorista.dart';
 import '../models/usuario.dart';
 import 'notification_service.dart';
 
@@ -256,6 +257,48 @@ class FirestoreService {
         }
       }
       return lista;
+    });
+  }
+
+  /// Paradas da rota desse motorista (uma por responsável + período —
+  /// pode ter mais de um filho do mesmo responsável na mesma parada),
+  /// prontas pra calcular a rota otimizada (ver RotaService). Reusa a
+  /// mesma consulta collection group de criancasDaRotaStream/
+  /// meusResponsaveisStream. lat/lng/endereco vêm do que foi gravado na
+  /// contratação (ver registrarContratacao em tela_contratacao.dart) — é
+  /// uma cópia da localização de casa do responsável no momento em que ele
+  /// contratou, não ao vivo (se ele mudar o pino depois, não atualiza aqui
+  /// sozinho).
+  Stream<List<ParadaMotorista>> paradasRotaStream(String motoristaUid) {
+    return _db.collectionGroup('contratacoes').where('motoristaUid', isEqualTo: motoristaUid).snapshots().map((
+      snap,
+    ) {
+      // Agrupa por (responsavelUid, período) — se o mesmo responsável tiver
+      // mais de uma contratação pro mesmo período (não deveria, mas não
+      // custa tolerar), funde os nomes dos filhos numa parada só.
+      final paradasPorChave = <String, ParadaMotorista>{};
+      for (final doc in snap.docs) {
+        final dados = doc.data();
+        if (dados['status'] != 'Ativo') continue;
+        final responsavelUid = doc.reference.parent.parent?.id;
+        if (responsavelUid == null) continue;
+
+        final periodo = (dados['periodo'] as String?) ?? '';
+        final chave = '${responsavelUid}_$periodo';
+        final filhosNomes = (dados['filhosNomes'] as List?)?.cast<String>() ?? [];
+        final existente = paradasPorChave[chave];
+
+        paradasPorChave[chave] = ParadaMotorista(
+          responsavelUid: responsavelUid,
+          responsavelNome: (dados['responsavelNome'] as String?) ?? '',
+          endereco: (dados['responsavelEndereco'] as String?) ?? '',
+          lat: (dados['responsavelLat'] as num?)?.toDouble(),
+          lng: (dados['responsavelLng'] as num?)?.toDouble(),
+          periodo: periodo,
+          filhosNomes: [...?existente?.filhosNomes, ...filhosNomes],
+        );
+      }
+      return paradasPorChave.values.toList();
     });
   }
 
