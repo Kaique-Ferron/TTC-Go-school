@@ -187,7 +187,7 @@ class _TelaFinancasMotoristaState extends State<TelaFinancasMotorista> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Finanças', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+              const Text('Finanças', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 90, 143, 228))),
               const SizedBox(height: 4),
               Text('Mensalidades recebidas dos responsáveis este mês.', style: TextStyle(color: Colors.grey[600], fontSize: 14)),
               SizedBox(height: isWide ? 28 : 20),
@@ -280,7 +280,7 @@ class _TelaFinancasMotoristaState extends State<TelaFinancasMotorista> {
         ),
         child: Text(
           rotulo,
-          style: TextStyle(color: ativo ? Colors.white : Colors.grey[700], fontSize: 12.5, fontWeight: FontWeight.bold),
+          style: TextStyle(color: ativo ? Colors.white : const Color.fromARGB(255, 254, 157, 0), fontSize: 12.5, fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -337,11 +337,11 @@ class _TelaFinancasMotoristaState extends State<TelaFinancasMotorista> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(m.responsavelNome, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), overflow: TextOverflow.ellipsis),
+                Text(m.responsavelNome, style: const TextStyle(color: const Color.fromARGB(255, 5, 14, 84),fontWeight: FontWeight.bold, fontSize: 14), overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 2),
-                Text('Filho: ${m.filhoNome}', style: TextStyle(color: Colors.grey[600], fontSize: 12), overflow: TextOverflow.ellipsis),
+                Text('Filho: ${m.filhoNome}', style: TextStyle(color: const Color.fromARGB(255, 22, 1, 128), fontSize: 12), overflow: TextOverflow.ellipsis),
                 Text('${m.data.day.toString().padLeft(2, '0')}/${m.data.month.toString().padLeft(2, '0')}/${m.data.year}',
-                    style: TextStyle(color: Colors.grey[500], fontSize: 11)),
+                    style: TextStyle(color: const Color.fromARGB(255, 7, 1, 67), fontSize: 11)),
               ],
             ),
           ),
