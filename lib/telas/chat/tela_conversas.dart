@@ -93,40 +93,78 @@ class TelaConversas extends StatelessWidget {
                       );
                     }
 
+                    final escuro = Theme.of(context).brightness == Brightness.dark;
                     return Column(
                       children: [
                         Expanded(
-                          child: ListView.separated(
+                          child: ListView.builder(
                             padding: const EdgeInsets.symmetric(vertical: 8),
                             itemCount: conversas.length,
-                            separatorBuilder: (_, _) => Divider(height: 1, color: AppCores.borda(context), indent: 80),
                             itemBuilder: (context, index) {
                               final conversa = conversas[index];
                               final outroNome = conversa.outroNome(uid);
-                              return ListTile(
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                                leading: CircleAvatar(
-                                  radius: 24,
-                                  backgroundColor: const Color(0xFFE8EEFC),
-                                  child: Text(
-                                    outroNome.isNotEmpty ? outroNome[0].toUpperCase() : '?',
-                                    style: const TextStyle(color: AppCores.azulPrincipal, fontWeight: FontWeight.bold, fontSize: 16),
+                              return Container(
+                                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: escuro
+                                        ? [AppCores.superficie(context), AppCores.superficie(context)]
+                                        : const [Colors.white, Color(0xFFFCFDFF)],
                                   ),
+                                  border: Border.all(color: AppCores.borda(context)),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppCores.azulPrincipal.withValues(alpha: escuro ? 0.18 : 0.08),
+                                      blurRadius: 16,
+                                      offset: const Offset(0, 6),
+                                      spreadRadius: -10,
+                                    ),
+                                  ],
                                 ),
-                                title: Text(outroNome, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5)),
-                                subtitle: Text(
-                                  conversa.ultimaMensagem.isNotEmpty ? conversa.ultimaMensagem : 'Nenhuma mensagem ainda.',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 13),
-                                ),
-                                trailing: conversa.ultimaMensagemEm == null
-                                    ? null
-                                    : Text(_formatarHorario(conversa.ultimaMensagemEm!), style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 11)),
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => TelaChat(conversaId: conversa.id, meuUid: uid, outroUid: conversa.outroUid(uid), outroNome: outroNome),
+                                child: Material(
+                                  type: MaterialType.transparency,
+                                  child: ListTile(
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                    leading: Container(
+                                      width: 48,
+                                      height: 48,
+                                      decoration: const BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: [AppCores.azulClaro, AppCores.azulPrincipal],
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(color: Color(0x551D58E2), blurRadius: 8, offset: Offset(0, 3)),
+                                        ],
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        outroNome.isNotEmpty ? outroNome[0].toUpperCase() : '?',
+                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                                      ),
+                                    ),
+                                    title: Text(outroNome, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5)),
+                                    subtitle: Text(
+                                      conversa.ultimaMensagem.isNotEmpty ? conversa.ultimaMensagem : 'Nenhuma mensagem ainda.',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 13),
+                                    ),
+                                    trailing: conversa.ultimaMensagemEm == null
+                                        ? null
+                                        : Text(_formatarHorario(conversa.ultimaMensagemEm!), style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 11)),
+                                    onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => TelaChat(conversaId: conversa.id, meuUid: uid, outroUid: conversa.outroUid(uid), outroNome: outroNome),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               );

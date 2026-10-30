@@ -227,6 +227,16 @@ class TelaPerfil extends StatelessWidget {
         color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppCores.borda(context)),
+        boxShadow: [
+          BoxShadow(
+            color: AppCores.azulPrincipal.withValues(
+              alpha: Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.1,
+            ),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+            spreadRadius: -12,
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -623,6 +633,16 @@ class TelaPerfil extends StatelessWidget {
         color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppCores.borda(context)),
+        boxShadow: [
+          BoxShadow(
+            color: AppCores.azulPrincipal.withValues(
+              alpha: Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.1,
+            ),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+            spreadRadius: -12,
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -746,6 +766,16 @@ class TelaPerfil extends StatelessWidget {
         color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppCores.borda(context)),
+        boxShadow: [
+          BoxShadow(
+            color: AppCores.azulPrincipal.withValues(
+              alpha: Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.1,
+            ),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+            spreadRadius: -12,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -891,6 +921,16 @@ class TelaPerfil extends StatelessWidget {
         color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppCores.borda(context)),
+        boxShadow: [
+          BoxShadow(
+            color: AppCores.azulPrincipal.withValues(
+              alpha: Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.1,
+            ),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+            spreadRadius: -12,
+          ),
+        ],
       ),
       child: Column(
         children: [

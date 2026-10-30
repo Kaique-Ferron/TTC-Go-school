@@ -36,6 +36,14 @@ class CardFilho extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border.all(color: corAcento.withValues(alpha: 0.18)),
         borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: corAcento.withValues(alpha: 0.16),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+            spreadRadius: -8,
+          ),
+        ],
       ),
       clipBehavior: Clip.antiAlias,
       child: Material(

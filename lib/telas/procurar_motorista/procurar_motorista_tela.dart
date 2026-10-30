@@ -129,6 +129,13 @@ class _ProcurarMotoristaTelaState extends State<ProcurarMotoristaTela> {
                                       color: AppCores.superficie(context),
                                       borderRadius: BorderRadius.circular(10),
                                       border: Border.all(color: AppCores.borda(context)),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AppCores.azulPrincipal.withValues(alpha: 0.12),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
                                     ),
                                     child: Row(
                                       children: [

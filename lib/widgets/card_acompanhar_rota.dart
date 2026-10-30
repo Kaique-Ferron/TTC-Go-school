@@ -3,6 +3,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../config/mapa_config.dart';
 import '../theme/cores.dart';
+import 'badge_icone.dart';
+import 'cartao_elevado.dart';
 
 /// Card "Acompanhar rota" do Painel Principal do Responsável.
 ///
@@ -39,13 +41,8 @@ class CardAcompanharRota extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppCores.superficie(context),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppCores.borda(context)),
-      ),
+    return CartaoElevado(
+      corAcento: AppCores.azulPrincipal,
       child: Column(
         children: [
           // Cabeçalho
@@ -54,8 +51,8 @@ class CardAcompanharRota extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(Icons.map_outlined, color: Colors.blue.shade800, size: 20),
-                  const SizedBox(width: 8),
+                  const BadgeIcone(icone: Icons.map_outlined, cor: AppCores.azulPrincipal, tamanho: 24),
+                  const SizedBox(width: 10),
                   Text(
                     'Acompanhar rota',
                     style: TextStyle(
@@ -70,8 +67,8 @@ class CardAcompanharRota extends StatelessWidget {
                 onTap: onVerDetalhes,
                 child: const Row(
                   children: [
-                    Text('Ver detalhes', style: TextStyle(fontSize: 12, color: AppCores.laranjaMotorista, fontWeight: FontWeight.bold)),
-                    Icon(Icons.chevron_right, size: 16, color: AppCores.laranjaMotorista),
+                    Text('Ver detalhes', style: TextStyle(fontSize: 12, color: AppCores.azulPrincipal, fontWeight: FontWeight.bold)),
+                    Icon(Icons.chevron_right, size: 16, color: AppCores.azulPrincipal),
                   ],
                 ),
               ),

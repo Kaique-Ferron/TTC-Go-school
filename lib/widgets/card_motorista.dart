@@ -23,12 +23,27 @@ class CardMotorista extends StatelessWidget {
   Widget build(BuildContext context) {
     final vagas = motorista.criancasManha + motorista.criancasTarde;
 
+    final escuro = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppCores.superficie(context),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: escuro
+              ? [AppCores.superficie(context), AppCores.superficie(context)]
+              : const [Colors.white, Color(0xFFFCFDFF)],
+        ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppCores.borda(context)),
+        boxShadow: [
+          BoxShadow(
+            color: AppCores.azulPrincipal.withValues(alpha: escuro ? 0.2 : 0.1),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+            spreadRadius: -12,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,7 +153,8 @@ class CardMotorista extends StatelessWidget {
                 backgroundColor: temFilhoCadastrado
                     ? AppCores.azulPrincipal
                     : AppCores.fundo(context),
-                elevation: 0,
+                elevation: temFilhoCadastrado ? 4 : 0,
+                shadowColor: AppCores.azulPrincipal.withValues(alpha: 0.5),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),

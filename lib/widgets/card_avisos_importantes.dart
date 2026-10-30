@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/cores.dart';
+import 'badge_icone.dart';
+import 'cartao_elevado.dart';
 
 class CardAvisosImportantes extends StatelessWidget {
   const CardAvisosImportantes({super.key});
@@ -71,13 +73,8 @@ class CardAvisosImportantes extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppCores.superficie(context),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppCores.borda(context)),
-      ),
+    return CartaoElevado(
+      corAcento: AppCores.ambar,
       child: Column(
         children: [
           Row(
@@ -85,12 +82,12 @@ class CardAvisosImportantes extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(
-                    Icons.notifications_active_outlined,
-                    size: 18,
-                    color: Colors.amber,
+                  const BadgeIcone(
+                    icone: Icons.notifications_active_outlined,
+                    cor: AppCores.ambar,
+                    tamanho: 24,
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 8),
                   const Text(
                     'Avisos importantes',
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),

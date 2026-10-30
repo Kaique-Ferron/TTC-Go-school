@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/cores.dart';
+import 'cartao_elevado.dart';
 
 class CardStatusFilho extends StatelessWidget {
   final String nomeFilho;
@@ -15,21 +16,28 @@ class CardStatusFilho extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppCores.superficie(context),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppCores.borda(context)),
-      ),
+    return CartaoElevado(
+      corAcento: AppCores.azulPrincipal,
       child: Column(
         children: [
           Row(
             children: [
-              const CircleAvatar(
-                radius: 24,
-                backgroundColor: Color(0xFFE8F0FE),
-                child: Icon(Icons.person, size: 28, color: AppCores.azulPrincipal),
+              Container(
+                width: 48,
+                height: 48,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [AppCores.azulClaro, AppCores.azulPrincipal],
+                  ),
+                  boxShadow: [
+                    BoxShadow(color: Color(0x551D58E2), blurRadius: 10, offset: Offset(0, 3)),
+                  ],
+                ),
+                alignment: Alignment.center,
+                child: const Icon(Icons.person, size: 26, color: Colors.white),
               ),
               const SizedBox(width: 12),
               Expanded(

@@ -13,6 +13,7 @@ import '../../widgets/card_acompanhar_rota.dart';
 import '../../widgets/card_status_filho.dart';
 import '../../widgets/card_motorista_rota.dart';
 import '../../widgets/card_avisos_importantes.dart';
+import '../../widgets/logo_goschool.dart';
 import '../chat/tela_chat.dart';
 
 class PainelPrincipalTela extends StatelessWidget {
@@ -64,7 +65,13 @@ class PainelPrincipalTela extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppCores.fundo(context),
       appBar: AppBar(
-        title: const Text('Painel Principal'),
+        title: const Row(
+          children: [
+            LogoGoSchool(imageHeight: 30),
+            SizedBox(width: 10),
+            Text('Painel Principal'),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),

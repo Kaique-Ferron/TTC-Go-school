@@ -44,7 +44,13 @@ class ShellMotorista extends StatelessWidget {
         return Scaffold(
           backgroundColor: AppCores.fundo(context),
           appBar: AppBar(
-            title: Text(itemSelecionado),
+            title: Row(
+              children: [
+                const LogoGoSchool(imageHeight: 30),
+                const SizedBox(width: 10),
+                Text(itemSelecionado),
+              ],
+            ),
           ),
           drawer: Drawer(
             width: 260,

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../services/sessao_provider.dart';
 import '../../../services/preferencias_provider.dart';
 import '../../../theme/cores.dart';
+import '../../../widgets/badge_icone.dart';
 import '../../../widgets/navbar_responsavel.dart';
 import '../../../widgets/nav_inferior_responsavel.dart';
 import '../suporte/tela_suporte.dart';
@@ -315,20 +316,35 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
     required IconData icone,
     required List<Widget> children,
   }) {
+    final escuro = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppCores.superficie(context),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: escuro
+              ? [AppCores.superficie(context), AppCores.superficie(context)]
+              : const [Colors.white, Color(0xFFFCFDFF)],
+        ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppCores.borda(context)),
+        boxShadow: [
+          BoxShadow(
+            color: AppCores.azulPrincipal.withValues(alpha: escuro ? 0.2 : 0.1),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+            spreadRadius: -12,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icone, size: 20, color: AppCores.azulPrincipal),
-              const SizedBox(width: 8),
+              BadgeIcone(icone: icone, cor: AppCores.azulPrincipal, tamanho: 26),
+              const SizedBox(width: 10),
               Text(
                 titulo,
                 style: TextStyle(
@@ -366,10 +382,24 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? AppCores.azulPrincipal
-                      : Colors.transparent,
+                  gradient: isSelected
+                      ? const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [AppCores.azulClaro, AppCores.azulPrincipal],
+                        )
+                      : null,
+                  color: isSelected ? null : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: AppCores.azulPrincipal.withValues(alpha: 0.4),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ]
+                      : null,
                 ),
                 child: Center(
                   child: Text(
@@ -404,14 +434,7 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppCores.azulPrincipal.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icone, size: 18, color: AppCores.azulPrincipal),
-          ),
+          BadgeIcone(icone: icone, cor: AppCores.azulPrincipal, tamanho: 34),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

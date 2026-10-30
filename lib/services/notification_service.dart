@@ -35,7 +35,7 @@ class NotificationService {
     }
     if (uid == _uidSincronizado) return;
 
-    final subscriptionId = OneSignal.User.pushSubscription.id;
+    final subscriptionId = subscriptionIdAtual;
     if (subscriptionId == null || subscriptionId.isEmpty) return;
 
     _uidSincronizado = uid;

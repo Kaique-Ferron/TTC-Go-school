@@ -186,7 +186,13 @@ class NavbarResponsavel extends StatelessWidget {
                      rota == '/chat' ||
                      rota == '/inicio') {
             if (!isSelected) {
-              Navigator.pushNamed(context, rota);
+              // pushReplacementNamed (não pushNamed): o Drawer troca de
+              // SEÇÃO, não deveria empilhar — igual à barra inferior
+              // (NavInferiorResponsavel). Com pushNamed, entrar em
+              // Configurações e tentar sair de novo pelo próprio Drawer só
+              // empilhava telas repetidas (e o botão voltar nunca "saía"
+              // de verdade, só desempilhava as repetidas uma por uma).
+              Navigator.pushReplacementNamed(context, rota);
             }
           } else {
             ScaffoldMessenger.of(context).showSnackBar(

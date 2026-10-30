@@ -28,6 +28,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   fake_cloud_firestore: ^4.3.0
   firebase_auth_mocks: ^0.15.2
+  flutter_launcher_icons: ^0.14.3
 
 dependency_overrides:
   firebase_core_web: 3.10.0
@@ -37,3 +38,17 @@ flutter:
   assets:
     - lib/widgets/imagens/fake-map.jpg
     - assets/
+
+# Gera o ícone real do app (Android/iOS/Web) a partir do logo do GoSchool —
+# antes ficava com o ícone padrão do Flutter (o "F" azul) porque nunca
+# tinha sido configurado. Rodar com: dart run flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/logo.jpg"
+  min_sdk_android: 21
+  web:
+    generate: true
+    image_path: "assets/logo.jpg"
+    background_color: "#ffffff"
+    theme_color: "#1D58E2"
