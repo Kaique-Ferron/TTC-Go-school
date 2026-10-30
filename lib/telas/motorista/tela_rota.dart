@@ -443,18 +443,26 @@ class _TelaRotaState extends State<TelaRota> {
           children: [
             Icon(Icons.access_time, size: 14, color: AppCores.textoSecundario(context)),
             const SizedBox(width: 4),
-            Text('~${rota.duracao.inMinutes} min', style: TextStyle(fontSize: 12, color: AppCores.textoSecundario(context))),
+            Text(
+              '${rota.trajetoReal ? '' : '~'}${rota.duracao.inMinutes} min',
+              style: TextStyle(fontSize: 12, color: AppCores.textoSecundario(context)),
+            ),
             const SizedBox(width: 16),
             Icon(Icons.route, size: 14, color: AppCores.textoSecundario(context)),
             const SizedBox(width: 4),
-            Text('~${rota.distanciaKm.toStringAsFixed(1)} km', style: TextStyle(fontSize: 12, color: AppCores.textoSecundario(context))),
+            Text(
+              '${rota.trajetoReal ? '' : '~'}${rota.distanciaKm.toStringAsFixed(1)} km',
+              style: TextStyle(fontSize: 12, color: AppCores.textoSecundario(context)),
+            ),
           ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          'Estimativa em linha reta entre os pontos — a ordem das paradas é real, o traçado não segue as ruas.',
-          style: TextStyle(fontSize: 10.5, color: AppCores.textoSecundario(context), fontStyle: FontStyle.italic),
-        ),
+        if (!rota.trajetoReal) ...[
+          const SizedBox(height: 4),
+          Text(
+            'Sem conexão com o traçado de ruas agora — linha reta entre os pontos. A ordem das paradas continua real.',
+            style: TextStyle(fontSize: 10.5, color: AppCores.textoSecundario(context), fontStyle: FontStyle.italic),
+          ),
+        ],
         const SizedBox(height: 12),
         for (var i = 0; i < rota.ordemParadas.length; i++)
           _buildLinhaParadaOtimizada(context, numero: i + 1, label: rota.ordemParadas[i].label),

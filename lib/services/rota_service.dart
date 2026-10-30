@@ -1,36 +1,34 @@
+import 'dart:convert';
 import 'dart:math' as math;
+import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+import '../config/rotas_config.dart';
 import '../models/parada_rota.dart';
 import '../models/rota_otimizada.dart';
 
-/// Calcula a melhor ordem de embarque das crianças e o trajeto entre elas
-/// — tudo resolvido aqui dentro do app, sem nenhuma API de mapas externa
-/// (nem chave, nem internet pra essa parte: funciona até offline).
+/// Calcula a melhor ordem de embarque das crianças e o trajeto entre elas.
 ///
-/// Como não há acesso a um serviço de roteamento de ruas de verdade (o que
-/// exigiria uma base de dados de ruas gigante ou uma API paga), a "melhor
-/// ordem" é resolvida como o problema do caixeiro-viajante em cima da
-/// distância em linha reta entre as coordenadas (fórmula de haversine — a
-/// mesma matemática que todo GPS usa pra medir distância entre dois
-/// pontos do globo):
+/// A ORDEM das paradas é sempre calculada aqui dentro, sem nenhuma API
+/// externa — problema do caixeiro-viajante em cima da distância em linha
+/// reta entre coordenadas (fórmula de haversine): até 7 paradas testa
+/// todas as ordens possíveis (força bruta), mais que isso usa a
+/// heurística do vizinho mais próximo. Isso não precisa de mapa de ruas,
+/// só da posição dos pontos, então funciona sempre.
 ///
-/// - até 7 paradas: testa TODAS as ordens possíveis (força bruta) e fica
-///   com a de menor distância total — 7! = 5.040 combinações, instantâneo;
-/// - mais que isso: usa a heurística do "vizinho mais próximo" (a cada
-///   passo, vai pro ponto não visitado mais perto de onde está), que não
-///   garante o ótimo absoluto mas continua muito boa pra uma rota de van
-///   escolar (poucas dezenas de paradas no máximo).
-///
-/// A linha desenhada no mapa liga os pontos em reta, na ordem calculada —
-/// não contorna quarteirão nem segue mão de rua, é uma estimativa (tempo e
-/// distância também são estimados, com uma velocidade média de trânsito
-/// urbano). O que importa de verdade — a ORDEM das paradas — é real.
+/// Já o DESENHO do trajeto no mapa — pra não cortar reto por cima de
+/// prédio, lago ou quarteirão inteiro — usa a API gratuita do
+/// OpenRouteService (precisa de uma key pessoal, ver RotasConfig) só pra
+/// pegar a geometria real nas ruas entre os pontos já na ordem definida
+/// acima. Sem a chave configurada, ou se a chamada falhar (sem internet,
+/// fora do ar), cai de volta pro traçado em linha reta — a ordem das
+/// paradas continua certa de qualquer jeito, só o desenho fica reto.
 class RotaService {
   RotaService._();
   static final RotaService instance = RotaService._();
 
   static const double _raioTerraKm = 6371.0;
   static const double _velocidadeMediaKmH = 28.0;
+  static const _baseUrlOrs = 'https://api.openrouteservice.org';
 
   Future<RotaOtimizada?> calcular({
     required LatLng partida,
@@ -44,7 +42,24 @@ class RotaService {
         ? _ordemPorForcaBruta(partida, paradas)
         : _ordemPorVizinhoMaisProximo(partida, paradas);
 
+    final ordemParadas = [
+      ...ordem,
+      if (destino != null) ParadaRota(id: 'destino', label: destinoLabel, posicao: destino),
+    ];
     final pontos = [partida, ...ordem.map((p) => p.posicao), ?destino];
+
+    if (RotasConfig.temChave) {
+      final geometriaReal = await _buscarGeometriaReal(pontos);
+      if (geometriaReal != null) {
+        return RotaOtimizada(
+          ordemParadas: ordemParadas,
+          geometria: geometriaReal.$1,
+          duracao: geometriaReal.$2,
+          distanciaKm: geometriaReal.$3,
+          trajetoReal: true,
+        );
+      }
+    }
 
     var distanciaTotalKm = 0.0;
     for (var i = 0; i < pontos.length - 1; i++) {
@@ -52,14 +67,53 @@ class RotaService {
     }
 
     return RotaOtimizada(
-      ordemParadas: [
-        ...ordem,
-        if (destino != null) ParadaRota(id: 'destino', label: destinoLabel, posicao: destino),
-      ],
+      ordemParadas: ordemParadas,
       geometria: pontos,
       duracao: Duration(minutes: (distanciaTotalKm / _velocidadeMediaKmH * 60).round()),
       distanciaKm: distanciaTotalKm,
+      trajetoReal: false,
     );
+  }
+
+  /// Busca a geometria real nas ruas pra sequência de pontos JÁ definida
+  /// (a ordem não muda — só pede o trajeto real entre eles nessa ordem).
+  /// Retorna null em qualquer falha (sem internet, key inválida, fora do
+  /// ar) pra quem chamou cair de volta no traçado em linha reta.
+  Future<(List<LatLng>, Duration, double)?> _buscarGeometriaReal(List<LatLng> pontos) async {
+    try {
+      final resposta = await http
+          .post(
+            Uri.parse('$_baseUrlOrs/v2/directions/driving-car/geojson'),
+            headers: {
+              'Authorization': RotasConfig.orsApiKey,
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode({
+              'coordinates': pontos.map((p) => [p.longitude, p.latitude]).toList(),
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (resposta.statusCode != 200) return null;
+
+      final dados = jsonDecode(resposta.body) as Map<String, dynamic>;
+      final features = dados['features'] as List?;
+      if (features == null || features.isEmpty) return null;
+
+      final feature = features.first as Map<String, dynamic>;
+      final coordenadas = feature['geometry']['coordinates'] as List;
+      final resumo = feature['properties']['summary'] as Map<String, dynamic>;
+
+      final geometria = coordenadas
+          .map((c) => LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()))
+          .toList();
+      final duracao = Duration(seconds: (resumo['duration'] as num).round());
+      final distanciaKm = (resumo['distance'] as num) / 1000;
+
+      return (geometria, duracao, distanciaKm);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Distância em linha reta entre dois pontos do globo (fórmula de
