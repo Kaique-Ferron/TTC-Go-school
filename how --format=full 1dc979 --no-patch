@@ -1,0 +1,30 @@
+[33m01dc979[m Mudanças de algumas telas
+[33m54980b2[m Notificações e tela principal do responsavel e primeiras adições da api da rotas
+[33m5b7d28f[m Temas ,Firebase mensagens
+[33m69b1999[m Tema escuro, tela de privacidade e segurança , e contato
+[33m6702c51[m Temas escuro e designs do meu filho
+[33mef41ad6[m Erros de telas
+[33m1838eb7[m Mapbox no mapa (token via --dart-define), app centralizado tipo celular na Web, contatos do chat e navegacao da Landpage pro Procurar Motorista
+[33m2d69570[m Resolve marcadores de conflito deixados no merge (pubspec, lock, LEIA-ME)
+[33mec9401d[m @kaique-ferron responsividade e api de mapbox
+[33mdcdbfba[m Chat Responsavel-Motorista, testes de widget e correcoes de responsividade
+[33m15f32df[m notification, chat @kaique-ferron
+[33m89b801d[m Telas finanças e tela contratação @kaique-ferron
+[33m47a2bbe[m @kaique-ferron finanças e tela escolher  motoristas mockados
+[33meb85155[m fix: remove fundo branco da logo (JPG -> PNG transparente)
+[33mc62becc[m merge: resolve conflitos em tela_motorista.dart e motorista_card.dart
+[33me8b14f4[m docs: adiciona MIGRATIONS.md documentando schema de mensalidades no Firestore
+[33md3a9591[m @kaique-ferron finanças e tela escolher  motoristas mockados
+[33mce5ff95[m @kaique-ferron finanças e tela escolher  motoristas mockados
+[33me312c00[m @Kaique-ferron tira as infos mockadas da tela serviços
+[33m23ace41[m Resolvendo conflitos e aplicando tapa na beleza do app
+[33mb3fd217[m um tapa na belza do app e logo
+[33m3b5709a[m mapa atualizado e perfil feito @kaique-ferron
+[33mb88c77f[m Mapa atualizado
+[33m5b5405d[m Tela perfil responsavel cpm design um pouco diferente / mapa atualizado
+[33m42a7b3c[m Tela perfil responsavel cpm design um pouco diferente / mapa atualizado
+[33m3acd45b[m LOGIN FUNCIONANDO NO FIREBASE!!!!!! PERFIL MUDADO - enderecço nao apareceu
+[33m6e0af14[m Qualidade
+[33m98bcf90[m Tela landpage mudada e Firebase conectado
+[33m1bc449a[m Landpage arrumada
+[33mb823cde[m main
