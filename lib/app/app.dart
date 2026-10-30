@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/sessao_provider.dart';
 import '../services/preferencias_provider.dart';
+import '../services/conectividade_provider.dart';
 import '../theme/cores.dart';
+import '../widgets/faixa_sem_internet.dart';
 import '../telas/auth/selecao_perfil/selecao_perfil.dart';
 import '../telas/auth/cadastro/cadastro.dart';
 import '../telas/auth/recuperar_senha/recuperar_senha.dart';
@@ -98,6 +100,7 @@ class GoSchoolApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => SessaoProvider()),
         ChangeNotifierProvider(create: (_) => PreferenciasProvider()),
+        ChangeNotifierProvider(create: (_) => ConectividadeProvider()),
       ],
       child: Consumer<PreferenciasProvider>(
         builder: (context, prefs, _) {
@@ -114,7 +117,7 @@ class GoSchoolApp extends StatelessWidget {
             builder: (context, child) {
               Widget resultado = MediaQuery(
                 data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(prefs.escalaFonte)),
-                child: child!,
+                child: FaixaSemInternet(child: child!),
               );
 
               if (kIsWeb) {

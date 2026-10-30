@@ -15,6 +15,7 @@ import '../../widgets/card_motorista_rota.dart';
 import '../../widgets/card_avisos_importantes.dart';
 import '../../widgets/logo_goschool.dart';
 import '../chat/tela_chat.dart';
+import 'tela_detalhes_rota.dart';
 
 class PainelPrincipalTela extends StatelessWidget {
   const PainelPrincipalTela({super.key});
@@ -138,65 +139,100 @@ class PainelPrincipalTela extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
 
-                    // 1. Card Transporte em Andamento
-                    CardTransporteAndamento(onTap: () {}),
-                    const SizedBox(height: 16),
-
-                    // 2. Card Acompanhar Rota (com mapa real)
-                    CardAcompanharRota(
-                      latitude: casaLat,
-                      longitude: casaLng,
-                      endereco: casaEndereco,
-                      escola: escolaFilho,
-                      horario: horarioFilho,
-                      onVerDetalhes: () {},
-                    ),
-                    const SizedBox(height: 16),
-
-                    // 3. Card Status do Filho
-                    CardStatusFilho(nomeFilho: nomeFilho, idadeEAno: idadeEAno),
-                    const SizedBox(height: 16),
-
-                    // 4. Card Motorista contratado (dados reais da contratação ativa)
+                    // 1, 2 e 4. Transporte em andamento + mapa + card do
+                    // motorista — os três precisam saber qual motorista
+                    // está contratado (pra abrir os detalhes certos e
+                    // acompanhar a localização ao vivo dele), por isso
+                    // compartilham o mesmo StreamBuilder da contratação.
                     StreamBuilder<Map<String, dynamic>?>(
                       stream: FirestoreService.instance.contratacaoAtivaStream(uid),
                       builder: (context, snapshotContratacao) {
                         final contratacao = snapshotContratacao.data;
-                        if (contratacao == null) return const SizedBox.shrink();
-
-                        final motoristaUid = (contratacao['motoristaUid'] as String?) ?? '';
-                        final motoristaNome = (contratacao['motoristaNome'] as String?) ?? 'Motorista';
-                        final veiculo = (contratacao['motoristaVeiculo'] as String?) ?? '';
-                        final placa = (contratacao['motoristaPlaca'] as String?) ?? '';
+                        final motoristaUid = contratacao == null ? null : (contratacao['motoristaUid'] as String?) ?? '';
+                        final motoristaNome = (contratacao?['motoristaNome'] as String?) ?? 'Motorista';
+                        final veiculo = (contratacao?['motoristaVeiculo'] as String?) ?? '';
+                        final placa = (contratacao?['motoristaPlaca'] as String?) ?? '';
                         final veiculoEPlaca = [
                           if (veiculo.isNotEmpty) veiculo,
                           if (placa.isNotEmpty) 'Placa: $placa',
                         ].join(' • ');
 
-                        return CardMotoristaRota(
-                          motoristaUid: motoristaUid,
-                          nomeMotorista: motoristaNome,
-                          veiculoEPlaca: veiculoEPlaca,
-                          onConversar: () async {
-                            final conversaId = await FirestoreService.instance.obterOuCriarConversa(
-                              meuUid: uid,
-                              meuNome: nomeResponsavel,
-                              outroUid: motoristaUid,
-                              outroNome: motoristaNome,
-                            );
-                            if (!context.mounted) return;
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => TelaChat(
-                                  conversaId: conversaId,
-                                  meuUid: uid,
-                                  outroUid: motoristaUid,
-                                  outroNome: motoristaNome,
-                                ),
+                        // Autorreparo: garante que a permissão de ver a
+                        // localização ao vivo desse motorista existe, mesmo
+                        // pra contratações feitas antes dessa funcionalidade
+                        // existir (ver registrarResponsavelAtivo).
+                        if (motoristaUid != null && motoristaUid.isNotEmpty) {
+                          FirestoreService.instance.registrarResponsavelAtivo(motoristaUid, uid).catchError((_) {});
+                        }
+
+                        void abrirDetalhes() {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => TelaDetalhesRota(
+                                motoristaUid: motoristaUid,
+                                motoristaNome: contratacao == null ? '' : motoristaNome,
+                                latitude: casaLat,
+                                longitude: casaLng,
+                                endereco: casaEndereco,
+                                escola: escolaFilho,
+                                horario: horarioFilho,
+                                veiculoEPlaca: veiculoEPlaca,
                               ),
-                            );
-                          },
+                            ),
+                          );
+                        }
+
+                        return Column(
+                          children: [
+                            // 1. Card Transporte em Andamento
+                            CardTransporteAndamento(onTap: abrirDetalhes),
+                            const SizedBox(height: 16),
+
+                            // 2. Card Acompanhar Rota (com mapa real + van ao vivo)
+                            CardAcompanharRota(
+                              latitude: casaLat,
+                              longitude: casaLng,
+                              endereco: casaEndereco,
+                              escola: escolaFilho,
+                              horario: horarioFilho,
+                              motoristaUid: motoristaUid,
+                              onVerDetalhes: abrirDetalhes,
+                            ),
+                            const SizedBox(height: 16),
+
+                            // 3. Card Status do Filho
+                            CardStatusFilho(nomeFilho: nomeFilho, idadeEAno: idadeEAno),
+                            const SizedBox(height: 16),
+
+                            // 4. Card Motorista contratado
+                            if (contratacao != null)
+                              CardMotoristaRota(
+                                motoristaUid: motoristaUid!,
+                                nomeMotorista: motoristaNome,
+                                veiculoEPlaca: veiculoEPlaca,
+                                onConversar: () async {
+                                  final conversaId = await FirestoreService.instance.obterOuCriarConversa(
+                                    meuUid: uid,
+                                    meuNome: nomeResponsavel,
+                                    outroUid: motoristaUid,
+                                    outroNome: motoristaNome,
+                                  );
+                                  if (!context.mounted) return;
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => TelaChat(
+                                        conversaId: conversaId,
+                                        meuUid: uid,
+                                        outroUid: motoristaUid,
+                                        outroNome: motoristaNome,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                          ],
                         );
                       },
                     ),

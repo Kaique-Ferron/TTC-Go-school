@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/usuario.dart';
 import '../services/sessao_provider.dart';
 import '../services/firestore_service.dart';
+import '../services/localizacao_service.dart';
 import '../services/notification_service.dart';
 import '../services/preferencias_provider.dart';
 
@@ -26,12 +27,17 @@ class AuthGate extends StatelessWidget {
     if (!logado) {
       context.read<PreferenciasProvider>().escutarUsuario(null);
       NotificationService.sincronizarInscricao(null);
+      // Se a conta que acabou de deslogar tinha uma corrida ativa, para o
+      // compartilhamento de localização agora — ver comentário em
+      // LocalizacaoService.pararSeContaDiferente.
+      LocalizacaoService.instance.pararSeContaDiferente(null);
       return const TelaLogin();
     }
 
     final uid = context.watch<SessaoProvider>().uid!;
     context.read<PreferenciasProvider>().escutarUsuario(uid);
     NotificationService.sincronizarInscricao(uid);
+    LocalizacaoService.instance.pararSeContaDiferente(uid);
 
     return StreamBuilder<Usuario?>(
       stream: FirestoreService.instance.usuarioStream(uid),

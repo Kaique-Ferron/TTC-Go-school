@@ -5,6 +5,7 @@ import '../models/contato_chat.dart';
 import '../models/conversa_model.dart';
 import '../models/crianca_rota.dart';
 import '../models/filho.dart';
+import '../models/localizacao_motorista.dart';
 import '../models/mensagem_model.dart';
 import '../models/mensalidade_model.dart';
 import '../models/motorista_model.dart';
@@ -296,9 +297,77 @@ class FirestoreService {
           lng: (dados['responsavelLng'] as num?)?.toDouble(),
           periodo: periodo,
           filhosNomes: [...?existente?.filhosNomes, ...filhosNomes],
+          escolaNome: existente?.escolaNome.isNotEmpty == true ? existente!.escolaNome : (dados['escolaNome'] as String?) ?? '',
+          escolaLat: existente?.escolaLat ?? (dados['escolaLat'] as num?)?.toDouble(),
+          escolaLng: existente?.escolaLng ?? (dados['escolaLng'] as num?)?.toDouble(),
         );
       }
       return paradasPorChave.values.toList();
+    });
+  }
+
+  // ===== Localização ao vivo (Motorista "em corrida") =====
+  // Caminho: usuarios/{motoristaUid}/localizacao_ativa/atual. Ver
+  // firestore/MIGRATIONS.md e firestore.rules (seção responsaveis_ativos).
+
+  DocumentReference<Map<String, dynamic>> _localizacaoAtiva(String motoristaUid) =>
+      _usuarios.doc(motoristaUid).collection('localizacao_ativa').doc('atual');
+
+  /// Marca que esse responsável tem (ou já teve) o motorista contratado —
+  /// id do documento é o próprio responsavelUid, pra regra do Firestore
+  /// conseguir checar com exists() se ele pode ver a localização ao vivo
+  /// desse motorista, sem precisar de uma query. Chamado no momento da
+  /// contratação E toda vez que o Painel Principal do responsável carrega
+  /// (autorreparo — contratações feitas antes dessa funcionalidade existir
+  /// não tinham esse documento, então ficavam sem ver a localização ao
+  /// vivo; confirmar de novo aqui corrige isso sem precisar de migração
+  /// manual). O Set evita regravar o mesmo par motorista+responsável mais
+  /// de uma vez por sessão do app.
+  final Set<String> _responsaveisAtivosConfirmados = {};
+
+  Future<void> registrarResponsavelAtivo(String motoristaUid, String responsavelUid) async {
+    final chave = '${motoristaUid}_$responsavelUid';
+    if (_responsaveisAtivosConfirmados.contains(chave)) return;
+
+    // Só marca como confirmado DEPOIS que a escrita realmente der certo —
+    // se marcasse antes (ou sem esperar), uma falha (ex.: regra do
+    // Firestore ainda não publicada) deixaria isso "confirmado" errado pro
+    // resto da sessão do app, e nunca mais tentaria de novo mesmo depois
+    // da regra corrigida.
+    await _usuarios
+        .doc(motoristaUid)
+        .collection('responsaveis_ativos')
+        .doc(responsavelUid)
+        .set({'ativo': true});
+    _responsaveisAtivosConfirmados.add(chave);
+  }
+
+  /// Grava a posição GPS atual do motorista — chamado repetidamente pelo
+  /// LocalizacaoService enquanto a corrida estiver ativa.
+  Future<void> atualizarLocalizacaoAtiva(
+    String motoristaUid, {
+    required double lat,
+    required double lng,
+    required bool emRota,
+  }) {
+    return _localizacaoAtiva(motoristaUid).set({
+      'lat': lat,
+      'lng': lng,
+      'emRota': emRota,
+      'atualizadoEm': FieldValue.serverTimestamp(),
+    });
+  }
+
+  /// Só desliga o selo "em rota" (mantém a última posição conhecida) —
+  /// usado quando o motorista aperta "Finalizar corrida".
+  Future<void> pararLocalizacaoAtiva(String motoristaUid) {
+    return _localizacaoAtiva(motoristaUid).set({'emRota': false}, SetOptions(merge: true));
+  }
+
+  Stream<LocalizacaoMotorista?> localizacaoAtivaStream(String motoristaUid) {
+    return _localizacaoAtiva(motoristaUid).snapshots().map((doc) {
+      final dados = doc.data();
+      return dados == null ? null : LocalizacaoMotorista.fromMap(dados);
     });
   }
 

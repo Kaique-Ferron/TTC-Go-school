@@ -8,7 +8,13 @@ class Filho {
   final String tipoSanguineo;
   final String alergias;
   final String status;
-//a
+  // Localização da escola marcada no mapa (ver CadastrarFilhoTela) — sem
+  // isso, a rota do motorista não tem como saber pra onde ir depois de
+  // pegar as crianças (o nome digitado sozinho não dá coordenada
+  // nenhuma). Nulos em cadastros feitos antes dessa funcionalidade existir.
+  final double? escolaLat;
+  final double? escolaLng;
+
   const Filho({
     this.id,
     required this.nome,
@@ -19,7 +25,11 @@ class Filho {
     this.tipoSanguineo = '',
     this.alergias = '',
     this.status = 'Ativo',
+    this.escolaLat,
+    this.escolaLng,
   });
+
+  bool get temLocalizacaoEscola => escolaLat != null && escolaLng != null;
 
   Map<String, dynamic> toMap() {
     return {
@@ -31,6 +41,8 @@ class Filho {
       'tipoSanguineo': tipoSanguineo,
       'alergias': alergias,
       'status': status,
+      'escolaLat': escolaLat,
+      'escolaLng': escolaLng,
     };
   }
 
@@ -45,6 +57,8 @@ class Filho {
       tipoSanguineo: map['tipoSanguineo'] ?? '',
       alergias: map['alergias'] ?? '',
       status: map['status'] ?? 'Ativo',
+      escolaLat: (map['escolaLat'] as num?)?.toDouble(),
+      escolaLng: (map['escolaLng'] as num?)?.toDouble(),
     );
   }
 }

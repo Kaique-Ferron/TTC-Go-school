@@ -1,5 +1,6 @@
 import 'config/notificacoes_config.dart';
 import 'services/notification_service.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart'; // Adicionado
 import 'app/app.dart';
@@ -14,14 +15,18 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // OneSignal ainda não tem suporte configurado para Flutter Web (precisa do
-  // SDK JS no web/index.html) — sem o try/catch, a exceção impedia o
-  // runApp() de ser chamado e a tela ficava em branco. No mobile continua
-  // inicializando normalmente.
-  try {
-    await NotificationService.initOneSignal(NotificacoesConfig.appId);
-  } catch (e) {
-    debugPrint('OneSignal não inicializado (esperado na Web): $e');
+  // OneSignal não tem suporte no Flutter Web (precisaria do SDK JS no
+  // web/index.html, que este projeto não tem) — nem tenta inicializar lá.
+  // `OneSignal.initialize()` dispara uma chamada de plugin não-awaited
+  // internamente; na Web ela rejeita fora da cadeia do try/catch (aparece
+  // como "DartError" solto no console), então pular a chamada inteira é
+  // mais limpo do que só capturar a exceção. No mobile inicializa normal.
+  if (!kIsWeb) {
+    try {
+      await NotificationService.initOneSignal(NotificacoesConfig.appId);
+    } catch (e) {
+      debugPrint('Não foi possível inicializar o OneSignal: $e');
+    }
   }
 
   runApp(const GoSchoolApp());

@@ -81,6 +81,29 @@ service cloud.firestore {
         allow read, write: if isOwner(uid);
       }
 
+      // ---- usuarios/{uid}/responsaveis_ativos/{responsavelUid} — marcador
+      // de "esse responsável tem (ou teve) o motorista {uid} contratado".
+      // Id do documento = responsavelUid (determinístico) justamente pra
+      // dar pra checar com exists() sem precisar de uma query — é o que
+      // libera esse responsável a ler a localização ao vivo do motorista
+      // logo abaixo. Gravado pelo próprio responsável no momento da
+      // contratação (registrarContratacao).
+      match /responsaveis_ativos/{responsavelUid} {
+        allow read: if isOwner(uid) || isOwner(responsavelUid);
+        allow write: if isOwner(responsavelUid);
+      }
+
+      // ---- usuarios/{uid}/localizacao_ativa/atual — posição GPS do
+      // Motorista enquanto ele estiver com uma corrida iniciada ("Minhas
+      // Rotas" > Iniciar corrida). Só ele escreve; só ele e os responsáveis
+      // que já o contrataram (via responsaveis_ativos acima) podem ler —
+      // ninguém mais vê a localização ao vivo de um motorista.
+      match /localizacao_ativa/{doc} {
+        allow read: if isOwner(uid)
+          || (isSignedIn() && exists(/databases/$(database)/documents/usuarios/$(uid)/responsaveis_ativos/$(request.auth.uid)));
+        allow write: if isOwner(uid);
+      }
+
       // ---- usuarios/{uid}/avaliacoes/{responsavelUid} — avaliação do
       // Motorista (uid aqui é o motoristaUid). Leitura pública (logado) pra
       // mostrar a média/lista ao navegar motoristas, mesmo sem ter

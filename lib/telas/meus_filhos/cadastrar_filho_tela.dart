@@ -1,11 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
 import '../../models/filho.dart';
 import '../../theme/cores.dart';
 import '../../widgets/seletor_turno.dart';
 import '../../widgets/secao_endereco_form.dart';
 import '../../widgets/navbar_responsavel.dart';
+import '../../widgets/tela_selecionar_local.dart';
 
 class CadastrarFilhoTela extends StatefulWidget {
   final Filho? filhoParaEditar;
@@ -40,16 +42,83 @@ class _CadastrarFilhoTelaState extends State<CadastrarFilhoTela> {
   bool _salvando = false;
   double? _casaLat;
   double? _casaLng;
+  double? _escolaLat;
+  double? _escolaLng;
+  bool _escolaLocalizacaoAutomatica = false;
 
-  final List<String> _escolasSugeridas = [
-    'ETEC Albert Einstein',
+  // Sugestões reais de escolas de São Paulo, por zona, já com coordenada
+  // aproximada (centro do bairro onde cada uma fica) — ao escolher uma
+  // sugestão, a localização é marcada sozinha (ver _selecionarEscola),
+  // sem precisar arrastar o pino no mapa manualmente. Como não há uma API
+  // de geocodificação por trás (esse projeto não usa nenhuma paga), são
+  // coordenadas aproximadas de bairro, não o portão exato da escola — por
+  // isso o botão "marcar no mapa" continua disponível pra ajustar fino, e
+  // pra qualquer escola digitada que não esteja nessa lista.
+  static const Map<String, LatLng> _escolasComLocalizacao = {
+    // Zona Norte
+    'ETEC Parque da Juventude (Santana)': LatLng(-23.5055, -46.6283),
+    'ETEC Mandaqui': LatLng(-23.4653, -46.6386),
+    'ETEC Albert Einstein (Casa Verde)': LatLng(-23.5091, -46.6646),
+    'Escola Estadual Deputado Pedro Costa (Vila Isolina Mazzei)': LatLng(-23.4989, -46.6615),
+    'EMEFM Prof. Derville Allegretti': LatLng(-23.5035, -46.6250),
+    'EMEFM Vereador Antonio Sampaio (Santana)': LatLng(-23.5035, -46.6250),
+    // Zona Leste
+    'Instituto Federal de São Paulo (IFSP) – Campus São Miguel Paulista': LatLng(-23.4989, -46.4461),
+    'ETEC Zona Leste': LatLng(-23.4989, -46.4461),
+    'ETEC Itaquera': LatLng(-23.5370, -46.4478),
+    'ETEC São Mateus': LatLng(-23.6010, -46.4580),
+    'ETEC Vila Formosa': LatLng(-23.5651, -46.5380),
+    'EMEF José Bonifácio (Cidade Patriarca)': LatLng(-23.5280, -46.4280),
+    // Zona Sul
+    'ETEC de São Paulo (ETESP)': LatLng(-23.5420, -46.6080),
+    'ETEC Zona Sul': LatLng(-23.6460, -46.6430),
+    'ETEC Getúlio Vargas (Ipiranga)': LatLng(-23.5920, -46.6020),
+    'ETEC de Heliópolis': LatLng(-23.6020, -46.6020),
+    'ETEC Takashi Morita (Santo Amaro)': LatLng(-23.6560, -46.7050),
+    'EMEF Manoel de Paiva (Jardim Vila Mariana)': LatLng(-23.5890, -46.6350),
+    // Zona Oeste
+    'ETEC Prof. Basílides de Godoy (Lapa)': LatLng(-23.5250, -46.7000),
+    'ETEC Fernando Prestes': LatLng(-23.5270, -46.6650),
+    'ETEC Jaguaré': LatLng(-23.5560, -46.7340),
+    'EMEI Santos Dumont (Perdizes)': LatLng(-23.5370, -46.6780),
+    // Centro
+    'ETEC São Paulo (Bom Retiro)': LatLng(-23.5280, -46.6350),
+    'ETEC Carlos de Campos (Brás)': LatLng(-23.5440, -46.6080),
+    // Particulares tradicionais
+    'Colégio Pentágono': LatLng(-23.6010, -46.7230),
+    'Colégio Bandeirantes': LatLng(-23.5190, -46.7130),
+    'Colégio Santa Cruz': LatLng(-23.5520, -46.7110),
+    'SENAI Suíço-Brasileira': LatLng(-23.5280, -46.7280),
+  };
+
+  // Mais algumas sem coordenada confiável o suficiente pra marcar sozinho
+  // (nome genérico, muitas unidades) — ainda aparecem como sugestão de
+  // texto, só não preenchem o mapa automaticamente.
+  static const List<String> _escolasSemLocalizacaoConhecida = [
+    'EMEI Dilernando Dias dos Santos',
     'Colégio Objetivo',
-    'Escola Estadual Professor Camargo',
-    'Colégio Pentágono',
-    'Colégio Bandeirantes',
-    'Colégio Santa Cruz',
-    'SENAI Suíço-Brasileira',
+    'Colégio Vital Brazil',
   ];
+
+  List<String> get _escolasSugeridas => [
+        ..._escolasComLocalizacao.keys,
+        ..._escolasSemLocalizacaoConhecida,
+      ];
+
+  void _selecionarEscola(String nomeEscola) {
+    _escolaController.text = nomeEscola;
+    // Só preenche sozinho quando a escola escolhida tem coordenada
+    // conhecida — nunca APAGA uma localização já marcada (manualmente ou
+    // de uma edição anterior) só porque a sugestão escolhida não tem
+    // coordenada na lista.
+    final coordenada = _escolasComLocalizacao[nomeEscola];
+    if (coordenada == null) return;
+    setState(() {
+      _escolaLat = coordenada.latitude;
+      _escolaLng = coordenada.longitude;
+      _escolaLocalizacaoAutomatica = true;
+    });
+  }
 
   @override
   void initState() {
@@ -71,6 +140,8 @@ class _CadastrarFilhoTelaState extends State<CadastrarFilhoTela> {
 
     _tipoSanguineoController = TextEditingController(text: f?.tipoSanguineo ?? '');
     _alergiasController = TextEditingController(text: f?.alergias ?? '');
+    _escolaLat = f?.escolaLat;
+    _escolaLng = f?.escolaLng;
 
     if (f != null && f.turno.isNotEmpty) {
       _turnoSelecionado = f.turno;
@@ -163,6 +234,8 @@ class _CadastrarFilhoTelaState extends State<CadastrarFilhoTela> {
       tipoSanguineo: _tipoSanguineoController.text.trim(),
       alergias: _alergiasController.text.trim(),
       status: widget.filhoParaEditar?.status ?? 'Ativo',
+      escolaLat: _escolaLat,
+      escolaLng: _escolaLng,
     );
 
     try {
@@ -276,9 +349,7 @@ class _CadastrarFilhoTelaState extends State<CadastrarFilhoTela> {
                       });
                     },
                     initialValue: TextEditingValue(text: _escolaController.text),
-                    onSelected: (String selection) {
-                      _escolaController.text = selection;
-                    },
+                    onSelected: _selecionarEscola,
                     fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
                       _escolaController = controller;
                       return _buildCampoTexto(
@@ -289,6 +360,64 @@ class _CadastrarFilhoTelaState extends State<CadastrarFilhoTela> {
                         validator: (v) => v == null || v.isEmpty ? 'Informe a escola' : null,
                       );
                     },
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Localização da escola no mapa — sem isso, a rota do
+                  // motorista não tem como saber pra onde ir depois de
+                  // pegar as crianças (o nome digitado sozinho não vira
+                  // coordenada nenhuma).
+                  InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () async {
+                      final resultado = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => TelaSelecionarLocal(
+                            titulo: 'Localização da Escola',
+                            dica: 'Toque no mapa para marcar onde fica a escola',
+                            latitudeAtual: _escolaLat,
+                            longitudeAtual: _escolaLng,
+                          ),
+                        ),
+                      );
+                      if (resultado is LatLng && mounted) {
+                        setState(() {
+                          _escolaLat = resultado.latitude;
+                          _escolaLng = resultado.longitude;
+                          _escolaLocalizacaoAutomatica = false;
+                        });
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: AppCores.fundo(context),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppCores.borda(context)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _escolaLat != null ? Icons.check_circle : Icons.pin_drop_outlined,
+                            size: 18,
+                            color: _escolaLat != null ? AppCores.verde : AppCores.textoSecundario(context),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              _escolaLat == null
+                                  ? 'Marcar localização da escola no mapa'
+                                  : (_escolaLocalizacaoAutomatica
+                                      ? 'Localização preenchida automaticamente — toque pra ajustar'
+                                      : 'Localização da escola marcada no mapa'),
+                              style: TextStyle(fontSize: 13, color: AppCores.textoPrincipal(context)),
+                            ),
+                          ),
+                          Icon(Icons.chevron_right, color: AppCores.textoSecundario(context)),
+                        ],
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 16),
 

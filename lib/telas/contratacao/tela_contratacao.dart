@@ -97,6 +97,14 @@ class _TelaContratacaoState extends State<TelaContratacao> {
       final meuDocumento = await FirebaseFirestore.instance.collection('usuarios').doc(uid).get();
       final meusDados = meuDocumento.data();
 
+      // Localização da escola pra rota do motorista saber até onde ir
+      // depois de pegar as crianças (ver Filho.escolaLat/escolaLng) — se
+      // os filhos selecionados forem de escolas diferentes, usa a do
+      // primeiro que tiver localização marcada (simplificação: uma van
+      // normalmente atende uma escola só por período).
+      final comEscolaMarcada = filhosSelecionados.where((f) => f.temLocalizacaoEscola);
+      final filhoComEscolaMarcada = comEscolaMarcada.isEmpty ? null : comEscolaMarcada.first;
+
       await _servico.registrarContratacao(uid, {
         'motoristaUid': widget.motorista.uid,
         'motoristaNome': widget.motorista.nome,
@@ -108,6 +116,9 @@ class _TelaContratacaoState extends State<TelaContratacao> {
         'responsavelEndereco': (meusDados?['casa_endereco'] as String?)?.trim().isNotEmpty == true
             ? meusDados!['casa_endereco']
             : (meusDados?['endereco'] as String?) ?? '',
+        'escolaNome': filhoComEscolaMarcada?.escola ?? '',
+        'escolaLat': filhoComEscolaMarcada?.escolaLat,
+        'escolaLng': filhoComEscolaMarcada?.escolaLng,
         'filhosIds': filhosSelecionados.map((f) => f.id).toList(),
         'filhosNomes': filhosSelecionados.map((f) => f.nome).toList(),
         'periodo': _periodo,
@@ -116,6 +127,11 @@ class _TelaContratacaoState extends State<TelaContratacao> {
         'status': 'Ativo',
         'contratadoEm': FieldValue.serverTimestamp(),
       });
+
+      // Libera esse responsável a ver a localização ao vivo desse motorista
+      // (ver firestore.rules > responsaveis_ativos) assim que ele iniciar
+      // uma corrida.
+      await _servico.registrarResponsavelAtivo(widget.motorista.uid, uid);
 
       if (!mounted) return;
       await showDialog(
@@ -150,7 +166,7 @@ class _TelaContratacaoState extends State<TelaContratacao> {
                 Text(
                   '${widget.motorista.nome} vai transportar ${filhosSelecionados.length == 1 ? filhosSelecionados.first.nome : '${filhosSelecionados.length} filhos'} no período da $_periodo.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey[600], fontSize: 13.5),
+                  style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 13.5),
                 ),
                 const SizedBox(height: 20),
                 SizedBox(
@@ -200,12 +216,9 @@ class _TelaContratacaoState extends State<TelaContratacao> {
     final m = widget.motorista;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppCores.fundo(context),
       appBar: AppBar(
         title: const Text('Contratar Motorista'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
       ),
       body: uid == null
           ? const Center(child: Text('Utilizador não autenticado.'))
@@ -280,23 +293,23 @@ class _TelaContratacaoState extends State<TelaContratacao> {
                             Container(
                               padding: const EdgeInsets.all(20),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: AppCores.superficie(context),
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: Colors.grey.shade200),
+                                border: Border.all(color: AppCores.borda(context)),
                               ),
                               child: Column(
                                 children: [
                                   Icon(
                                     Icons.family_restroom,
                                     size: 36,
-                                    color: Colors.grey[400],
+                                    color: AppCores.textoSecundario(context),
                                   ),
                                   const SizedBox(height: 10),
                                   Text(
                                     'Cadastre um filho primeiro em "Meus filhos" para poder contratar o transporte.',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
-                                      color: Colors.grey[600],
+                                      color: AppCores.textoSecundario(context),
                                       fontSize: 13,
                                     ),
                                   ),
@@ -315,7 +328,7 @@ class _TelaContratacaoState extends State<TelaContratacao> {
                     Container(
                       padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppCores.superficie(context),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.06),
@@ -338,7 +351,7 @@ class _TelaContratacaoState extends State<TelaContratacao> {
                                         ? 'Nenhum filho selecionado'
                                         : '$qtdSelecionados filho${qtdSelecionados == 1 ? '' : 's'} selecionado${qtdSelecionados == 1 ? '' : 's'}',
                                     style: TextStyle(
-                                      color: Colors.grey[600],
+                                      color: AppCores.textoSecundario(context),
                                       fontSize: 12.5,
                                     ),
                                     maxLines: 1,
@@ -423,7 +436,7 @@ class _TelaContratacaoState extends State<TelaContratacao> {
           ],
         ),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppCores.borda(context)),
       ),
       child: Row(
         children: [
@@ -454,7 +467,7 @@ class _TelaContratacaoState extends State<TelaContratacao> {
                 const SizedBox(height: 2),
                 Text(
                   '${m.veiculo} • ${m.placa}',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                  style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 12),
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -490,10 +503,10 @@ class _TelaContratacaoState extends State<TelaContratacao> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
           decoration: BoxDecoration(
-            color: selecionado ? cor.withValues(alpha: 0.1) : Colors.white,
+            color: selecionado ? cor.withValues(alpha: 0.1) : AppCores.superficie(context),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: selecionado ? cor : Colors.grey.shade200,
+              color: selecionado ? cor : AppCores.borda(context),
               width: selecionado ? 1.6 : 1,
             ),
           ),
@@ -506,7 +519,7 @@ class _TelaContratacaoState extends State<TelaContratacao> {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 13,
-                  color: selecionado ? cor : const Color(0xFF1E293B),
+                  color: selecionado ? cor : AppCores.textoPrincipal(context),
                 ),
               ),
               const SizedBox(height: 2),
@@ -514,7 +527,7 @@ class _TelaContratacaoState extends State<TelaContratacao> {
                 disponivel
                     ? '$vagas vaga${vagas == 1 ? '' : 's'}'
                     : 'Sem vagas',
-                style: TextStyle(fontSize: 10.5, color: Colors.grey[600]),
+                style: TextStyle(fontSize: 10.5, color: AppCores.textoSecundario(context)),
               ),
             ],
           ),
@@ -530,10 +543,10 @@ class _TelaContratacaoState extends State<TelaContratacao> {
       decoration: BoxDecoration(
         color: selecionado
             ? AppCores.azulPrincipal.withValues(alpha: 0.06)
-            : Colors.white,
+            : AppCores.superficie(context),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: selecionado ? AppCores.azulPrincipal : Colors.grey.shade200,
+          color: selecionado ? AppCores.azulPrincipal : AppCores.borda(context),
           width: selecionado ? 1.6 : 1,
         ),
       ),
@@ -565,7 +578,7 @@ class _TelaContratacaoState extends State<TelaContratacao> {
           ),
           subtitle: Text(
             '${filho.idadeEAno} • ${filho.escola}',
-            style: TextStyle(color: Colors.grey[600], fontSize: 12),
+            style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 12),
           ),
         ),
       ),

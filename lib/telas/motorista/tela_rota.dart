@@ -4,20 +4,21 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import '../../config/mapa_config.dart';
-import '../../config/rotas_config.dart';
 import '../../models/parada_motorista.dart';
 import '../../models/parada_rota.dart';
 import '../../models/rota_otimizada.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
+import '../../services/localizacao_service.dart';
 import '../../services/rota_service.dart';
 import '../../theme/cores.dart';
 
 /// "Minhas Rotas" do Motorista: calcula a melhor ordem de embarque das
 /// crianças do período selecionado, partindo de onde o motorista estiver
-/// (ou da localização de casa já marcada), usando a API gratuita do
-/// OpenRouteService (ver RotaService/RotasConfig). O trajeto real nas ruas
-/// é desenhado no mapa, com a lista de paradas na ordem calculada.
+/// (ou da localização de casa já marcada). Cálculo 100% local (RotaService
+/// — caixeiro-viajante em cima da distância entre coordenadas), sem
+/// nenhuma API externa: funciona sempre, sem chave e sem depender de
+/// internet pra essa parte.
 class TelaRota extends StatefulWidget {
   const TelaRota({super.key});
 
@@ -33,10 +34,37 @@ class _TelaRotaState extends State<TelaRota> {
   String? _erro;
   RotaOtimizada? _rota;
 
+  bool _corridaAtiva = false;
+  bool _alternandoCorrida = false;
+
   @override
   void initState() {
     super.initState();
+    // Se o motorista voltou pra essa tela com a corrida já em andamento
+    // (iniciada antes, navegou pra outro lugar e voltou), reflete o estado
+    // real em vez de assumir "parado".
+    _corridaAtiva = LocalizacaoService.instance.emAndamento;
     _carregarPartidaPadrao();
+  }
+
+  Future<void> _alternarCorrida(String uid) async {
+    setState(() => _alternandoCorrida = true);
+    try {
+      if (_corridaAtiva) {
+        await LocalizacaoService.instance.finalizarCorrida(uid);
+        if (mounted) setState(() => _corridaAtiva = false);
+      } else {
+        final erro = await LocalizacaoService.instance.iniciarCorrida(uid);
+        if (!mounted) return;
+        if (erro != null) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(erro), backgroundColor: Colors.red));
+        } else {
+          setState(() => _corridaAtiva = true);
+        }
+      }
+    } finally {
+      if (mounted) setState(() => _alternandoCorrida = false);
+    }
   }
 
   /// Usa a localização de casa já marcada em Editar Perfil (se houver) como
@@ -98,18 +126,32 @@ class _TelaRotaState extends State<TelaRota> {
       _rota = null;
     });
 
+    // Destino final: a escola marcada no cadastro de algum dos filhos
+    // dessas paradas (ver Filho.escolaLat/escolaLng e registrarContratacao)
+    // — sem isso, a rota só visita as casas e para por aí, sem saber pra
+    // onde ir depois.
+    final paradaComEscola = comLocalizacao.where((p) => p.temLocalizacaoEscola);
+    final destino = paradaComEscola.isEmpty ? null : paradaComEscola.first.posicaoEscola;
+    final destinoLabel = paradaComEscola.isEmpty ? 'Escola' : paradaComEscola.first.escolaNome;
+
     final resultado = await RotaService.instance.calcular(
       partida: _partida!,
       paradas: comLocalizacao
           .map((p) => ParadaRota(id: p.responsavelUid, label: p.responsavelNome, posicao: p.posicao))
           .toList(),
+      destino: destino,
+      destinoLabel: destinoLabel.isEmpty ? 'Escola' : destinoLabel,
     );
 
     if (!mounted) return;
     setState(() {
       _calculando = false;
       _rota = resultado;
-      if (resultado == null) _erro = 'Não foi possível calcular a rota agora. Tente de novo em instantes.';
+      if (resultado == null) {
+        _erro = 'Não foi possível calcular a rota agora. Tente de novo em instantes.';
+      } else if (destino == null) {
+        _erro = 'Nenhuma criança desse período tem a localização da escola marcada — a rota termina na última casa. Peça aos responsáveis pra marcar em "Meus Filhos".';
+      }
     });
   }
 
@@ -142,11 +184,12 @@ class _TelaRotaState extends State<TelaRota> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                _buildCorrida(context, uid),
+                const SizedBox(height: 16),
                 _buildSeletorPeriodo(context),
                 const SizedBox(height: 16),
                 _buildPartida(context),
                 const SizedBox(height: 16),
-                if (!RotasConfig.temChave) _buildAviso(context, 'Chave da API de rotas não configurada — dá pra ver as paradas, mas não calcular o trajeto ainda.'),
                 if (paradas.isEmpty)
                   _buildAviso(context, 'Nenhuma criança no período "$_periodo" ainda.')
                 else ...[
@@ -158,7 +201,7 @@ class _TelaRotaState extends State<TelaRota> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: (!RotasConfig.temChave || _calculando) ? null : () => _calcularRota(paradas),
+                      onPressed: _calculando ? null : () => _calcularRota(paradas),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppCores.laranjaMotorista,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -188,6 +231,73 @@ class _TelaRotaState extends State<TelaRota> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  /// Liga/desliga o compartilhamento de localização ao vivo — enquanto
+  /// ativo, qualquer responsável que já contratou esse motorista vê a van
+  /// se mexendo no mapa do Painel Principal dele, igual no 99/Uber.
+  Widget _buildCorrida(BuildContext context, String uid) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: _corridaAtiva
+              ? [AppCores.verde, AppCores.verde.withValues(alpha: 0.75)]
+              : [AppCores.laranjaMotorista, AppCores.laranjaClaro],
+        ),
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: (_corridaAtiva ? AppCores.verde : AppCores.laranjaMotorista).withValues(alpha: 0.4),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(_corridaAtiva ? Icons.gps_fixed : Icons.gps_off, color: Colors.white, size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _corridaAtiva ? 'Corrida em andamento' : 'Corrida parada',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+                Text(
+                  _corridaAtiva
+                      ? 'Responsáveis veem sua van no mapa ao vivo.'
+                      : 'Toque pra começar a compartilhar sua localização.',
+                  style: const TextStyle(color: Colors.white70, fontSize: 11),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: 34,
+            child: _alternandoCorrida
+                ? const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                  )
+                : ElevatedButton(
+                    onPressed: () => _alternarCorrida(uid),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: _corridaAtiva ? AppCores.verde : AppCores.laranjaMotorista,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: Text(
+                      _corridaAtiva ? 'Finalizar' : 'Iniciar corrida',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+                    ),
+                  ),
+          ),
+        ],
       ),
     );
   }
@@ -310,12 +420,17 @@ class _TelaRotaState extends State<TelaRota> {
                     for (var i = 0; i < rota.ordemParadas.length; i++)
                       Marker(
                         point: rota.ordemParadas[i].posicao,
-                        width: 30,
-                        height: 30,
-                        child: CircleAvatar(
-                          backgroundColor: AppCores.laranjaMotorista,
-                          child: Text('${i + 1}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-                        ),
+                        width: 32,
+                        height: 32,
+                        child: rota.ordemParadas[i].id == 'destino'
+                            ? const CircleAvatar(
+                                backgroundColor: AppCores.azulPrincipal,
+                                child: Icon(Icons.school, color: Colors.white, size: 16),
+                              )
+                            : CircleAvatar(
+                                backgroundColor: AppCores.laranjaMotorista,
+                                child: Text('${i + 1}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                              ),
                       ),
                   ],
                 ),
@@ -328,12 +443,17 @@ class _TelaRotaState extends State<TelaRota> {
           children: [
             Icon(Icons.access_time, size: 14, color: AppCores.textoSecundario(context)),
             const SizedBox(width: 4),
-            Text('${rota.duracao.inMinutes} min', style: TextStyle(fontSize: 12, color: AppCores.textoSecundario(context))),
+            Text('~${rota.duracao.inMinutes} min', style: TextStyle(fontSize: 12, color: AppCores.textoSecundario(context))),
             const SizedBox(width: 16),
             Icon(Icons.route, size: 14, color: AppCores.textoSecundario(context)),
             const SizedBox(width: 4),
-            Text('${rota.distanciaKm.toStringAsFixed(1)} km', style: TextStyle(fontSize: 12, color: AppCores.textoSecundario(context))),
+            Text('~${rota.distanciaKm.toStringAsFixed(1)} km', style: TextStyle(fontSize: 12, color: AppCores.textoSecundario(context))),
           ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Estimativa em linha reta entre os pontos — a ordem das paradas é real, o traçado não segue as ruas.',
+          style: TextStyle(fontSize: 10.5, color: AppCores.textoSecundario(context), fontStyle: FontStyle.italic),
         ),
         const SizedBox(height: 12),
         for (var i = 0; i < rota.ordemParadas.length; i++)

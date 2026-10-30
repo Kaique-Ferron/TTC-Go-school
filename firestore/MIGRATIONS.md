@@ -277,3 +277,71 @@ exibido); só o próprio motorista escreve, e só no próprio documento.
 ainda** (não há backfill automático) — somem da busca até a próxima vez
 que o motorista salvar algo no perfil (editar cadastro, trocar foto, etc.),
 o que recria o espelho.
+
+---
+
+## 009 — `usuarios/{motoristaUid}/localizacao_ativa` e
+## `usuarios/{motoristaUid}/responsaveis_ativos` — Van ao vivo no mapa
+
+Criada em: 2026-10. O motorista aperta "Iniciar corrida" em "Minhas
+Rotas" e o app passa a reportar a posição GPS dele pro Firestore; o
+Responsável vê a van se mexendo ao vivo no mapa do Painel Principal
+(`CardAcompanharRota`) — igual ao app de entrega do 99/Uber. Sem nenhuma
+API paga: é só o GPS do próprio aparelho (pacote `geolocator`, já usado
+no app) + Firestore. Código: `lib/services/localizacao_service.dart`
+(liga/desliga o GPS), `FirestoreService.atualizarLocalizacaoAtiva` /
+`pararLocalizacaoAtiva` / `localizacaoAtivaStream`.
+
+Caminho: `usuarios/{motoristaUid}/localizacao_ativa/atual`
+
+| Campo         | Tipo      | Observação                                     |
+|---------------|-----------|---------------------------------------------------|
+| `lat`/`lng`   | double    | posição GPS mais recente                            |
+| `emRota`      | bool      | `true` enquanto a corrida está ativa                 |
+| `atualizadoEm`| timestamp | `FieldValue.serverTimestamp()`, a cada posição nova  |
+
+`atualizadoEm`/posição são atualizados a cada ~15 metros de movimento
+(`distanceFilter` do `Geolocator.getPositionStream`), não em um intervalo
+fixo — evita gravar no Firestore enquanto o motorista está parado.
+
+**Quem pode ver a localização ao vivo de um motorista** é controlado por
+`usuarios/{motoristaUid}/responsaveis_ativos/{responsavelUid}` — um
+documento vazio (`{ativo: true}`) cujo ID É o uid do responsável,
+justamente pra regra do Firestore conseguir checar com `exists()` (sem
+precisar de uma query) se quem está pedindo pra ler já contratou esse
+motorista. Gravado uma vez, no momento da contratação
+(`registrarContratacao` em `tela_contratacao.dart`). Não existe fluxo de
+"descontratar", então esse acesso não é revogado automaticamente hoje —
+mesma limitação que já existia pras outras informações da contratação.
+
+Regra do Firestore: só o próprio motorista escreve a localização; lê o
+próprio motorista ou um responsável com `responsaveis_ativos` marcado.
+Ninguém mais (nem outro motorista, nem um responsável que nunca
+contratou) consegue ler a localização ao vivo de ninguém.
+
+---
+
+## 010 — `escolaLat`/`escolaLng` em `usuarios/{uid}/filhos` e em
+## `contratacoes` — destino da rota
+
+Criada em: 2026-10. O cálculo de rota (`RotaService`, ver seção acima
+nunca existente até aqui — agora 100% local, sem API externa, veja o
+código) precisava de uma coordenada final pra onde ir depois de pegar as
+crianças; o campo `escola` (texto livre) nunca teve coordenada nenhuma, só
+o nome digitado. Resolvido deixando o responsável marcar a localização da
+escola no mapa, no cadastro do filho (`CadastrarFilhoTela`, reusa
+`TelaSelecionarLocal` — um seletor de mapa genérico que só devolve a
+coordenada escolhida, sem salvar nada sozinho, ao contrário de
+`MapaCasaTela`).
+
+- `usuarios/{uid}/filhos/{filhoId}`: `escolaLat`/`escolaLng` (double,
+  opcionais — nulos se o responsável nunca marcou).
+- `usuarios/{responsavelUid}/contratacoes/{contratacaoId}`:
+  `escolaNome`/`escolaLat`/`escolaLng`, copiados no momento da
+  contratação do primeiro filho selecionado que já tinha a localização da
+  escola marcada (simplificação: assume que os filhos de uma mesma
+  contratação vão pra escolas compatíveis com uma rota só).
+
+Sem a localização da escola marcada em nenhum filho do período, a rota
+calculada continua funcionando — só termina na última casa, sem saber pra
+onde ir depois (a tela avisa isso quando acontece).

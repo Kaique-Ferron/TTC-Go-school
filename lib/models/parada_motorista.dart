@@ -12,6 +12,13 @@ class ParadaMotorista {
   final double? lng;
   final List<String> filhosNomes;
   final String periodo;
+  // Escola de destino das crianças dessa parada (gravado uma vez, no
+  // momento da contratação — ver registrarContratacao). Pode vir vazio em
+  // contratações feitas antes dessa funcionalidade existir, ou se o
+  // responsável nunca marcou a localização da escola no cadastro do filho.
+  final String escolaNome;
+  final double? escolaLat;
+  final double? escolaLng;
 
   const ParadaMotorista({
     required this.responsavelUid,
@@ -21,9 +28,14 @@ class ParadaMotorista {
     required this.lng,
     required this.filhosNomes,
     required this.periodo,
+    this.escolaNome = '',
+    this.escolaLat,
+    this.escolaLng,
   });
 
   bool get temLocalizacao => lat != null && lng != null;
+  bool get temLocalizacaoEscola => escolaLat != null && escolaLng != null;
 
   LatLng get posicao => LatLng(lat!, lng!);
+  LatLng get posicaoEscola => LatLng(escolaLat!, escolaLng!);
 }

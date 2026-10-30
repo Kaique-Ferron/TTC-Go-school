@@ -99,7 +99,7 @@ class _TelaFinancasMotoristaState extends State<TelaFinancasMotorista> {
             Text(
               'Nenhuma mensalidade registrada ainda.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+              style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 14),
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
@@ -166,7 +166,7 @@ class _TelaFinancasMotoristaState extends State<TelaFinancasMotorista> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text('${mensalidadesFiltradas.length}', style: TextStyle(color: Colors.grey[500], fontSize: 12, fontWeight: FontWeight.bold)),
+                Text('${mensalidadesFiltradas.length}', style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 12, fontWeight: FontWeight.bold)),
               ],
             ),
             const SizedBox(height: 12),
@@ -175,7 +175,7 @@ class _TelaFinancasMotoristaState extends State<TelaFinancasMotorista> {
             if (mensalidadesFiltradas.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Text('Nenhum pagamento neste filtro.', style: TextStyle(color: Colors.grey[500], fontSize: 13)),
+                child: Text('Nenhum pagamento neste filtro.', style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 13)),
               )
             else
               ...mensalidadesFiltradas.map(_cardMensalidade),
@@ -187,9 +187,9 @@ class _TelaFinancasMotoristaState extends State<TelaFinancasMotorista> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Finanças', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+              Text('Finanças', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: AppCores.textoPrincipal(context))),
               const SizedBox(height: 4),
-              Text('Mensalidades recebidas dos responsáveis este mês.', style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+              Text('Mensalidades recebidas dos responsáveis este mês.', style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 14)),
               SizedBox(height: isWide ? 28 : 20),
               if (isWide)
                 Row(
@@ -274,13 +274,13 @@ class _TelaFinancasMotoristaState extends State<TelaFinancasMotorista> {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: ativo ? AppCores.azulPrincipal : Colors.white,
+          color: ativo ? AppCores.azulPrincipal : AppCores.superficie(context),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: ativo ? AppCores.azulPrincipal : Colors.grey.shade300),
+          border: Border.all(color: ativo ? AppCores.azulPrincipal : AppCores.borda(context)),
         ),
         child: Text(
           rotulo,
-          style: TextStyle(color: ativo ? Colors.white : Colors.grey[700], fontSize: 12.5, fontWeight: FontWeight.bold),
+          style: TextStyle(color: ativo ? Colors.white : AppCores.textoSecundario(context), fontSize: 12.5, fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -290,9 +290,9 @@ class _TelaFinancasMotoristaState extends State<TelaFinancasMotorista> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppCores.borda(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -303,7 +303,7 @@ class _TelaFinancasMotoristaState extends State<TelaFinancasMotorista> {
             child: Icon(icone, size: 18, color: cor),
           ),
           const SizedBox(height: 10),
-          Text(titulo, style: TextStyle(color: Colors.grey[600], fontSize: 12, fontWeight: FontWeight.w600)),
+          Text(titulo, style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 12, fontWeight: FontWeight.w600)),
           const SizedBox(height: 2),
           Text(
             'R\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')}',
@@ -320,9 +320,9 @@ class _TelaFinancasMotoristaState extends State<TelaFinancasMotorista> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppCores.superficie(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(color: AppCores.borda(context)),
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Row(
@@ -339,9 +339,9 @@ class _TelaFinancasMotoristaState extends State<TelaFinancasMotorista> {
               children: [
                 Text(m.responsavelNome, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 2),
-                Text('Filho: ${m.filhoNome}', style: TextStyle(color: Colors.grey[600], fontSize: 12), overflow: TextOverflow.ellipsis),
+                Text('Filho: ${m.filhoNome}', style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 12), overflow: TextOverflow.ellipsis),
                 Text('${m.data.day.toString().padLeft(2, '0')}/${m.data.month.toString().padLeft(2, '0')}/${m.data.year}',
-                    style: TextStyle(color: Colors.grey[500], fontSize: 11)),
+                    style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 11)),
               ],
             ),
           ),
@@ -351,7 +351,7 @@ class _TelaFinancasMotoristaState extends State<TelaFinancasMotorista> {
             children: [
               Text(
                 'R\$ ${m.valor.toStringAsFixed(2).replaceAll('.', ',')}',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1E293B)),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppCores.textoPrincipal(context)),
               ),
               const SizedBox(height: 4),
               Container(

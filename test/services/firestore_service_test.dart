@@ -211,5 +211,80 @@ void main() {
 
       expect(paradas.single.temLocalizacao, isFalse);
     });
+
+    test('carrega a localização da escola gravada na contratação', () async {
+      await db
+          .collection('usuarios')
+          .doc('resp1')
+          .collection('contratacoes')
+          .add({
+            'motoristaUid': 'motorista1',
+            'responsavelNome': 'Resp resp1',
+            'responsavelLat': -23.5,
+            'responsavelLng': -46.6,
+            'responsavelEndereco': 'Rua resp1',
+            'filhosNomes': ['Ana'],
+            'periodo': 'Manhã',
+            'status': 'Ativo',
+            'escolaNome': 'Escola Teste',
+            'escolaLat': -23.6,
+            'escolaLng': -46.7,
+          });
+
+      final paradas = await FirestoreService.comInstancia(db).paradasRotaStream('motorista1').first;
+
+      expect(paradas.single.temLocalizacaoEscola, isTrue);
+      expect(paradas.single.escolaNome, 'Escola Teste');
+      expect(paradas.single.posicaoEscola.latitude, -23.6);
+    });
+
+    test('contratação sem escola marcada deixa temLocalizacaoEscola falso', () async {
+      await criarContratacao('resp1', motoristaUid: 'motorista1', periodo: 'Manhã', filhosNomes: ['Ana'], lat: -23.5, lng: -46.6);
+
+      final paradas = await FirestoreService.comInstancia(db).paradasRotaStream('motorista1').first;
+
+      expect(paradas.single.temLocalizacaoEscola, isFalse);
+    });
+  });
+
+  group('localização ao vivo (van no mapa do responsável)', () {
+    test('registrarResponsavelAtivo grava o documento de permissão', () async {
+      await servico.registrarResponsavelAtivo('motorista1', 'resp1');
+
+      final doc = await db
+          .collection('usuarios')
+          .doc('motorista1')
+          .collection('responsaveis_ativos')
+          .doc('resp1')
+          .get();
+
+      expect(doc.exists, isTrue);
+      expect(doc.data()!['ativo'], isTrue);
+    });
+
+    test('atualizarLocalizacaoAtiva e localizacaoAtivaStream refletem a posição gravada', () async {
+      await servico.atualizarLocalizacaoAtiva('motorista1', lat: -23.5, lng: -46.6, emRota: true);
+
+      final localizacao = await servico.localizacaoAtivaStream('motorista1').first;
+
+      expect(localizacao, isNotNull);
+      expect(localizacao!.lat, -23.5);
+      expect(localizacao.emRota, isTrue);
+    });
+
+    test('pararLocalizacaoAtiva desliga emRota sem apagar a última posição', () async {
+      await servico.atualizarLocalizacaoAtiva('motorista1', lat: -23.5, lng: -46.6, emRota: true);
+
+      await servico.pararLocalizacaoAtiva('motorista1');
+
+      final localizacao = await servico.localizacaoAtivaStream('motorista1').first;
+      expect(localizacao!.emRota, isFalse);
+      expect(localizacao.lat, -23.5); // posição mantida, só o selo "em rota" cai
+    });
+
+    test('localizacaoAtivaStream é null quando o motorista nunca compartilhou localização', () async {
+      final localizacao = await servico.localizacaoAtivaStream('motoristaSemLocalizacao').first;
+      expect(localizacao, isNull);
+    });
   });
 }

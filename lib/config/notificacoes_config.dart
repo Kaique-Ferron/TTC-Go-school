@@ -6,9 +6,9 @@
 /// (Cloud Functions exigiria o plano Blaze/cartão, que este projeto não
 /// usa), então o próprio app Flutter chama a API do OneSignal direto.
 /// Ciente da troca: a REST API Key fica embutida no app (decisão tomada
-/// com o usuário) — igual ao padrão de lib/config/rotas_config.dart, não
-/// fica escrita aqui, só passada via --dart-define (ver run_dev.ps1,
-/// gitignorado):
+/// com o usuário) — mesmo padrão usado pra outras chaves sensíveis deste
+/// projeto: não fica escrita aqui, só passada via --dart-define (ver
+/// run_dev.ps1, gitignorado):
 ///
 ///   flutter run -d chrome --dart-define=ONESIGNAL_REST_API_KEY=SUA_KEY_AQUI
 ///

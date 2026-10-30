@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../config/mapa_config.dart';
+import '../models/localizacao_motorista.dart';
+import '../services/firestore_service.dart';
 import '../theme/cores.dart';
 import 'badge_icone.dart';
 import 'cartao_elevado.dart';
@@ -15,16 +17,18 @@ import 'cartao_elevado.dart';
 /// o próprio responsável marcou em "Editar Perfil" — e os textos vêm dos
 /// dados reais (endereço, escola e horário do filho).
 ///
-/// Não existe (ainda) rastreamento em tempo real da van — isso exigiria o
-/// app do Motorista reportando a localização atual pro Firestore, o que é
-/// uma funcionalidade maior e separada. Por isso o card mostra o ponto de
-/// embarque/desembarque reais, não uma posição "ao vivo" do veículo.
+/// Quando o motorista contratado está com uma corrida em andamento (ver
+/// "Minhas Rotas" > Iniciar corrida), a van aparece se mexendo ao vivo no
+/// mapa — igual no 99/Uber — lendo usuarios/{motoristaUid}/
+/// localizacao_ativa/atual (ver LocalizacaoService). Sem corrida ativa,
+/// mostra só o ponto de embarque/desembarque reais.
 class CardAcompanharRota extends StatelessWidget {
   final double? latitude;
   final double? longitude;
   final String endereco;
   final String escola;
   final String horario;
+  final String? motoristaUid;
   final VoidCallback? onVerDetalhes;
 
   const CardAcompanharRota({
@@ -34,6 +38,7 @@ class CardAcompanharRota extends StatelessWidget {
     this.endereco = '',
     this.escola = '',
     this.horario = '',
+    this.motoristaUid,
     this.onVerDetalhes,
   });
 
@@ -77,69 +82,25 @@ class CardAcompanharRota extends StatelessWidget {
           const SizedBox(height: 14),
 
           // Mapa real, centrado na casa do responsável (se já marcada em
-          // "Editar Perfil" > "Ponto no Mapa para o Transporte").
+          // "Editar Perfil" > "Ponto no Mapa para o Transporte") — e na van
+          // ao vivo, se o motorista estiver com uma corrida em andamento.
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: SizedBox(
               height: 140,
               width: double.infinity,
-              child: _temLocalizacao
-                  ? Stack(
-                      children: [
-                        FlutterMap(
-                          options: MapOptions(
-                            initialCenter: LatLng(latitude!, longitude!),
-                            initialZoom: 15,
-                            interactionOptions: const InteractionOptions(flags: InteractiveFlag.none),
-                          ),
-                          children: [
-                            TileLayer(
-                              urlTemplate: MapaConfig.tileUrlTemplate,
-                              userAgentPackageName: 'com.example.flutter_application_1',
-                            ),
-                            MarkerLayer(
-                              markers: [
-                                Marker(
-                                  point: LatLng(latitude!, longitude!),
-                                  width: 40,
-                                  height: 40,
-                                  alignment: Alignment.topCenter,
-                                  child: const Icon(Icons.location_on, color: Colors.red, size: 36),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        if (endereco.isNotEmpty)
-                          Positioned(
-                            top: 10,
-                            left: 10,
-                            child: _badge(
-                              icon: Icons.location_on,
-                              corIcone: Colors.amber,
-                              rotulo: 'Ponto de embarque',
-                              valor: endereco,
-                            ),
-                          ),
-                      ],
+              child: (motoristaUid != null && motoristaUid!.isNotEmpty)
+                  ? StreamBuilder<LocalizacaoMotorista?>(
+                      stream: FirestoreService.instance.localizacaoAtivaStream(motoristaUid!),
+                      builder: (context, snapshot) {
+                        final localizacao = snapshot.data;
+                        final posicaoVan = (localizacao != null && localizacao.emRota)
+                            ? LatLng(localizacao.lat, localizacao.lng)
+                            : null;
+                        return _buildMapa(context, posicaoVan);
+                      },
                     )
-                  : Container(
-                      color: AppCores.fundo(context),
-                      padding: const EdgeInsets.all(16),
-                      alignment: Alignment.center,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.pin_drop_outlined, color: AppCores.textoSecundario(context), size: 28),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Marque sua localização em Editar Perfil para ver o mapa da rota',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 11, color: AppCores.textoSecundario(context)),
-                          ),
-                        ],
-                      ),
-                    ),
+                  : _buildMapa(context, null),
             ),
           ),
           const SizedBox(height: 16),
@@ -170,6 +131,100 @@ class CardAcompanharRota extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildMapa(BuildContext context, LatLng? posicaoVan) {
+    if (!_temLocalizacao && posicaoVan == null) {
+      return Container(
+        color: AppCores.fundo(context),
+        padding: const EdgeInsets.all(16),
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.pin_drop_outlined, color: AppCores.textoSecundario(context), size: 28),
+            const SizedBox(height: 6),
+            Text(
+              'Marque sua localização em Editar Perfil para ver o mapa da rota',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 11, color: AppCores.textoSecundario(context)),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final pontos = [
+      if (_temLocalizacao) LatLng(latitude!, longitude!),
+      ?posicaoVan,
+    ];
+
+    return Stack(
+      children: [
+        FlutterMap(
+          options: pontos.length > 1
+              ? MapOptions(
+                  initialCameraFit: CameraFit.coordinates(coordinates: pontos, padding: const EdgeInsets.all(28)),
+                  interactionOptions: const InteractionOptions(flags: InteractiveFlag.none),
+                )
+              : MapOptions(
+                  initialCenter: pontos.first,
+                  initialZoom: 15,
+                  interactionOptions: const InteractionOptions(flags: InteractiveFlag.none),
+                ),
+          children: [
+            TileLayer(
+              urlTemplate: MapaConfig.tileUrlTemplate,
+              userAgentPackageName: 'com.example.flutter_application_1',
+            ),
+            MarkerLayer(
+              markers: [
+                if (_temLocalizacao)
+                  Marker(
+                    point: LatLng(latitude!, longitude!),
+                    width: 40,
+                    height: 40,
+                    alignment: Alignment.topCenter,
+                    child: const Icon(Icons.location_on, color: Colors.red, size: 36),
+                  ),
+                if (posicaoVan != null)
+                  Marker(
+                    point: posicaoVan,
+                    width: 34,
+                    height: 34,
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: AppCores.azulPrincipal,
+                        shape: BoxShape.circle,
+                        boxShadow: [BoxShadow(color: Color(0x991D58E2), blurRadius: 8)],
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(Icons.directions_bus, color: Colors.white, size: 18),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
+        if (endereco.isNotEmpty)
+          Positioned(
+            top: 10,
+            left: 10,
+            child: _badge(
+              icon: Icons.location_on,
+              corIcone: Colors.amber,
+              rotulo: 'Ponto de embarque',
+              valor: endereco,
+            ),
+          ),
+        if (posicaoVan != null)
+          const Positioned(
+            top: 10,
+            right: 10,
+            child: _PillAoVivo(),
+          ),
+      ],
     );
   }
 
@@ -238,6 +293,31 @@ class CardAcompanharRota extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Icon(Icons.arrow_forward, size: 16, color: AppCores.borda(context)),
+    );
+  }
+}
+
+/// Selo "Ao vivo" mostrado quando a van do motorista está se mexendo de
+/// verdade no mapa (corrida iniciada em "Minhas Rotas").
+class _PillAoVivo extends StatelessWidget {
+  const _PillAoVivo();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F172A),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.circle, size: 8, color: Colors.redAccent),
+          SizedBox(width: 4),
+          Text('Ao vivo', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+        ],
+      ),
     );
   }
 }
