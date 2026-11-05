@@ -4,6 +4,7 @@ import '../theme/cores.dart';
 import '../telas/chat/tela_conversas.dart';
 import '../telas/motorista/tela_financas_motorista.dart';
 import '../telas/motorista/tela_chamada.dart';
+import '../telas/motorista/tela_perfil_motorista.dart';
 import '../telas/motorista/tela_rota.dart';
 import 'logo_goschool.dart';
 
@@ -84,7 +85,15 @@ class _MenuMotorista extends StatelessWidget {
     } else if (destino == 'Minhas Rotas') {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaRota()));
     } else if (destino == 'Meu Perfil') {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaPerfilMotorista()));
+    } else if (destino == 'Painel Principal') {
+      // É a tela raiz (aberta direto no login) — só volta pra ela em vez
+      // de empurrar uma tela nova por cima.
       if (Navigator.canPop(context)) Navigator.pop(context);
+    } else if (destino == 'Notificações' || destino == 'Configurações') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$destino chega em breve.')),
+      );
     }
   }
 

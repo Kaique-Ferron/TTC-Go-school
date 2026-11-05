@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../models/usuario.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/firestore_service.dart';
+import '../../../services/geocodificacao_service.dart';
 import '../../../theme/cores.dart';
 import '../../../widgets/botoes.dart';
 import '../../../widgets/campos.dart';
@@ -99,6 +100,28 @@ class _TelaCadastroState extends State<TelaCadastro> {
       );
 
       await FirestoreService.instance.salvarUsuario(uid, usuario);
+
+      // Converte o endereço digitado em coordenada automaticamente (ver
+      // GeocodificacaoService) — sem isso, só quem abrisse "Minha Casa"
+      // manualmente pra marcar um pino no mapa teria casa_lat/casa_lng, e
+      // a rota do Motorista ficaria "sem localização" pra todo o resto.
+      // Falha em silêncio (sem internet, endereço não encontrado etc.):
+      // a conta já foi criada, e o pino manual continua disponível depois.
+      final enderecoParaGeocodificar = [
+        if (usuario.rua.isNotEmpty) usuario.numero.isNotEmpty ? '${usuario.rua}, ${usuario.numero}' : usuario.rua,
+        if (usuario.bairro.isNotEmpty) usuario.bairro,
+        if (usuario.cep.isNotEmpty) usuario.cep,
+        'Brasil',
+      ].join(', ');
+      if (usuario.rua.isNotEmpty || usuario.cep.isNotEmpty) {
+        final coordenada = await GeocodificacaoService.instance.geocodificar(enderecoParaGeocodificar);
+        if (coordenada != null) {
+          await FirestoreService.instance.atualizarUsuario(uid, {
+            'casa_lat': coordenada.latitude,
+            'casa_lng': coordenada.longitude,
+          });
+        }
+      }
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

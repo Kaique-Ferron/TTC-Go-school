@@ -12,13 +12,18 @@ import '../../services/firestore_service.dart';
 import '../../services/localizacao_service.dart';
 import '../../services/rota_service.dart';
 import '../../theme/cores.dart';
+import '../../widgets/tela_mapa_completo.dart';
 
 /// "Minhas Rotas" do Motorista: calcula a melhor ordem de embarque das
 /// crianças do período selecionado, partindo de onde o motorista estiver
-/// (ou da localização de casa já marcada). Cálculo 100% local (RotaService
-/// — caixeiro-viajante em cima da distância entre coordenadas), sem
-/// nenhuma API externa: funciona sempre, sem chave e sem depender de
-/// internet pra essa parte.
+/// (ou da localização de casa já marcada). A ORDEM é sempre calculada
+/// 100% local (RotaService — caixeiro-viajante em cima da distância entre
+/// coordenadas), funciona sempre, sem chave e sem depender de internet. Já
+/// o DESENHO do trajeto nas ruas usa o OSRM (ver RotaRealService) —
+/// gratuito e sem chave, mas é um serviço de terceiros, não nosso código.
+/// Sem internet na hora, ou sem resposta do serviço, cai pro traçado em
+/// linha reta, mas a ordem das
+/// paradas continua certa de qualquer jeito.
 class TelaRota extends StatefulWidget {
   const TelaRota({super.key});
 
@@ -67,9 +72,12 @@ class _TelaRotaState extends State<TelaRota> {
     }
   }
 
-  /// Usa a localização de casa já marcada em Editar Perfil (se houver) como
-  /// ponto de partida padrão — o motorista pode trocar por "Usar minha
-  /// localização atual" (GPS) a qualquer momento.
+  /// Usa a localização de casa já marcada (se houver — hoje só o
+  /// Responsável tem uma tela pra marcar isso, o Motorista não) como ponto
+  /// de partida padrão. Sem isso marcado, busca o GPS automaticamente —
+  /// sem essa segunda parte, quem nunca marcou casa nem apertou "Usar GPS"
+  /// manualmente abria a tela sem nenhum ponto de partida, e por isso sem
+  /// nenhum mapa pra mostrar.
   Future<void> _carregarPartidaPadrao() async {
     final uid = AuthService.instance.uidAtual;
     if (uid == null) return;
@@ -79,7 +87,9 @@ class _TelaRotaState extends State<TelaRota> {
     final lng = (dados?['casa_lng'] as num?)?.toDouble();
     if (lat != null && lng != null && mounted) {
       setState(() => _partida = LatLng(lat, lng));
+      return;
     }
+    if (mounted) await _usarLocalizacaoAtual();
   }
 
   Future<void> _usarLocalizacaoAtual() async {
@@ -225,7 +235,16 @@ class _TelaRotaState extends State<TelaRota> {
                     _buildAviso(context, _erro!, cor: Colors.red),
                   ],
                   const SizedBox(height: 16),
-                  if (_rota != null) _buildMapaResultado(context, _rota!) else _buildListaSimples(context, paradas),
+                  // O mapa aparece sempre que já der pra marcar algum ponto
+                  // (partida e/ou paradas) — antes só aparecia depois de
+                  // apertar "Calcular melhor rota", o que parecia "não tem
+                  // mapa nenhum" pra quem ainda não tinha calculado nada.
+                  if (_rota != null)
+                    _buildMapaResultado(context, _rota!)
+                  else
+                    _buildMapaPreview(context, paradas),
+                  const SizedBox(height: 12),
+                  if (_rota == null) _buildListaSimples(context, paradas),
                 ],
               ],
             ),
@@ -400,44 +419,161 @@ class _TelaRotaState extends State<TelaRota> {
     );
   }
 
+  /// Mapa que aparece ANTES de calcular a rota: mostra seu ponto de
+  /// partida e os pinos de cada parada desse período, sem ordem nem
+  /// trajeto ainda — só pra você já ver onde fica tudo no mapa.
+  Widget _buildMapaPreview(BuildContext context, List<ParadaMotorista> paradas) {
+    final comLocalizacao = paradas.where((p) => p.temLocalizacao).toList();
+    final pontos = [if (_partida != null) _partida!, ...comLocalizacao.map((p) => p.posicao)];
+
+    if (pontos.isEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          height: 180,
+          color: AppCores.superficie(context),
+          alignment: Alignment.center,
+          child: Text(
+            'Defina seu ponto de partida pra ver o mapa.',
+            style: TextStyle(fontSize: 12, color: AppCores.textoSecundario(context)),
+          ),
+        ),
+      );
+    }
+
+    final marcadores = [
+      if (_partida != null)
+        Marker(
+          point: _partida!,
+          width: 36,
+          height: 36,
+          child: const CircleAvatar(
+            backgroundColor: AppCores.laranjaMotorista,
+            child: Icon(Icons.directions_bus, color: Colors.white, size: 16),
+          ),
+        ),
+      for (final parada in comLocalizacao)
+        Marker(
+          point: parada.posicao,
+          width: 32,
+          height: 32,
+          child: const CircleAvatar(
+            backgroundColor: Colors.blueGrey,
+            child: Icon(Icons.home, color: Colors.white, size: 16),
+          ),
+        ),
+    ];
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: SizedBox(
+        height: 220,
+        child: Stack(
+          children: [
+            FlutterMap(
+              options: MapOptions(
+                initialCameraFit: pontos.length > 1
+                    ? CameraFit.coordinates(coordinates: pontos, padding: const EdgeInsets.all(30))
+                    : null,
+                initialCenter: pontos.length == 1 ? pontos.first : const LatLng(0, 0),
+                initialZoom: pontos.length == 1 ? 15 : 13,
+              ),
+              children: [
+                TileLayer(urlTemplate: MapaConfig.tileUrlTemplate, userAgentPackageName: 'com.example.flutter_application_1'),
+                MarkerLayer(markers: marcadores),
+              ],
+            ),
+            _buildBotaoTelaCheia(context, pontos: pontos, marcadores: marcadores),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Botão no canto do mapa pra abrir a mesma visão em tela cheia — com
+  /// zoom explícito (+/-), não só o beliscar/rolar o mouse do mapa
+  /// pequeno embutido aqui.
+  Widget _buildBotaoTelaCheia(
+    BuildContext context, {
+    required List<LatLng> pontos,
+    required List<Marker> marcadores,
+    List<Polyline> trajetos = const [],
+  }) {
+    return Positioned(
+      right: 10,
+      top: 10,
+      child: Material(
+        color: Colors.white,
+        shape: const CircleBorder(),
+        elevation: 3,
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => TelaMapaCompleto(
+                titulo: 'Minha rota',
+                pontosParaEnquadrar: pontos,
+                marcadores: marcadores,
+                trajetos: trajetos,
+              ),
+            ),
+          ),
+          child: const Padding(
+            padding: EdgeInsets.all(8),
+            child: Icon(Icons.fullscreen, size: 20, color: AppCores.laranjaMotorista),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildMapaResultado(BuildContext context, RotaOtimizada rota) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: SizedBox(
-            height: 220,
-            child: FlutterMap(
-              options: MapOptions(
-                initialCameraFit: CameraFit.coordinates(coordinates: rota.geometria, padding: const EdgeInsets.all(30)),
-              ),
-              children: [
-                TileLayer(urlTemplate: MapaConfig.tileUrlTemplate, userAgentPackageName: 'com.example.flutter_application_1'),
-                PolylineLayer(polylines: [Polyline(points: rota.geometria, strokeWidth: 4, color: AppCores.azulPrincipal)]),
-                MarkerLayer(
-                  markers: [
-                    for (var i = 0; i < rota.ordemParadas.length; i++)
-                      Marker(
-                        point: rota.ordemParadas[i].posicao,
-                        width: 32,
-                        height: 32,
-                        child: rota.ordemParadas[i].id == 'destino'
-                            ? const CircleAvatar(
-                                backgroundColor: AppCores.azulPrincipal,
-                                child: Icon(Icons.school, color: Colors.white, size: 16),
-                              )
-                            : CircleAvatar(
-                                backgroundColor: AppCores.laranjaMotorista,
-                                child: Text('${i + 1}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-                              ),
+        Builder(builder: (context) {
+          final marcadores = [
+            for (var i = 0; i < rota.ordemParadas.length; i++)
+              Marker(
+                point: rota.ordemParadas[i].posicao,
+                width: 32,
+                height: 32,
+                child: rota.ordemParadas[i].id == 'destino'
+                    ? const CircleAvatar(
+                        backgroundColor: AppCores.azulPrincipal,
+                        child: Icon(Icons.school, color: Colors.white, size: 16),
+                      )
+                    : CircleAvatar(
+                        backgroundColor: AppCores.laranjaMotorista,
+                        child: Text('${i + 1}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
                       ),
-                  ],
-                ),
-              ],
+              ),
+          ];
+          final trajetos = [Polyline(points: rota.geometria, strokeWidth: 4, color: AppCores.azulPrincipal)];
+
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: SizedBox(
+              height: 220,
+              child: Stack(
+                children: [
+                  FlutterMap(
+                    options: MapOptions(
+                      initialCameraFit: CameraFit.coordinates(coordinates: rota.geometria, padding: const EdgeInsets.all(30)),
+                    ),
+                    children: [
+                      TileLayer(urlTemplate: MapaConfig.tileUrlTemplate, userAgentPackageName: 'com.example.flutter_application_1'),
+                      PolylineLayer(polylines: trajetos),
+                      MarkerLayer(markers: marcadores),
+                    ],
+                  ),
+                  _buildBotaoTelaCheia(context, pontos: rota.geometria, marcadores: marcadores, trajetos: trajetos),
+                ],
+              ),
             ),
-          ),
-        ),
+          );
+        }),
         const SizedBox(height: 12),
         Row(
           children: [
@@ -504,8 +640,8 @@ class _TelaRotaState extends State<TelaRota> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(parada.responsavelNome, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                Text(parada.filhosNomes.join(', '), style: TextStyle(fontSize: 11.5, color: AppCores.textoSecundario(context))),
+                Text(parada.filhosNomes.join(', '), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                Text(parada.responsavelNome, style: TextStyle(fontSize: 11.5, color: AppCores.textoSecundario(context))),
                 if (!parada.temLocalizacao)
                   Text('Sem localização marcada', style: TextStyle(fontSize: 11, color: Colors.red.shade400, fontStyle: FontStyle.italic)),
               ],

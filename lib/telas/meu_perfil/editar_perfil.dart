@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../services/firestore_service.dart';
+import '../../services/geocodificacao_service.dart';
 import '../../services/viacep_service.dart';
 import '../../theme/cores.dart';
 import '../../widgets/foto_perfil_provider.dart';
@@ -177,6 +178,27 @@ class _EditarPerfilTelaState extends State<EditarPerfilTela> {
         await user.verifyBeforeUpdateEmail(_emailController.text.trim());
       }
 
+      // 1.5 Se ainda não tem um pino manual marcado em "Minha Casa", tenta
+      // converter o endereço digitado em coordenada automaticamente (ver
+      // GeocodificacaoService) — sem isso, só quem abrisse aquela tela
+      // manualmente teria casa_lat/casa_lng, e a parada ficaria "sem
+      // localização" pro Motorista mesmo com o endereço todo preenchido.
+      // Falha em silêncio (endereço incompleto, sem internet etc.).
+      if (_casaLat == null) {
+        final enderecoParaGeocodificar = [
+          _enderecoController.text.trim(),
+          _numeroController.text.trim(),
+          _bairroController.text.trim(),
+          _cidadeUfController.text.trim(),
+          'Brasil',
+        ].where((parte) => parte.isNotEmpty).join(', ');
+        final coordenada = await GeocodificacaoService.instance.geocodificar(enderecoParaGeocodificar);
+        if (coordenada != null) {
+          _casaLat = coordenada.latitude;
+          _casaLng = coordenada.longitude;
+        }
+      }
+
       // 2. Atualiza os dados cadastrais no documento do Firestore
       await FirestoreService.instance.atualizarUsuario(uid, {
         'nome': _nomeController.text.trim(),
@@ -191,6 +213,15 @@ class _EditarPerfilTelaState extends State<EditarPerfilTela> {
         'casa_lng': _casaLng,
         'ultima_atualizacao': FieldValue.serverTimestamp(),
       });
+
+      // Repassa pra qualquer contratação ativa, igual MapaCasaTela faz.
+      if (_casaLat != null && _casaLng != null) {
+        await FirestoreService.instance.sincronizarLocalizacaoNasContratacoes(
+          uid,
+          lat: _casaLat!,
+          lng: _casaLng!,
+        );
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

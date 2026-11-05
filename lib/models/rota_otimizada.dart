@@ -5,10 +5,11 @@ import 'parada_rota.dart';
 /// crianças, na melhor sequência de embarque — sempre calculada local,
 /// sem API) + geometria pra desenhar no mapa + duração/distância totais.
 ///
-/// [trajetoReal] diz se [geometria] veio da API de ruas de verdade
-/// (OpenRouteService, quando configurada e disponível) ou é só uma
-/// estimativa em linha reta entre os pontos (fallback sem chave/sem
-/// internet) — a UI usa isso pra decidir se mostra o aviso de estimativa.
+/// [trajetoReal] diz se [geometria] veio do nosso próprio cálculo nas
+/// ruas de verdade (RotaRealService, via OSRM — gratuito, sem chave)
+/// ou é só uma estimativa em linha reta entre os pontos (fallback sem
+/// internet/sem dados na área) — a UI usa isso pra decidir se mostra o
+/// aviso de estimativa.
 class RotaOtimizada {
   final List<ParadaRota> ordemParadas;
   final List<LatLng> geometria;

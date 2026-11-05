@@ -107,7 +107,15 @@ class PainelPrincipalTela extends StatelessWidget {
               final String idadeEAno = filhos.isNotEmpty
                   ? filhos.first.idadeEAno
                   : '8 anos • 3º ano';
-              final String escolaFilho = filhos.isNotEmpty ? filhos.first.escola : '';
+              // Pega a escola do primeiro filho que TEM localização marcada
+              // — não necessariamente o primeiro da lista (se tiver mais
+              // de um filho cadastrado, o com escola marcada pode ser o
+              // segundo, terceiro etc.). Olhar só filhos.first ignorava a
+              // escola de qualquer filho que não fosse o primeiro.
+              final filhoComEscola = filhos.where((f) => f.temLocalizacaoEscola);
+              final escolaFilho = filhoComEscola.isNotEmpty ? filhoComEscola.first.escola : (filhos.isNotEmpty ? filhos.first.escola : '');
+              final double? escolaLat = filhoComEscola.isNotEmpty ? filhoComEscola.first.escolaLat : null;
+              final double? escolaLng = filhoComEscola.isNotEmpty ? filhoComEscola.first.escolaLng : null;
               final String horarioFilho = filhos.isNotEmpty ? filhos.first.horario : '';
               final double? casaLat = (dadosUsuario?['casa_lat'] as num?)?.toDouble();
               final double? casaLng = (dadosUsuario?['casa_lng'] as num?)?.toDouble();
@@ -165,6 +173,26 @@ class PainelPrincipalTela extends StatelessWidget {
                           FirestoreService.instance.registrarResponsavelAtivo(motoristaUid, uid).catchError((_) {});
                         }
 
+                        // Autorreparo: copia a localização de casa atual
+                        // pra dentro das contratações ativas, mesmo pra quem
+                        // já tinha a casa marcada ANTES da sincronização
+                        // existir (ver autoSincronizarLocalizacaoNasContratacoes)
+                        // — sem isso, a parada dele continuava aparecendo
+                        // "sem localização" pro Motorista pra sempre.
+                        if (casaLat != null && casaLng != null) {
+                          FirestoreService.instance
+                              .autoSincronizarLocalizacaoNasContratacoes(uid, lat: casaLat, lng: casaLng, endereco: casaEndereco)
+                              .catchError((_) {});
+                        }
+
+                        // Autorreparo: mesma coisa, mas pra escola — por
+                        // filho (não "a primeira escola da família"),
+                        // porque filhos diferentes podem ter motoristas
+                        // diferentes (ver autoSincronizarEscolasNasContratacoes).
+                        FirestoreService.instance
+                            .autoSincronizarEscolasNasContratacoes(uid, filhos)
+                            .catchError((_) {});
+
                         void abrirDetalhes() {
                           Navigator.push(
                             context,
@@ -176,6 +204,8 @@ class PainelPrincipalTela extends StatelessWidget {
                                 longitude: casaLng,
                                 endereco: casaEndereco,
                                 escola: escolaFilho,
+                                escolaLat: escolaLat,
+                                escolaLng: escolaLng,
                                 horario: horarioFilho,
                                 veiculoEPlaca: veiculoEPlaca,
                               ),

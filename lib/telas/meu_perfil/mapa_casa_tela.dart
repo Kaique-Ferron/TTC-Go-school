@@ -6,6 +6,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import '../../config/mapa_config.dart';
+import '../../services/firestore_service.dart';
 import '../../theme/cores.dart';
 
 /// Tela para o Responsável marcar a localização da própria casa no mapa.
@@ -109,6 +110,17 @@ class _MapaCasaTelaState extends State<MapaCasaTela> {
         if (enderecoCasa != null) 'casa_endereco': enderecoCasa,
         'atualizadoEm': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
+
+      // Repassa a localização nova pra qualquer contratação já ativa —
+      // sem isso, quem contrata o motorista antes de marcar a casa (ou
+      // muda de endereço depois) fica com a parada sem localização no
+      // app do motorista pra sempre (ver sincronizarLocalizacaoNasContratacoes).
+      await FirestoreService.instance.sincronizarLocalizacaoNasContratacoes(
+        uid,
+        lat: _posicaoCasa!.latitude,
+        lng: _posicaoCasa!.longitude,
+        endereco: enderecoCasa,
+      );
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

@@ -148,6 +148,121 @@ class FirestoreService {
     return _usuarios.doc(responsavelUid).collection('contratacoes').add(dados);
   }
 
+  /// Atualiza `responsavelLat/Lng/Endereco` em TODAS as contratações ativas
+  /// desse responsável (com qualquer motorista) com o endereço de casa
+  /// atual. A localização de casa é copiada pra dentro da contratação só
+  /// uma vez, no momento de contratar (ver [registrarContratacao]), pra o
+  /// Motorista não precisar de permissão pra ler o perfil do Responsável —
+  /// sem isso, quem contratou ANTES de marcar o endereço no mapa (ou mudou
+  /// de casa depois) fica com a parada sem localização pra sempre. Chamado
+  /// pela tela de "Minha Casa" depois de salvar.
+  Future<void> sincronizarLocalizacaoNasContratacoes(
+    String responsavelUid, {
+    required double lat,
+    required double lng,
+    String? endereco,
+  }) async {
+    final contratacoesAtivas = await _usuarios
+        .doc(responsavelUid)
+        .collection('contratacoes')
+        .where('status', isEqualTo: 'Ativo')
+        .get();
+    if (contratacoesAtivas.docs.isEmpty) return;
+
+    final lote = _db.batch();
+    for (final doc in contratacoesAtivas.docs) {
+      lote.update(doc.reference, {
+        'responsavelLat': lat,
+        'responsavelLng': lng,
+        if (endereco != null) 'responsavelEndereco': endereco,
+      });
+    }
+    await lote.commit();
+  }
+
+  /// Atualiza `escolaNome/Lat/Lng` em cada contratação ativa que inclua
+  /// ESSE filho especificamente (`filhosIds array-contains` o id dele) —
+  /// diferente da localização de casa (que é da família toda, vale pra
+  /// qualquer contratação), a escola é por filho: numa família com mais
+  /// de um filho e motoristas DIFERENTES pra cada um, cada contratação só
+  /// pode receber a escola do(s) filho(s) que ELA de fato transporta,
+  /// nunca a escola de um filho de outra contratação/motorista.
+  ///
+  /// A localização da escola é copiada pra dentro da contratação só uma
+  /// vez, no momento de contratar (ver [registrarContratacao] em
+  /// tela_contratacao.dart) — quem marca/corrige a escola DEPOIS de já
+  /// ter contratado ficava com "nenhuma criança tem a escola marcada" pra
+  /// sempre, sem essa sincronização.
+  Future<void> sincronizarEscolaDoFilhoNasContratacoes(
+    String responsavelUid,
+    String filhoId, {
+    required String escolaNome,
+    required double lat,
+    required double lng,
+  }) async {
+    final contratacoesAtivas = await _usuarios
+        .doc(responsavelUid)
+        .collection('contratacoes')
+        .where('status', isEqualTo: 'Ativo')
+        .where('filhosIds', arrayContains: filhoId)
+        .get();
+    if (contratacoesAtivas.docs.isEmpty) return;
+
+    final lote = _db.batch();
+    for (final doc in contratacoesAtivas.docs) {
+      lote.update(doc.reference, {
+        'escolaNome': escolaNome,
+        'escolaLat': lat,
+        'escolaLng': lng,
+      });
+    }
+    await lote.commit();
+  }
+
+  final Set<String> _escolaSincronizada = {};
+
+  /// Roda [sincronizarEscolaDoFilhoNasContratacoes] pra cada filho (com
+  /// escola marcada) da lista, só uma vez por sessão por responsável —
+  /// pra poder chamar sem medo toda vez que o Painel Principal dele
+  /// carrega (autorreparo de quem já tinha a escola marcada ANTES dessa
+  /// sincronização existir), sem regravar o Firestore em todo rebuild.
+  Future<void> autoSincronizarEscolasNasContratacoes(String responsavelUid, List<Filho> filhos) async {
+    if (_escolaSincronizada.contains(responsavelUid)) return;
+    for (final filho in filhos) {
+      if (filho.id == null || !filho.temLocalizacaoEscola) continue;
+      await sincronizarEscolaDoFilhoNasContratacoes(
+        responsavelUid,
+        filho.id!,
+        escolaNome: filho.escola,
+        lat: filho.escolaLat!,
+        lng: filho.escolaLng!,
+      );
+    }
+    _escolaSincronizada.add(responsavelUid);
+  }
+
+  final Set<String> _localizacaoSincronizada = {};
+
+  /// Mesma coisa que [sincronizarLocalizacaoNasContratacoes], mas só roda
+  /// uma vez por sessão por responsável — pra poder chamar sem medo toda
+  /// vez que o Painel Principal dele carrega (autorreparo de quem já
+  /// tinha a casa marcada ANTES dessa sincronização existir, e por isso
+  /// nunca teve a chance de corrigir a parada no app do Motorista), sem
+  /// regravar o Firestore em todo rebuild.
+  Future<void> autoSincronizarLocalizacaoNasContratacoes(
+    String responsavelUid, {
+    required double lat,
+    required double lng,
+    String? endereco,
+  }) async {
+    if (_localizacaoSincronizada.contains(responsavelUid)) return;
+    // Só marca como feito DEPOIS que a escrita realmente der certo — se
+    // marcasse antes, uma falha de rede faria a sincronização nunca mais
+    // ser tentada de novo nessa sessão.
+    await sincronizarLocalizacaoNasContratacoes(responsavelUid, lat: lat, lng: lng, endereco: endereco);
+    _localizacaoSincronizada.add(responsavelUid);
+  }
+
   /// Se o Responsável já tem algum motorista contratado — usado pra decidir
   /// qual tela de início mostrar (landpage de busca ou painel de
   /// acompanhamento). Reativo: se ele contratar ou (no futuro) cancelar,

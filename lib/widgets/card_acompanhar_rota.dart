@@ -84,23 +84,30 @@ class CardAcompanharRota extends StatelessWidget {
           // Mapa real, centrado na casa do responsável (se já marcada em
           // "Editar Perfil" > "Ponto no Mapa para o Transporte") — e na van
           // ao vivo, se o motorista estiver com uma corrida em andamento.
-          ClipRRect(
+          InkWell(
             borderRadius: BorderRadius.circular(16),
-            child: SizedBox(
-              height: 140,
-              width: double.infinity,
-              child: (motoristaUid != null && motoristaUid!.isNotEmpty)
-                  ? StreamBuilder<LocalizacaoMotorista?>(
-                      stream: FirestoreService.instance.localizacaoAtivaStream(motoristaUid!),
-                      builder: (context, snapshot) {
-                        final localizacao = snapshot.data;
-                        final posicaoVan = (localizacao != null && localizacao.emRota)
-                            ? LatLng(localizacao.lat, localizacao.lng)
-                            : null;
-                        return _buildMapa(context, posicaoVan);
-                      },
-                    )
-                  : _buildMapa(context, null),
+            // O mapa aqui é só uma prévia (sem interação própria); tocar em
+            // qualquer parte dele abre o mapa de verdade, grande e com zoom
+            // — em "Ver detalhes" (ver TelaDetalhesRota).
+            onTap: onVerDetalhes,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: SizedBox(
+                height: 140,
+                width: double.infinity,
+                child: (motoristaUid != null && motoristaUid!.isNotEmpty)
+                    ? StreamBuilder<LocalizacaoMotorista?>(
+                        stream: FirestoreService.instance.localizacaoAtivaStream(motoristaUid!),
+                        builder: (context, snapshot) {
+                          final localizacao = snapshot.data;
+                          final posicaoVan = (localizacao != null && localizacao.emRota)
+                              ? LatLng(localizacao.lat, localizacao.lng)
+                              : null;
+                          return _buildMapa(context, posicaoVan);
+                        },
+                      )
+                    : _buildMapa(context, null),
+              ),
             ),
           ),
           const SizedBox(height: 16),

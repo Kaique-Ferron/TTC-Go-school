@@ -1,10 +1,8 @@
-import 'dart:convert';
 import 'dart:math' as math;
-import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
-import '../config/rotas_config.dart';
 import '../models/parada_rota.dart';
 import '../models/rota_otimizada.dart';
+import 'rota_real_service.dart';
 
 /// Calcula a melhor ordem de embarque das crianças e o trajeto entre elas.
 ///
@@ -16,19 +14,17 @@ import '../models/rota_otimizada.dart';
 /// só da posição dos pontos, então funciona sempre.
 ///
 /// Já o DESENHO do trajeto no mapa — pra não cortar reto por cima de
-/// prédio, lago ou quarteirão inteiro — usa a API gratuita do
-/// OpenRouteService (precisa de uma key pessoal, ver RotasConfig) só pra
-/// pegar a geometria real nas ruas entre os pontos já na ordem definida
-/// acima. Sem a chave configurada, ou se a chamada falhar (sem internet,
-/// fora do ar), cai de volta pro traçado em linha reta — a ordem das
-/// paradas continua certa de qualquer jeito, só o desenho fica reto.
+/// prédio, rio ou quarteirão inteiro — usa [RotaRealService] (OSRM,
+/// gratuito e sem chave). Se não conseguir buscar o trajeto real (sem
+/// internet, serviço fora do ar), cai de volta pro traçado em linha reta
+/// — a ordem das paradas continua certa de qualquer jeito, só o desenho
+/// fica reto.
 class RotaService {
   RotaService._();
   static final RotaService instance = RotaService._();
 
   static const double _raioTerraKm = 6371.0;
   static const double _velocidadeMediaKmH = 28.0;
-  static const _baseUrlOrs = 'https://api.openrouteservice.org';
 
   Future<RotaOtimizada?> calcular({
     required LatLng partida,
@@ -48,17 +44,16 @@ class RotaService {
     ];
     final pontos = [partida, ...ordem.map((p) => p.posicao), ?destino];
 
-    if (RotasConfig.temChave) {
-      final geometriaReal = await _buscarGeometriaReal(pontos);
-      if (geometriaReal != null) {
-        return RotaOtimizada(
-          ordemParadas: ordemParadas,
-          geometria: geometriaReal.$1,
-          duracao: geometriaReal.$2,
-          distanciaKm: geometriaReal.$3,
-          trajetoReal: true,
-        );
-      }
+    final caminhoReal = await RotaRealService.instance.calcularCaminho(pontos);
+    if (caminhoReal != null) {
+      final (geometriaReal, distanciaRealKm) = caminhoReal;
+      return RotaOtimizada(
+        ordemParadas: ordemParadas,
+        geometria: geometriaReal,
+        duracao: Duration(minutes: (distanciaRealKm / _velocidadeMediaKmH * 60).round()),
+        distanciaKm: distanciaRealKm,
+        trajetoReal: true,
+      );
     }
 
     var distanciaTotalKm = 0.0;
@@ -73,47 +68,6 @@ class RotaService {
       distanciaKm: distanciaTotalKm,
       trajetoReal: false,
     );
-  }
-
-  /// Busca a geometria real nas ruas pra sequência de pontos JÁ definida
-  /// (a ordem não muda — só pede o trajeto real entre eles nessa ordem).
-  /// Retorna null em qualquer falha (sem internet, key inválida, fora do
-  /// ar) pra quem chamou cair de volta no traçado em linha reta.
-  Future<(List<LatLng>, Duration, double)?> _buscarGeometriaReal(List<LatLng> pontos) async {
-    try {
-      final resposta = await http
-          .post(
-            Uri.parse('$_baseUrlOrs/v2/directions/driving-car/geojson'),
-            headers: {
-              'Authorization': RotasConfig.orsApiKey,
-              'Content-Type': 'application/json',
-            },
-            body: jsonEncode({
-              'coordinates': pontos.map((p) => [p.longitude, p.latitude]).toList(),
-            }),
-          )
-          .timeout(const Duration(seconds: 10));
-
-      if (resposta.statusCode != 200) return null;
-
-      final dados = jsonDecode(resposta.body) as Map<String, dynamic>;
-      final features = dados['features'] as List?;
-      if (features == null || features.isEmpty) return null;
-
-      final feature = features.first as Map<String, dynamic>;
-      final coordenadas = feature['geometry']['coordinates'] as List;
-      final resumo = feature['properties']['summary'] as Map<String, dynamic>;
-
-      final geometria = coordenadas
-          .map((c) => LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()))
-          .toList();
-      final duracao = Duration(seconds: (resumo['duration'] as num).round());
-      final distanciaKm = (resumo['distance'] as num) / 1000;
-
-      return (geometria, duracao, distanciaKm);
-    } catch (_) {
-      return null;
-    }
   }
 
   /// Distância em linha reta entre dois pontos do globo (fórmula de

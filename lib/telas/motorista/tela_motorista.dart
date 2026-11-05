@@ -1,12 +1,18 @@
-import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import '../../models/motorista_model.dart';
 import '../../services/auth_service.dart';
+import '../../services/localizacao_service.dart';
 import '../../theme/cores.dart';
+import '../../widgets/badge_icone.dart';
+import '../../widgets/cartao_elevado.dart';
 import '../../widgets/foto_perfil_provider.dart';
 import '../../widgets/shell_motorista.dart';
+import '../chat/tela_conversas.dart';
+import 'tela_chamada.dart';
+import 'tela_financas_motorista.dart';
+import 'tela_perfil_motorista.dart';
+import 'tela_rota.dart';
 
 class TelaMotorista extends StatelessWidget {
   const TelaMotorista({super.key});
@@ -42,26 +48,15 @@ class TelaMotorista extends StatelessWidget {
         final dadosMap = snapshot.data!.data() ?? {};
         final Motorista motorista = Motorista.fromMap(dadosMap);
 
-        final email =
-            dadosMap['email'] as String? ?? 'motorista.teste@gmail.com';
-        final telefone = dadosMap['telefone'] as String? ?? '(11) 99999-8888';
-        final localizacao =
-            dadosMap['localizacao'] as String? ?? 'São Paulo, SP';
-        final membroDesde = dadosMap['membroDesde'] as String? ?? 'Jan/2024';
         final passageiros = dadosMap['passageiros'] as String? ?? '15';
         final rotasAtivas = dadosMap['rotasAtivas'] as String? ?? '2';
         final avaliacao = dadosMap['avaliacao'] as String? ?? '4,9/5';
 
         return ShellMotorista(
-          itemSelecionado: 'Meu Perfil',
+          itemSelecionado: 'Painel Principal',
           builder: (context) => _buildConteudo(
             context,
-            uid: uid,
             motorista: motorista,
-            email: email,
-            telefone: telefone,
-            localizacao: localizacao,
-            membroDesde: membroDesde,
             passageiros: passageiros,
             rotasAtivas: rotasAtivas,
             avaliacao: avaliacao,
@@ -73,12 +68,7 @@ class TelaMotorista extends StatelessWidget {
 
   Widget _buildConteudo(
     BuildContext context, {
-    required String uid,
     required Motorista motorista,
-    required String email,
-    required String telefone,
-    required String localizacao,
-    required String membroDesde,
     required String passageiros,
     required String rotasAtivas,
     required String avaliacao,
@@ -92,144 +82,117 @@ class TelaMotorista extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Wrap(
-                spacing: 16,
-                runSpacing: 12,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                alignment: WrapAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Meu Perfil',
-                        style: TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                          color: AppCores.textoPrincipal(context),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Gerencie suas informações e preferências.',
-                        style: TextStyle(
-                          color: AppCores.textoSecundario(context),
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
+              // Faixa em destaque (gradiente laranja) só no Painel
+              // Principal — pra ficar visualmente óbvio que essa é a tela
+              // de "painel do dia", bem diferente do Meu Perfil (fundo
+              // branco comum, de ficha cadastral).
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(horizontal: isWide ? 28 : 18, vertical: isWide ? 24 : 18),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [AppCores.laranjaMotorista, AppCores.laranjaClaro],
                   ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Stack(
-                        children: [
-                          IconButton(
-                            icon: Icon(
-                              Icons.notifications_none,
-                              color: AppCores.textoSecundario(context),
-                            ),
-                            onPressed: () {},
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(color: AppCores.laranjaMotorista.withValues(alpha: 0.35), blurRadius: 20, offset: const Offset(0, 10)),
+                  ],
+                ),
+                child: Wrap(
+                  spacing: 16,
+                  runSpacing: 12,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  alignment: WrapAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Olá, ${motorista.nome.isEmpty ? 'motorista' : motorista.nome.split(' ')[0]} 👋',
+                          style: const TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
-                          Positioned(
-                            right: 8,
-                            top: 8,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Esse é o seu painel — rotas, chamada e finanças, tudo aqui.',
+                          style: TextStyle(color: Colors.white70, fontSize: 14),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Stack(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.notifications_none, color: Colors.white),
+                              onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Notificações chegam em breve.')),
                               ),
-                              child: const Text(
-                                '3',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
+                            ),
+                            Positioned(
+                              right: 8,
+                              top: 8,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Text(
+                                  '3',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(width: 16),
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundColor: const Color(0xFFE8EEFC),
-                        backgroundImage: fotoPerfilProvider(
-                          motorista.fotoPerfil,
+                          ],
                         ),
-                        child: motorista.fotoPerfil.isEmpty
-                            ? Text(
-                                motorista.nome.isNotEmpty
-                                    ? motorista.nome[0]
-                                    : 'C',
-                                style: const TextStyle(
-                                  color: Color(0xFF1D58E2),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              )
-                            : null,
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Olá, ${motorista.nome.split(' ')[0]}',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              color: AppCores.textoPrincipal(context),
+                        const SizedBox(width: 12),
+                        InkWell(
+                          borderRadius: BorderRadius.circular(999),
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaPerfilMotorista())),
+                          child: CircleAvatar(
+                            radius: 20,
+                            backgroundColor: Colors.white,
+                            backgroundImage: fotoPerfilProvider(
+                              motorista.fotoPerfil,
                             ),
+                            child: motorista.fotoPerfil.isEmpty
+                                ? Text(
+                                    motorista.nome.isNotEmpty
+                                        ? motorista.nome[0]
+                                        : 'C',
+                                    style: const TextStyle(
+                                      color: AppCores.laranjaMotorista,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  )
+                                : null,
                           ),
-                          Text(
-                            'Motorista',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppCores.textoSecundario(context),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
               SizedBox(height: isWide ? 32 : 24),
 
-              // LINHA SUPERIOR: Dados pessoais + Veículo
-              Flex(
-                direction: isWide ? Axis.horizontal : Axis.vertical,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: isWide ? 1 : 0,
-                    child: _buildCardDadosPessoais(
-                      context,
-                      uid,
-                      motorista,
-                      email,
-                      telefone,
-                      localizacao,
-                      membroDesde,
-                    ),
-                  ),
-                  SizedBox(width: isWide ? 24 : 0, height: isWide ? 0 : 20),
-                  Expanded(
-                    flex: isWide ? 1 : 0,
-                    child: _buildCardVeiculo(
-                      context,
-                      uid,
-                      motorista,
-                      passageiros,
-                    ),
-                  ),
-                ],
-              ),
+              _buildCardStatus(context, rotasAtivas),
               const SizedBox(height: 24),
 
-              // LINHA INFERIOR: Agenda + Resumo da atividade
+              _buildAcoesRapidas(context, isWide),
+              const SizedBox(height: 24),
+
+              // Agenda + Resumo da atividade
               Flex(
                 direction: isWide ? Axis.horizontal : Axis.vertical,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -258,197 +221,115 @@ class TelaMotorista extends StatelessWidget {
     );
   }
 
-  Widget _buildCardDadosPessoais(
-    BuildContext context,
-    String uid,
-    Motorista motorista,
-    String email,
-    String telefone,
-    String localizacao,
-    String membroDesde,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppCores.superficie(context),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppCores.borda(context)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  /// Card de status no topo do painel, no espírito do app de motorista do
+  /// Uber: mostra se o motorista está "Em rota" agora (reflete o GPS real
+  /// de [LocalizacaoService], ligado em "Minhas Rotas") e dá o atalho mais
+  /// importante da tela — continuar pra lá.
+  Widget _buildCardStatus(BuildContext context, String rotasAtivas) {
+    final emRota = LocalizacaoService.instance.emAndamento;
+    final corStatus = emRota ? Colors.green : AppCores.laranjaMotorista;
+
+    return CartaoElevado(
+      corSombra: corStatus,
+      padding: const EdgeInsets.all(20),
+      child: Row(
         children: [
-          Row(
-            children: [
-              Stack(
-                children: [
-                  CircleAvatar(
-                    radius: 42,
-                    backgroundColor: const Color(0xFFE8EEFC),
-                    backgroundImage: fotoPerfilProvider(motorista.fotoPerfil),
-                    child: motorista.fotoPerfil.isEmpty
-                        ? Text(
-                            motorista.nome.isNotEmpty ? motorista.nome[0] : 'C',
-                            style: const TextStyle(
-                              fontSize: 28,
-                              color: Color(0xFF1D58E2),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          )
-                        : null,
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: InkWell(
-                      onTap: () => _selecionarEAtualizarFoto(context, uid),
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF1D58E2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.edit,
-                          size: 12,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      motorista.nome,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                        color: AppCores.textoPrincipal(context),
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1D58E2),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text(
-                        'Motorista',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          Container(
+            width: 14,
+            height: 14,
+            decoration: BoxDecoration(
+              color: corStatus,
+              shape: BoxShape.circle,
+              boxShadow: [BoxShadow(color: corStatus.withValues(alpha: 0.5), blurRadius: 8, spreadRadius: 1)],
+            ),
           ),
-          const SizedBox(height: 24),
-          _buildInfoRow(context, Icons.mail_outline, email),
-          const SizedBox(height: 12),
-          _buildInfoRow(context, Icons.phone_outlined, telefone),
-          const SizedBox(height: 12),
-          _buildInfoRow(context, Icons.location_on_outlined, localizacao),
-          const SizedBox(height: 12),
-          _buildInfoRow(
-            context,
-            Icons.calendar_today_outlined,
-            'Membro desde $membroDesde',
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  emRota ? 'Você está em rota agora' : 'Pronto pra começar',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: AppCores.textoPrincipal(context),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  emRota
+                      ? 'Sua localização está sendo compartilhada com os responsáveis.'
+                      : '$rotasAtivas rota(s) ativa(s) te esperando.',
+                  style: TextStyle(fontSize: 13, color: AppCores.textoSecundario(context)),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: corStatus,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaRota())),
+            icon: Icon(emRota ? Icons.alt_route : Icons.play_arrow),
+            label: Text(emRota ? 'Ver rota' : 'Iniciar rota'),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCardVeiculo(
-    BuildContext context,
-    String uid,
-    Motorista motorista,
-    String passageiros,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppCores.superficie(context),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppCores.borda(context)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Meu Veículo',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppCores.textoPrincipal(context),
-                ),
-              ),
-              TextButton.icon(
-                onPressed: () => _mostrarDialogoEditarVeiculo(
-                  context,
-                  uid,
-                  motorista.veiculo,
-                  motorista.placa,
-                ),
-                icon: const Icon(
-                  Icons.edit_outlined,
-                  size: 16,
-                  color: Color(0xFF1D58E2),
-                ),
-                label: const Text(
-                  'Editar',
-                  style: TextStyle(
-                    color: Color(0xFF1D58E2),
-                    fontWeight: FontWeight.bold,
+  /// Linha de atalhos coloridos (estilo grade de ações do app do Uber
+  /// Driver) pras telas mais usadas pelo motorista, direto do painel.
+  Widget _buildAcoesRapidas(BuildContext context, bool isWide) {
+    final acoes = [
+      (Icons.alt_route, 'Minhas Rotas', AppCores.laranjaMotorista, () => const TelaRota()),
+      (Icons.how_to_reg_outlined, 'Chamada', Colors.green, () => const TelaChamada()),
+      (Icons.payments_outlined, 'Finanças', Colors.blueGrey, () => const TelaFinancasMotorista()),
+      (Icons.chat_bubble_outline, 'Mensagens', AppCores.azulPrincipal, () => const TelaConversas()),
+    ];
+
+    return Row(
+      children: acoes
+          .map(
+            (acao) => Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(right: acao == acoes.last ? 0 : (isWide ? 16 : 8)),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => acao.$4())),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: isWide ? 18 : 12),
+                    decoration: BoxDecoration(
+                      color: AppCores.superficie(context),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppCores.borda(context)),
+                    ),
+                    child: Column(
+                      children: [
+                        BadgeIcone(icone: acao.$1, cor: acao.$3, tamanho: isWide ? 40 : 32),
+                        const SizedBox(height: 8),
+                        Text(
+                          acao.$2,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: isWide ? 13 : 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppCores.textoPrincipal(context),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          const Center(
-            child: Icon(
-              Icons.directions_bus,
-              size: 70,
-              color: Color(0xFF1D58E2),
             ),
-          ),
-          const SizedBox(height: 16),
-          _buildVehicleInfo(
-            context,
-            Icons.directions_bus_outlined,
-            motorista.veiculo,
-          ),
-          const Divider(height: 24),
-          _buildVehicleInfo(
-            context,
-            Icons.credit_card_outlined,
-            motorista.placa,
-          ),
-          const Divider(height: 24),
-          _buildVehicleInfo(
-            context,
-            Icons.group_outlined,
-            '$passageiros passageiros',
-          ),
-        ],
-      ),
+          )
+          .toList(),
     );
   }
 
@@ -508,7 +389,7 @@ class TelaMotorista extends StatelessWidget {
                 Icons.chevron_right,
                 color: AppCores.textoSecundario(context),
               ),
-              onTap: () {},
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaRota())),
             ),
           ),
           const SizedBox(height: 12),
@@ -539,7 +420,7 @@ class TelaMotorista extends StatelessWidget {
                 Icons.chevron_right,
                 color: AppCores.textoSecundario(context),
               ),
-              onTap: () {},
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaRota())),
             ),
           ),
           const SizedBox(height: 24),
@@ -548,17 +429,17 @@ class TelaMotorista extends StatelessWidget {
             child: OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                side: const BorderSide(color: Color(0xFF1D58E2)),
+                side: const BorderSide(color: AppCores.laranjaMotorista),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              onPressed: () {},
-              icon: const Icon(Icons.alt_route, color: Color(0xFF1D58E2)),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaRota())),
+              icon: const Icon(Icons.alt_route, color: AppCores.laranjaMotorista),
               label: const Text(
                 'Ver minhas rotas',
                 style: TextStyle(
-                  color: Color(0xFF1D58E2),
+                  color: AppCores.laranjaMotorista,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -641,164 +522,6 @@ class TelaMotorista extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  Future<void> _selecionarEAtualizarFoto(
-    BuildContext context,
-    String uid,
-  ) async {
-    final ImagePicker picker = ImagePicker();
-    // maxWidth/maxHeight/imageQuality baixos de propósito: a foto vai
-    // direto dentro do documento do Firestore (sem Firebase Storage, que
-    // exige o plano pago Blaze), então precisa ficar bem pequena pra caber
-    // no limite de 1MB por documento.
-    final XFile? imagemSelecionada = await picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 240,
-      maxHeight: 240,
-      imageQuality: 60,
-    );
-    if (imagemSelecionada == null) return;
-
-    try {
-      final bytes = await imagemSelecionada.readAsBytes();
-      if (bytes.length > 700 * 1024) {
-        if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Essa foto é grande demais, tenta uma menor.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-      final dataUri = 'data:image/jpeg;base64,${base64Encode(bytes)}';
-
-      await FirebaseFirestore.instance.collection('usuarios').doc(uid).update({
-        'fotoPerfil': dataUri,
-      });
-
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Foto de perfil atualizada com sucesso!')),
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Não foi possível enviar a foto: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  void _mostrarDialogoEditarVeiculo(
-    BuildContext context,
-    String uid,
-    String veiculoAtual,
-    String placaAtual,
-  ) {
-    final TextEditingController veiculoController = TextEditingController(
-      text: veiculoAtual,
-    );
-    final TextEditingController placaController = TextEditingController(
-      text: placaAtual,
-    );
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Editar Veículo'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: veiculoController,
-                decoration: const InputDecoration(
-                  labelText: 'Modelo do Veículo (ex: Van Mercedes)',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: placaController,
-                decoration: const InputDecoration(
-                  labelText: 'Placa (ex: ABC1D23)',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1D58E2),
-              ),
-              onPressed: () async {
-                await FirebaseFirestore.instance
-                    .collection('usuarios')
-                    .doc(uid)
-                    .update({
-                      'veiculo': veiculoController.text.trim(),
-                      'placa': placaController.text.trim(),
-                    });
-                if (!context.mounted) return;
-                Navigator.of(context).pop();
-              },
-              child: const Text(
-                'Salvar',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildInfoRow(BuildContext context, IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: AppCores.textoSecundario(context)),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 14,
-              color: AppCores.textoPrincipal(context),
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildVehicleInfo(BuildContext context, IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: const Color(0xFF1D58E2)),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
-              color: AppCores.textoPrincipal(context),
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
     );
   }
 

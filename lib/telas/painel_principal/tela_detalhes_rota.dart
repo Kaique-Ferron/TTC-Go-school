@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 import '../../config/mapa_config.dart';
 import '../../models/localizacao_motorista.dart';
 import '../../services/firestore_service.dart';
+import '../../services/rota_real_service.dart';
 import '../../theme/cores.dart';
 
 /// Tela de detalhes da rota, aberta a partir do Painel Principal ("Ver
@@ -11,6 +12,11 @@ import '../../theme/cores.dart';
 /// interativo (dá pra arrastar/dar zoom, diferente da prévia pequena do
 /// card), com a van ao vivo se o motorista estiver com uma corrida ativa,
 /// e um botão pra recentralizar o mapa nela a qualquer momento.
+///
+/// De propósito só mostra DOIS pontos — a casa desse filho (ponto A) e a
+/// escola (ponto B) — nunca a rota completa da van com as outras crianças:
+/// o responsável não precisa (e não deve) ver o endereço de outras
+/// famílias, só o trecho que importa pra ele.
 class TelaDetalhesRota extends StatefulWidget {
   final String? motoristaUid;
   final String motoristaNome;
@@ -18,6 +24,8 @@ class TelaDetalhesRota extends StatefulWidget {
   final double? longitude;
   final String endereco;
   final String escola;
+  final double? escolaLat;
+  final double? escolaLng;
   final String horario;
   final String veiculoEPlaca;
 
@@ -29,6 +37,8 @@ class TelaDetalhesRota extends StatefulWidget {
     this.longitude,
     this.endereco = '',
     this.escola = '',
+    this.escolaLat,
+    this.escolaLng,
     this.horario = '',
     this.veiculoEPlaca = '',
   });
@@ -39,11 +49,53 @@ class TelaDetalhesRota extends StatefulWidget {
 
 class _TelaDetalhesRotaState extends State<TelaDetalhesRota> {
   final MapController _mapController = MapController();
+  List<LatLng>? _trajetoCasaEscola;
 
   bool get _temCasa => widget.latitude != null && widget.longitude != null;
+  bool get _temEscola => widget.escolaLat != null && widget.escolaLng != null;
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarTrajeto();
+  }
+
+  /// Busca o caminho real nas ruas entre a casa e a escola (ponto A ao
+  /// ponto B) — mesmo RotaRealService (OSRM) do motorista. Cai pra linha
+  /// reta se não conseguir (sem internet, serviço fora do ar).
+  Future<void> _carregarTrajeto() async {
+    if (!_temCasa || !_temEscola) return;
+    final casa = LatLng(widget.latitude!, widget.longitude!);
+    final escola = LatLng(widget.escolaLat!, widget.escolaLng!);
+
+    final caminhoReal = await RotaRealService.instance.calcularCaminho([casa, escola]);
+    if (!mounted) return;
+    setState(() => _trajetoCasaEscola = caminhoReal?.$1 ?? [casa, escola]);
+  }
 
   void _localizarVan(LatLng posicaoVan) {
     _mapController.move(posicaoVan, 16);
+  }
+
+  void _zoom(double delta) {
+    final camera = _mapController.camera;
+    _mapController.move(camera.center, (camera.zoom + delta).clamp(2, 19));
+  }
+
+  Widget _botaoZoom(IconData icone, VoidCallback onTap) {
+    return Material(
+      color: Colors.white,
+      shape: const CircleBorder(),
+      elevation: 3,
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Icon(icone, size: 20, color: AppCores.azulPrincipal),
+        ),
+      ),
+    );
   }
 
   @override
@@ -119,7 +171,7 @@ class _TelaDetalhesRotaState extends State<TelaDetalhesRota> {
   }
 
   Widget _buildMapa(BuildContext context, LatLng? posicaoVan) {
-    if (!_temCasa && posicaoVan == null) {
+    if (!_temCasa && !_temEscola && posicaoVan == null) {
       return Container(
         color: AppCores.fundo(context),
         alignment: Alignment.center,
@@ -141,6 +193,7 @@ class _TelaDetalhesRotaState extends State<TelaDetalhesRota> {
 
     final pontos = [
       if (_temCasa) LatLng(widget.latitude!, widget.longitude!),
+      if (_temEscola) LatLng(widget.escolaLat!, widget.escolaLng!),
       ?posicaoVan,
     ];
 
@@ -156,6 +209,13 @@ class _TelaDetalhesRotaState extends State<TelaDetalhesRota> {
               urlTemplate: MapaConfig.tileUrlTemplate,
               userAgentPackageName: 'com.example.flutter_application_1',
             ),
+            // Só o trecho casa -> escola desse filho (ponto A ao ponto B);
+            // nunca a rota completa da van com as paradas de outras
+            // famílias — ver RotaRealService.calcularCaminho.
+            if (_trajetoCasaEscola != null)
+              PolylineLayer(
+                polylines: [Polyline(points: _trajetoCasaEscola!, strokeWidth: 4, color: AppCores.azulPrincipal)],
+              ),
             MarkerLayer(
               markers: [
                 if (_temCasa)
@@ -165,6 +225,16 @@ class _TelaDetalhesRotaState extends State<TelaDetalhesRota> {
                     height: 46,
                     alignment: Alignment.topCenter,
                     child: const Icon(Icons.location_on, color: Colors.red, size: 42),
+                  ),
+                if (_temEscola)
+                  Marker(
+                    point: LatLng(widget.escolaLat!, widget.escolaLng!),
+                    width: 36,
+                    height: 36,
+                    child: const CircleAvatar(
+                      backgroundColor: AppCores.azulPrincipal,
+                      child: Icon(Icons.school, color: Colors.white, size: 18),
+                    ),
                   ),
                 if (posicaoVan != null)
                   Marker(
@@ -219,6 +289,19 @@ class _TelaDetalhesRotaState extends State<TelaDetalhesRota> {
               child: const Icon(Icons.directions_bus, color: Colors.white),
             ),
           ),
+        // Zoom explícito (+/-), além do beliscar/rolar o mouse padrão do
+        // mapa — pra deixar claro que dá pra aumentar e diminuir o zoom.
+        Positioned(
+          right: 14,
+          bottom: posicaoVan != null ? 72 : 14,
+          child: Column(
+            children: [
+              _botaoZoom(Icons.add, () => _zoom(1)),
+              const SizedBox(height: 8),
+              _botaoZoom(Icons.remove, () => _zoom(-1)),
+            ],
+          ),
+        ),
       ],
     );
   }

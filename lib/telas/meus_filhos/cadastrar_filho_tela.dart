@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import '../../models/filho.dart';
+import '../../services/firestore_service.dart';
 import '../../theme/cores.dart';
 import '../../widgets/seletor_turno.dart';
 import '../../widgets/secao_endereco_form.dart';
@@ -259,8 +260,24 @@ class _CadastrarFilhoTelaState extends State<CadastrarFilhoTela> {
       if (widget.filhoParaEditar == null) {
         await colecaoFilhos.add(dadosParaSalvar);
       } else {
-        if (widget.filhoParaEditar!.id != null) {
-          await colecaoFilhos.doc(widget.filhoParaEditar!.id).update(dadosParaSalvar);
+        final filhoId = widget.filhoParaEditar!.id;
+        if (filhoId != null) {
+          await colecaoFilhos.doc(filhoId).update(dadosParaSalvar);
+
+          // Repassa a localização da escola pra qualquer contratação ativa
+          // que já inclua esse filho especificamente — sem isso, quem
+          // marcasse/corrigisse a escola DEPOIS de já ter contratado o
+          // motorista continuava vendo "nenhuma criança tem a escola
+          // marcada" pra sempre (ver sincronizarEscolaDoFilhoNasContratacoes).
+          if (_escolaLat != null && _escolaLng != null) {
+            await FirestoreService.instance.sincronizarEscolaDoFilhoNasContratacoes(
+              uid,
+              filhoId,
+              escolaNome: novoFilho.escola,
+              lat: _escolaLat!,
+              lng: _escolaLng!,
+            );
+          }
         }
       }
 
