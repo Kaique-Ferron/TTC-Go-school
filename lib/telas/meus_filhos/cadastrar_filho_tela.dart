@@ -7,7 +7,6 @@ import '../../services/firestore_service.dart';
 import '../../theme/cores.dart';
 import '../../widgets/seletor_turno.dart';
 import '../../widgets/secao_endereco_form.dart';
-import '../../widgets/navbar_responsavel.dart';
 import '../../widgets/tela_selecionar_local.dart';
 
 class CadastrarFilhoTela extends StatefulWidget {
