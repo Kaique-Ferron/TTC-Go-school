@@ -108,10 +108,15 @@ service cloud.firestore {
       // Motorista (uid aqui é o motoristaUid). Leitura pública (logado) pra
       // mostrar a média/lista ao navegar motoristas, mesmo sem ter
       // contratado ainda. Escrita só pelo próprio responsável avaliando
-      // (id do documento = seu próprio uid), nota validada de 1 a 5.
+      // (id do documento = seu próprio uid), nota validada de 1 a 5 — e só
+      // quem de fato já contratou esse motorista (mesmo exists() usado em
+      // responsaveis_ativos pra liberar a localização ao vivo) pode
+      // avaliar, pra ninguém conseguir forjar avaliação de quem nunca foi
+      // cliente.
       match /avaliacoes/{responsavelUid} {
         allow read: if isSignedIn();
         allow create, update: if isOwner(responsavelUid)
+          && exists(/databases/$(database)/documents/usuarios/$(uid)/responsaveis_ativos/$(responsavelUid))
           && request.resource.data.responsavelUid == responsavelUid
           && request.resource.data.nota is int
           && request.resource.data.nota >= 1

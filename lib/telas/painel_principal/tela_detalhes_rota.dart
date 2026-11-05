@@ -6,6 +6,7 @@ import '../../models/localizacao_motorista.dart';
 import '../../services/firestore_service.dart';
 import '../../services/rota_real_service.dart';
 import '../../theme/cores.dart';
+import '../../widgets/camada_van_animada.dart';
 
 /// Tela de detalhes da rota, aberta a partir do Painel Principal ("Ver
 /// detalhes" / card "Transporte em andamento") — mapa grande e de verdade
@@ -212,9 +213,24 @@ class _TelaDetalhesRotaState extends State<TelaDetalhesRota> {
             // Só o trecho casa -> escola desse filho (ponto A ao ponto B);
             // nunca a rota completa da van com as paradas de outras
             // famílias — ver RotaRealService.calcularCaminho.
+            //
+            // Linha com "brilho" por baixo + linha principal com borda
+            // branca e pontas redondas por cima — estilo Google Maps/Uber,
+            // em vez de uma linha lisa de uma cor só.
             if (_trajetoCasaEscola != null)
               PolylineLayer(
-                polylines: [Polyline(points: _trajetoCasaEscola!, strokeWidth: 4, color: AppCores.azulPrincipal)],
+                polylines: [
+                  Polyline(points: _trajetoCasaEscola!, strokeWidth: 11, color: AppCores.azulPrincipal.withValues(alpha: 0.25)),
+                  Polyline(
+                    points: _trajetoCasaEscola!,
+                    strokeWidth: 5,
+                    color: AppCores.azulPrincipal,
+                    borderStrokeWidth: 2,
+                    borderColor: Colors.white,
+                    strokeCap: StrokeCap.round,
+                    strokeJoin: StrokeJoin.round,
+                  ),
+                ],
               ),
             MarkerLayer(
               markers: [
@@ -236,23 +252,12 @@ class _TelaDetalhesRotaState extends State<TelaDetalhesRota> {
                       child: Icon(Icons.school, color: Colors.white, size: 18),
                     ),
                   ),
-                if (posicaoVan != null)
-                  Marker(
-                    point: posicaoVan,
-                    width: 40,
-                    height: 40,
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        color: AppCores.azulPrincipal,
-                        shape: BoxShape.circle,
-                        boxShadow: [BoxShadow(color: Color(0x991D58E2), blurRadius: 10)],
-                      ),
-                      alignment: Alignment.center,
-                      child: const Icon(Icons.directions_bus, color: Colors.white, size: 22),
-                    ),
-                  ),
               ],
             ),
+            // Camada separada (fora do MarkerLayer de cima) pra poder
+            // animar só ela, deslizando suave entre posições em vez de
+            // saltar — ver CamadaVanAnimada.
+            if (posicaoVan != null) CamadaVanAnimada(posicao: posicaoVan),
           ],
         ),
         Positioned(
