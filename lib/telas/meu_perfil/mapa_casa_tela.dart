@@ -9,9 +9,6 @@ import '../../config/mapa_config.dart';
 import '../../services/firestore_service.dart';
 import '../../theme/cores.dart';
 
-/// Tela para o Responsável marcar a localização da própria casa no mapa.
-/// Salva coordenadas + endereço legível em usuarios/{uid} (casa_lat,
-/// casa_lng, casa_endereco), via merge para não sobrescrever o resto do perfil.
 class MapaCasaTela extends StatefulWidget {
   final double? latitudeAtual;
   final double? longitudeAtual;
@@ -23,7 +20,7 @@ class MapaCasaTela extends StatefulWidget {
 }
 
 class _MapaCasaTelaState extends State<MapaCasaTela> {
-  static const LatLng _centroPadrao = LatLng(-23.5505, -46.6333); // São Paulo
+  static const LatLng _centroPadrao = LatLng(-23.5505, -46.6333);
 
   final MapController _mapController = MapController();
 
@@ -72,10 +69,6 @@ class _MapaCasaTelaState extends State<MapaCasaTela> {
     }
   }
 
-  /// Converte a coordenada marcada em um endereço legível (rua, bairro).
-  /// Retorna null quando a geocodificação reversa não está disponível
-  /// (ex: plataforma Web, sem suporte nativo do pacote geocoding) — nesse
-  /// caso a casa ainda é salva, só sem o texto do endereço.
   Future<String?> _enderecoLegivel(LatLng ponto) async {
     try {
       final placemarks = await placemarkFromCoordinates(ponto.latitude, ponto.longitude);
@@ -111,10 +104,6 @@ class _MapaCasaTelaState extends State<MapaCasaTela> {
         'atualizadoEm': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
-      // Repassa a localização nova pra qualquer contratação já ativa —
-      // sem isso, quem contrata o motorista antes de marcar a casa (ou
-      // muda de endereço depois) fica com a parada sem localização no
-      // app do motorista pra sempre (ver sincronizarLocalizacaoNasContratacoes).
       await FirestoreService.instance.sincronizarLocalizacaoNasContratacoes(
         uid,
         lat: _posicaoCasa!.latitude,
@@ -172,7 +161,6 @@ class _MapaCasaTelaState extends State<MapaCasaTela> {
             ],
           ),
 
-          // Dica de uso
           Positioned(
             top: 12,
             left: 16,
@@ -199,7 +187,6 @@ class _MapaCasaTelaState extends State<MapaCasaTela> {
             ),
           ),
 
-          // Botão flutuante: centralizar na posição atual (GPS)
           Positioned(
             right: 16,
             bottom: 16,

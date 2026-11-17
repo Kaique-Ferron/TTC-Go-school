@@ -17,9 +17,6 @@ class FirestoreService {
   FirestoreService._(this._db);
   static final FirestoreService instance = FirestoreService._(FirebaseFirestore.instance);
 
-  /// Construtor usado em testes de widget, pra injetar um FirebaseFirestore
-  /// fake (ex.: FakeFirebaseFirestore do pacote fake_cloud_firestore) em vez
-  /// do singleton real.
   @visibleForTesting
   factory FirestoreService.comInstancia(FirebaseFirestore db) => FirestoreService._(db);
 
@@ -28,9 +25,6 @@ class FirestoreService {
   CollectionReference<Map<String, dynamic>> get _usuarios =>
       _db.collection('usuarios');
 
-  // Subconjunto público do perfil do Motorista (nome/veículo/placa/
-  // licença/foto) — ver comentário em salvarUsuario sobre por que isso
-  // existe separado do documento completo em usuarios/{uid}.
   CollectionReference<Map<String, dynamic>> get _motoristasPublico =>
       _db.collection('motoristas_publico');
 
@@ -48,15 +42,6 @@ class FirestoreService {
     }
   }
 
-  /// Atualiza campos específicos do usuário sem sobrescrever o documento inteiro.
-  ///
-  /// Se o usuário for Motorista, também espelha os campos públicos
-  /// (nome/veículo/placa/licença/foto) em motoristas_publico/{uid} — essa
-  /// cópia é o que a busca de motoristas (motoristasStream) lê, em vez do
-  /// documento completo de usuarios/{uid}. Antes, qualquer responsável
-  /// logado conseguia ler o documento INTEIRO de um motorista (regra do
-  /// Firestore não filtra campo, só documento), o que expunha cpf/cnh/
-  /// endereço junto com os dados exibidos na tela. Ver firestore.rules.
   Future<void> atualizarUsuario(String uid, Map<String, dynamic> dados) async {
     await _usuarios.doc(uid).update(dados);
     final atual = (await _usuarios.doc(uid).get()).data();
@@ -76,8 +61,6 @@ class FirestoreService {
     });
   }
 
-  /// Preferências de aparência (tema e tamanho da fonte) — ver
-  /// [PreferenciasProvider], que aplica esses valores no MaterialApp inteiro.
   Future<void> salvarPreferencias(String uid, {required String tema, required String tamanhoFonte}) {
     return atualizarUsuario(uid, {'tema': tema, 'tamanhoFonte': tamanhoFonte});
   }
@@ -104,18 +87,11 @@ class FirestoreService {
     return _filhos(uid).doc(filhoId).delete();
   }
 
-  /// Motoristas reais cadastrados no app, exibidos na aba "Serviços" da
-  /// landpage — lê o perfil PÚBLICO (motoristas_publico/{uid}), não o
-  /// documento completo em usuarios/{uid} (que tem cpf/cnh/endereço).
   Stream<List<Motorista>> motoristasStream() {
     return _motoristasPublico.snapshots().map(
           (snap) => snap.docs.map((d) => Motorista.fromUsuarioMap(d.data())).toList(),
         );
   }
-
-  // ===== Mensalidades (Finanças do Motorista) =====
-  // Caminho: usuarios/{motoristaUid}/mensalidades/{mensalidadeId}
-  // Ver firestore/MIGRATIONS.md para o schema completo e como semear os dados.
 
   CollectionReference<Map<String, dynamic>> _mensalidades(String motoristaUid) =>
       _usuarios.doc(motoristaUid).collection('mensalidades');
@@ -126,11 +102,6 @@ class FirestoreService {
         );
   }
 
-  /// "Migração"/seed: grava os dados mockados de mensalidade como documentos
-  /// reais no Firestore do motorista logado. Usa IDs fixos (mock_1..mock_5)
-  /// para ser idempotente — rodar de novo só sobrescreve os mesmos docs, não
-  /// duplica. Chamado pelo botão "Carregar dados de exemplo" na tela de
-  /// Finanças quando a subcoleção ainda está vazia.
   Future<void> semearMensalidadesMock(String motoristaUid, List<Mensalidade> mensalidades) async {
     final lote = _db.batch();
     for (var i = 0; i < mensalidades.length; i++) {
@@ -140,22 +111,10 @@ class FirestoreService {
     await lote.commit();
   }
 
-  // ===== Contratação (Responsável contrata um Motorista) =====
-  // Caminho: usuarios/{responsavelUid}/contratacoes/{contratacaoId}
-  // Ver firestore/MIGRATIONS.md para o schema completo.
-
   Future<void> registrarContratacao(String responsavelUid, Map<String, dynamic> dados) {
     return _usuarios.doc(responsavelUid).collection('contratacoes').add(dados);
   }
 
-  /// Atualiza `responsavelLat/Lng/Endereco` em TODAS as contratações ativas
-  /// desse responsável (com qualquer motorista) com o endereço de casa
-  /// atual. A localização de casa é copiada pra dentro da contratação só
-  /// uma vez, no momento de contratar (ver [registrarContratacao]), pra o
-  /// Motorista não precisar de permissão pra ler o perfil do Responsável —
-  /// sem isso, quem contratou ANTES de marcar o endereço no mapa (ou mudou
-  /// de casa depois) fica com a parada sem localização pra sempre. Chamado
-  /// pela tela de "Minha Casa" depois de salvar.
   Future<void> sincronizarLocalizacaoNasContratacoes(
     String responsavelUid, {
     required double lat,
@@ -180,19 +139,6 @@ class FirestoreService {
     await lote.commit();
   }
 
-  /// Atualiza `escolaNome/Lat/Lng` em cada contratação ativa que inclua
-  /// ESSE filho especificamente (`filhosIds array-contains` o id dele) —
-  /// diferente da localização de casa (que é da família toda, vale pra
-  /// qualquer contratação), a escola é por filho: numa família com mais
-  /// de um filho e motoristas DIFERENTES pra cada um, cada contratação só
-  /// pode receber a escola do(s) filho(s) que ELA de fato transporta,
-  /// nunca a escola de um filho de outra contratação/motorista.
-  ///
-  /// A localização da escola é copiada pra dentro da contratação só uma
-  /// vez, no momento de contratar (ver [registrarContratacao] em
-  /// tela_contratacao.dart) — quem marca/corrige a escola DEPOIS de já
-  /// ter contratado ficava com "nenhuma criança tem a escola marcada" pra
-  /// sempre, sem essa sincronização.
   Future<void> sincronizarEscolaDoFilhoNasContratacoes(
     String responsavelUid,
     String filhoId, {
@@ -221,11 +167,6 @@ class FirestoreService {
 
   final Set<String> _escolaSincronizada = {};
 
-  /// Roda [sincronizarEscolaDoFilhoNasContratacoes] pra cada filho (com
-  /// escola marcada) da lista, só uma vez por sessão por responsável —
-  /// pra poder chamar sem medo toda vez que o Painel Principal dele
-  /// carrega (autorreparo de quem já tinha a escola marcada ANTES dessa
-  /// sincronização existir), sem regravar o Firestore em todo rebuild.
   Future<void> autoSincronizarEscolasNasContratacoes(String responsavelUid, List<Filho> filhos) async {
     if (_escolaSincronizada.contains(responsavelUid)) return;
     for (final filho in filhos) {
@@ -243,12 +184,6 @@ class FirestoreService {
 
   final Set<String> _localizacaoSincronizada = {};
 
-  /// Mesma coisa que [sincronizarLocalizacaoNasContratacoes], mas só roda
-  /// uma vez por sessão por responsável — pra poder chamar sem medo toda
-  /// vez que o Painel Principal dele carrega (autorreparo de quem já
-  /// tinha a casa marcada ANTES dessa sincronização existir, e por isso
-  /// nunca teve a chance de corrigir a parada no app do Motorista), sem
-  /// regravar o Firestore em todo rebuild.
   Future<void> autoSincronizarLocalizacaoNasContratacoes(
     String responsavelUid, {
     required double lat,
@@ -256,17 +191,11 @@ class FirestoreService {
     String? endereco,
   }) async {
     if (_localizacaoSincronizada.contains(responsavelUid)) return;
-    // Só marca como feito DEPOIS que a escrita realmente der certo — se
-    // marcasse antes, uma falha de rede faria a sincronização nunca mais
-    // ser tentada de novo nessa sessão.
+
     await sincronizarLocalizacaoNasContratacoes(responsavelUid, lat: lat, lng: lng, endereco: endereco);
     _localizacaoSincronizada.add(responsavelUid);
   }
 
-  /// Se o Responsável já tem algum motorista contratado — usado pra decidir
-  /// qual tela de início mostrar (landpage de busca ou painel de
-  /// acompanhamento). Reativo: se ele contratar ou (no futuro) cancelar,
-  /// a tela de início muda sozinha, sem precisar deslogar/logar de novo.
   Stream<bool> temContratacaoAtivaStream(String responsavelUid) {
     return _usuarios
         .doc(responsavelUid)
@@ -276,9 +205,6 @@ class FirestoreService {
         .map((snap) => snap.docs.isNotEmpty);
   }
 
-  /// Dados completos da contratação ativa do Responsável (o motorista que
-  /// ele selecionou agora) — usado na seção "Motorista selecionado" da tela
-  /// de Perfil. Retorna null se não houver nenhuma contratação ativa.
   Stream<Map<String, dynamic>?> contratacaoAtivaStream(String responsavelUid) {
     return _usuarios
         .doc(responsavelUid)
@@ -289,8 +215,6 @@ class FirestoreService {
         .map((snap) => snap.docs.isEmpty ? null : snap.docs.first.data());
   }
 
-  /// Motoristas que o Responsável já contratou — vira a lista de contatos pra
-  /// começar uma conversa nova sem passar pela aba Serviços de novo.
   Stream<List<ContatoChat>> meusMotoristasContratadosStream(String responsavelUid) {
     return _usuarios.doc(responsavelUid).collection('contratacoes').snapshots().map((snap) {
       final vistos = <String>{};
@@ -305,11 +229,6 @@ class FirestoreService {
     });
   }
 
-  /// Responsáveis que já contrataram esse motorista — via collectionGroup,
-  /// já que a contratação é gravada do lado do Responsável
-  /// (usuarios/{responsavelUid}/contratacoes). Precisa de um índice de
-  /// collection group pra 'motoristaUid' no Firestore (o próprio erro no
-  /// console, na primeira vez que rodar, traz o link pra criar).
   Stream<List<ContatoChat>> meusResponsaveisStream(String motoristaUid) {
     return _db
         .collectionGroup('contratacoes')
@@ -327,11 +246,16 @@ class FirestoreService {
     });
   }
 
-  // ===== Chamada (Motorista confirma presença das crianças na van) =====
-  // Caminho: usuarios/{motoristaUid}/chamadas/{chamadaId}
-  // chamadaId = '{yyyy-MM-dd}_{periodo}' — idempotente, uma chamada por
-  // dia/período (marcar de novo no mesmo dia atualiza, não duplica).
-  // Ver firestore/MIGRATIONS.md para o schema completo.
+  // Mesma consulta (collection group por motoristaUid) já usada acima — sem
+  // orderBy de propósito, pra não exigir um índice composto novo. A
+  // ordenação por data é feita no cliente, em quem consome esse stream.
+  Stream<List<Map<String, dynamic>>> contratacoesRecebidasStream(String motoristaUid) {
+    return _db
+        .collectionGroup('contratacoes')
+        .where('motoristaUid', isEqualTo: motoristaUid)
+        .snapshots()
+        .map((snap) => snap.docs.map((d) => d.data()).toList());
+  }
 
   CollectionReference<Map<String, dynamic>> _chamadas(String motoristaUid) =>
       _usuarios.doc(motoristaUid).collection('chamadas');
@@ -342,10 +266,6 @@ class FirestoreService {
     return '${d}_$periodo';
   }
 
-  /// Todas as crianças nas rotas ativas desse motorista, pra montar a lista
-  /// da chamada. Reusa a mesma consulta (e o mesmo índice) de
-  /// meusResponsaveisStream; filtra status == 'Ativo' no cliente pra não
-  /// precisar de um índice composto novo no collection group.
   Stream<List<CriancaRota>> criancasDaRotaStream(String motoristaUid) {
     return _db.collectionGroup('contratacoes').where('motoristaUid', isEqualTo: motoristaUid).snapshots().map((
       snap,
@@ -376,22 +296,11 @@ class FirestoreService {
     });
   }
 
-  /// Paradas da rota desse motorista (uma por responsável + período —
-  /// pode ter mais de um filho do mesmo responsável na mesma parada),
-  /// prontas pra calcular a rota otimizada (ver RotaService). Reusa a
-  /// mesma consulta collection group de criancasDaRotaStream/
-  /// meusResponsaveisStream. lat/lng/endereco vêm do que foi gravado na
-  /// contratação (ver registrarContratacao em tela_contratacao.dart) — é
-  /// uma cópia da localização de casa do responsável no momento em que ele
-  /// contratou, não ao vivo (se ele mudar o pino depois, não atualiza aqui
-  /// sozinho).
   Stream<List<ParadaMotorista>> paradasRotaStream(String motoristaUid) {
     return _db.collectionGroup('contratacoes').where('motoristaUid', isEqualTo: motoristaUid).snapshots().map((
       snap,
     ) {
-      // Agrupa por (responsavelUid, período) — se o mesmo responsável tiver
-      // mais de uma contratação pro mesmo período (não deveria, mas não
-      // custa tolerar), funde os nomes dos filhos numa parada só.
+
       final paradasPorChave = <String, ParadaMotorista>{};
       for (final doc in snap.docs) {
         final dados = doc.data();
@@ -421,34 +330,15 @@ class FirestoreService {
     });
   }
 
-  // ===== Localização ao vivo (Motorista "em corrida") =====
-  // Caminho: usuarios/{motoristaUid}/localizacao_ativa/atual. Ver
-  // firestore/MIGRATIONS.md e firestore.rules (seção responsaveis_ativos).
-
   DocumentReference<Map<String, dynamic>> _localizacaoAtiva(String motoristaUid) =>
       _usuarios.doc(motoristaUid).collection('localizacao_ativa').doc('atual');
 
-  /// Marca que esse responsável tem (ou já teve) o motorista contratado —
-  /// id do documento é o próprio responsavelUid, pra regra do Firestore
-  /// conseguir checar com exists() se ele pode ver a localização ao vivo
-  /// desse motorista, sem precisar de uma query. Chamado no momento da
-  /// contratação E toda vez que o Painel Principal do responsável carrega
-  /// (autorreparo — contratações feitas antes dessa funcionalidade existir
-  /// não tinham esse documento, então ficavam sem ver a localização ao
-  /// vivo; confirmar de novo aqui corrige isso sem precisar de migração
-  /// manual). O Set evita regravar o mesmo par motorista+responsável mais
-  /// de uma vez por sessão do app.
   final Set<String> _responsaveisAtivosConfirmados = {};
 
   Future<void> registrarResponsavelAtivo(String motoristaUid, String responsavelUid) async {
     final chave = '${motoristaUid}_$responsavelUid';
     if (_responsaveisAtivosConfirmados.contains(chave)) return;
 
-    // Só marca como confirmado DEPOIS que a escrita realmente der certo —
-    // se marcasse antes (ou sem esperar), uma falha (ex.: regra do
-    // Firestore ainda não publicada) deixaria isso "confirmado" errado pro
-    // resto da sessão do app, e nunca mais tentaria de novo mesmo depois
-    // da regra corrigida.
     await _usuarios
         .doc(motoristaUid)
         .collection('responsaveis_ativos')
@@ -457,8 +347,6 @@ class FirestoreService {
     _responsaveisAtivosConfirmados.add(chave);
   }
 
-  /// Grava a posição GPS atual do motorista — chamado repetidamente pelo
-  /// LocalizacaoService enquanto a corrida estiver ativa.
   Future<void> atualizarLocalizacaoAtiva(
     String motoristaUid, {
     required double lat,
@@ -473,8 +361,6 @@ class FirestoreService {
     });
   }
 
-  /// Só desliga o selo "em rota" (mantém a última posição conhecida) —
-  /// usado quando o motorista aperta "Finalizar corrida".
   Future<void> pararLocalizacaoAtiva(String motoristaUid) {
     return _localizacaoAtiva(motoristaUid).set({'emRota': false}, SetOptions(merge: true));
   }
@@ -486,17 +372,10 @@ class FirestoreService {
     });
   }
 
-  /// Chamada de um dia/período — mapa filhoId -> {nome, presente, confirmadoEm}.
-  /// Null se ainda não foi feita nenhuma marcação nesse dia/período.
   Stream<Map<String, dynamic>?> chamadaStream(String motoristaUid, String chamadaId) {
     return _chamadas(motoristaUid).doc(chamadaId).snapshots().map((doc) => doc.data());
   }
 
-  /// Marca presença/ausência de uma criança na chamada do dia (grava com
-  /// merge, então chamar de novo só atualiza aquela criança, sem apagar as
-  /// outras já marcadas). Também manda uma mensagem real no chat pro
-  /// responsável — reusa a infraestrutura de chat já existente em vez de
-  /// criar um sistema de notificação paralelo que mais ninguém leria.
   Future<void> marcarPresenca({
     required String motoristaUid,
     required String motoristaNome,
@@ -532,21 +411,13 @@ class FirestoreService {
     await enviarMensagem(conversaId: conversaId, remetenteUid: motoristaUid, texto: texto);
   }
 
-  // ===== Chat (conversas entre Responsável e Motorista) =====
-  // Caminho: conversas/{conversaId} e conversas/{conversaId}/mensagens/{mensagemId}.
-  // Ver firestore/MIGRATIONS.md para o schema completo.
-
   CollectionReference<Map<String, dynamic>> get _conversas => _db.collection('conversas');
 
-  /// Id determinístico pra dupla (uidA, uidB): sempre os dois uids ordenados
-  /// e juntos com "_", então a mesma dupla sempre cai na mesma conversa.
   String conversaIdPara(String uidA, String uidB) {
     final ids = [uidA, uidB]..sort();
     return '${ids[0]}_${ids[1]}';
   }
 
-  /// Retorna o id da conversa entre os dois usuários, criando o documento
-  /// (com os nomes dos participantes) se ainda não existir.
   Future<String> obterOuCriarConversa({
     required String meuUid,
     required String meuNome,
@@ -566,10 +437,6 @@ class FirestoreService {
       });
     }
 
-    // Espelha meu id de inscrição push nessa conversa (pra o outro
-    // participante conseguir me notificar de uma mensagem nova, sem
-    // precisar ler meu documento completo de usuarios/{uid}) — atualiza
-    // sempre que alguém abre a conversa, então o id tende a ficar fresco.
     final meuPushId = NotificationService.subscriptionIdAtual;
     if (meuPushId != null && meuPushId.isNotEmpty) {
       await ref.set({
@@ -617,9 +484,6 @@ class FirestoreService {
     await _notificarNovaMensagem(ref: ref, remetenteUid: remetenteUid, texto: texto);
   }
 
-  /// Notifica (push real, via OneSignal) o OUTRO participante da conversa
-  /// sobre a mensagem que acabou de ser enviada. Nunca deixa uma falha
-  /// aqui travar o envio da mensagem em si — notificação é um extra.
   Future<void> _notificarNovaMensagem({
     required DocumentReference<Map<String, dynamic>> ref,
     required String remetenteUid,
@@ -649,14 +513,9 @@ class FirestoreService {
         mensagem: texto,
       );
     } catch (_) {
-      // Ver comentário acima.
+
     }
   }
-
-  // ===== Avaliações (Responsável avalia o Motorista) =====
-  // Caminho: usuarios/{motoristaUid}/avaliacoes/{responsavelUid} — um
-  // documento por responsável (o id fixo evita duplicar e deixa o
-  // responsável atualizar a própria nota depois). Ver firestore/MIGRATIONS.md.
 
   CollectionReference<Map<String, dynamic>> _avaliacoes(String motoristaUid) =>
       _usuarios.doc(motoristaUid).collection('avaliacoes');

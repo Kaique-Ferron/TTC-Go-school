@@ -1,11 +1,11 @@
 {
-    "name": "flutter_application_1",
-    "short_name": "flutter_application_1",
+    "name": "GoSchool",
+    "short_name": "GoSchool",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#1D58E2",
-    "description": "A new Flutter project.",
+    "description": "GoSchool — transporte escolar com acompanhamento em tempo real.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

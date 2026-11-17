@@ -3,8 +3,6 @@ import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import '../theme/cores.dart';
 
-/// Diálogo de avaliação rápida (estrelas + comentário opcional) de um
-/// motorista já contratado. Grava em usuarios/{motoristaUid}/avaliacoes.
 class DialogAvaliarMotorista extends StatefulWidget {
   final String motoristaUid;
   final String motoristaNome;

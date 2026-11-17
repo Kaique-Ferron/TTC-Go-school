@@ -1,9 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// Uma avaliação que um Responsável deixa pra um Motorista — nota de 1 a 5
-/// com comentário opcional. Caminho: usuarios/{motoristaUid}/avaliacoes/{responsavelUid}
-/// (um documento por responsável, pra cada um só poder avaliar uma vez e
-/// poder atualizar a própria nota depois).
 class Avaliacao {
   final String responsavelUid;
   final String responsavelNome;

@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_application_1/models/usuario.dart';
-import 'package:flutter_application_1/services/firestore_service.dart';
+import 'package:goschool/models/usuario.dart';
+import 'package:goschool/services/firestore_service.dart';
 
 void main() {
   late FakeFirebaseFirestore db;

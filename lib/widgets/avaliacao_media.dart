@@ -3,9 +3,6 @@ import '../models/avaliacao_model.dart';
 import '../services/firestore_service.dart';
 import '../theme/cores.dart';
 
-/// Mostra a nota média real de um motorista (calculada em cima da
-/// subcoleção de avaliações) — em vez do texto fixo que existia antes.
-/// Usado no card da lista de motoristas e no modal de detalhes.
 class AvaliacaoMedia extends StatelessWidget {
   final String motoristaUid;
   final double iconSize;

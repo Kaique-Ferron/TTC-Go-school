@@ -20,25 +20,21 @@ class TelaCadastro extends StatefulWidget {
 class _TelaCadastroState extends State<TelaCadastro> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controllers de Dados Pessoais
   final _nomeController = TextEditingController();
   final _cpfController = TextEditingController();
   final _telefoneController = TextEditingController();
   final _emailController = TextEditingController();
 
-  // Controllers de Endereço
   final _cepController = TextEditingController();
   final _ruaController = TextEditingController();
   final _numeroController = TextEditingController();
   final _bairroController = TextEditingController();
 
-  // Controllers de Motorista
   final _cnhController = TextEditingController();
   final _licencaController = TextEditingController();
   final _placaController = TextEditingController();
   final _veiculoController = TextEditingController();
 
-  // Controllers de Senha
   final _senhaController = TextEditingController();
   final _confirmarSenhaController = TextEditingController();
   String _senha = '';
@@ -76,8 +72,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
 
     setState(() => _carregando = true);
     try {
-      // Cadastro direto no Firebase Auth (sem verificação de e-mail): o
-      // usuário já fica autenticado assim que a conta é criada.
+
       final uid = await AuthService.instance.cadastrar(
         email: _emailController.text.trim(),
         senha: _senhaController.text,
@@ -101,12 +96,6 @@ class _TelaCadastroState extends State<TelaCadastro> {
 
       await FirestoreService.instance.salvarUsuario(uid, usuario);
 
-      // Converte o endereço digitado em coordenada automaticamente (ver
-      // GeocodificacaoService) — sem isso, só quem abrisse "Minha Casa"
-      // manualmente pra marcar um pino no mapa teria casa_lat/casa_lng, e
-      // a rota do Motorista ficaria "sem localização" pra todo o resto.
-      // Falha em silêncio (sem internet, endereço não encontrado etc.):
-      // a conta já foi criada, e o pino manual continua disponível depois.
       final enderecoParaGeocodificar = [
         if (usuario.rua.isNotEmpty) usuario.numero.isNotEmpty ? '${usuario.rua}, ${usuario.numero}' : usuario.rua,
         if (usuario.bairro.isNotEmpty) usuario.bairro,
@@ -127,8 +116,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Conta criada com sucesso!'), backgroundColor: Colors.green),
       );
-      // Volta até a raiz: o AuthGate já mostra a tela logada, pois o
-      // Firebase autentica o usuário automaticamente após o cadastro.
+
       Navigator.of(context).popUntil((route) => route.isFirst);
     } catch (e) {
       if (!mounted) return;
@@ -163,7 +151,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Voltar
+
                   Align(
                     alignment: Alignment.centerLeft,
                     child: TextButton.icon(
@@ -174,7 +162,6 @@ class _TelaCadastroState extends State<TelaCadastro> {
                   ),
                   const SizedBox(height: 8),
 
-                  // Badge Perfil
                   Center(
                     child: Chip(
                       avatar: Icon(isResponsavel ? Icons.person : Icons.directions_bus, size: 16, color: corPerfil),
@@ -190,7 +177,6 @@ class _TelaCadastroState extends State<TelaCadastro> {
                   Center(child: Text('Preencha seus dados para criar sua conta.', style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 13))),
                   const SizedBox(height: 20),
 
-                  // Upload Foto
                   Center(
                     child: Column(
                       children: [
@@ -206,7 +192,6 @@ class _TelaCadastroState extends State<TelaCadastro> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Dados Pessoais
                   CampoTextoCustomizado(
                     controller: _nomeController,
                     hintText: 'Nome completo',
@@ -219,13 +204,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                     hintText: 'CPF',
                     prefixIcon: Icons.badge_outlined,
                     keyboardType: TextInputType.number,
-                    // Validação de CPF desativada por enquanto — aceita qualquer valor
-                    // (inclusive aleatório) até a verificação real ser implementada.
-                    // validator: (valor) {
-                    //   final digitos = (valor ?? '').replaceAll(RegExp(r'[^0-9]'), '');
-                    //   if (digitos.length != 11) return 'CPF inválido';
-                    //   return null;
-                    // },
+
                   ),
                   const SizedBox(height: 10),
                   CampoTextoCustomizado(
@@ -253,7 +232,6 @@ class _TelaCadastroState extends State<TelaCadastro> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Seção exclusiva para Motorista
                   if (!isResponsavel) ...[
                     SecaoMotorista(
                       cnhController: _cnhController,
@@ -264,7 +242,6 @@ class _TelaCadastroState extends State<TelaCadastro> {
                     const SizedBox(height: 16),
                   ],
 
-                  // Seção de Endereço com Busca Automática por CEP
                   SecaoEndereco(
                     cepController: _cepController,
                     ruaController: _ruaController,
@@ -273,11 +250,9 @@ class _TelaCadastroState extends State<TelaCadastro> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Segurança
                   Text('Segurança da Conta', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppCores.textoPrincipal(context))),
                   const SizedBox(height: 8),
 
-                  // Campo Senha
                   CampoTextoCustomizado(
                     controller: _senhaController,
                     hintText: 'Senha',
@@ -303,7 +278,6 @@ class _TelaCadastroState extends State<TelaCadastro> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Botão de Criar Conta
                   BotaoPrincipal(
                     texto: 'Criar minha conta',
                     icone: Icons.person_add_alt_1,

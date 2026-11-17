@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../services/firestore_service.dart';
 import '../../services/geocodificacao_service.dart';
+import '../../services/ibge_service.dart';
 import '../../services/viacep_service.dart';
 import '../../theme/cores.dart';
 import '../../widgets/foto_perfil_provider.dart';
@@ -38,6 +39,7 @@ class _EditarPerfilTelaState extends State<EditarPerfilTela> {
   double? _casaLat;
   double? _casaLng;
   String? _fotoPerfilUrl;
+  String? _regiaoIbge;
 
   @override
   void initState() {
@@ -79,16 +81,22 @@ class _EditarPerfilTelaState extends State<EditarPerfilTela> {
 
     setState(() => _buscandoCep = true);
     try {
-      // 1. Chama o método estático correto da sua classe
+
       final Endereco? endereco = await ViaCepService.buscarCep(cep);
 
       if (endereco != null && mounted) {
         setState(() {
-          // 2. Acessa as propriedades do modelo Endereco diretamente
-          _enderecoController.text = endereco.logradouro ?? '';
-          _bairroController.text = endereco.bairro ?? '';
+
+          _enderecoController.text = endereco.logradouro;
+          _bairroController.text = endereco.bairro;
           _cidadeUfController.text = '${endereco.localidade} - ${endereco.uf}';
+          _regiaoIbge = null;
         });
+
+        final municipio = await IbgeService.instance.buscarMunicipio(endereco.ibge);
+        if (municipio != null && mounted) {
+          setState(() => _regiaoIbge = municipio.mesorregiao);
+        }
       }
     } catch (_) {
       if (mounted) {
@@ -108,10 +116,7 @@ class _EditarPerfilTelaState extends State<EditarPerfilTela> {
     if (uid == null) return;
 
     final ImagePicker picker = ImagePicker();
-    // maxWidth/maxHeight/imageQuality baixos de propósito: a foto vai
-    // direto dentro do documento do Firestore (sem Firebase Storage, que
-    // exige o plano pago Blaze), então precisa ficar bem pequena pra caber
-    // no limite de 1MB por documento.
+
     final XFile? imagemSelecionada = await picker.pickImage(
       source: ImageSource.gallery,
       maxWidth: 240,
@@ -172,18 +177,12 @@ class _EditarPerfilTelaState extends State<EditarPerfilTela> {
     }
 
     try {
-      // 1. Se o e-mail mudou, atualiza na autenticação do Firebase
+
       final user = FirebaseAuth.instance.currentUser;
       if (user != null && _emailController.text.trim() != user.email) {
         await user.verifyBeforeUpdateEmail(_emailController.text.trim());
       }
 
-      // 1.5 Se ainda não tem um pino manual marcado em "Minha Casa", tenta
-      // converter o endereço digitado em coordenada automaticamente (ver
-      // GeocodificacaoService) — sem isso, só quem abrisse aquela tela
-      // manualmente teria casa_lat/casa_lng, e a parada ficaria "sem
-      // localização" pro Motorista mesmo com o endereço todo preenchido.
-      // Falha em silêncio (endereço incompleto, sem internet etc.).
       if (_casaLat == null) {
         final enderecoParaGeocodificar = [
           _enderecoController.text.trim(),
@@ -199,7 +198,6 @@ class _EditarPerfilTelaState extends State<EditarPerfilTela> {
         }
       }
 
-      // 2. Atualiza os dados cadastrais no documento do Firestore
       await FirestoreService.instance.atualizarUsuario(uid, {
         'nome': _nomeController.text.trim(),
         'email': _emailController.text.trim(),
@@ -214,7 +212,6 @@ class _EditarPerfilTelaState extends State<EditarPerfilTela> {
         'ultima_atualizacao': FieldValue.serverTimestamp(),
       });
 
-      // Repassa pra qualquer contratação ativa, igual MapaCasaTela faz.
       if (_casaLat != null && _casaLng != null) {
         await FirestoreService.instance.sincronizarLocalizacaoNasContratacoes(
           uid,
@@ -258,7 +255,7 @@ class _EditarPerfilTelaState extends State<EditarPerfilTela> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // --- FOTO DE PERFIL ---
+
               Center(
                 child: Stack(
                   children: [
@@ -309,7 +306,6 @@ class _EditarPerfilTelaState extends State<EditarPerfilTela> {
               ),
               const SizedBox(height: 24),
 
-              // --- SEÇÃO 1: DADOS PESSOAIS ---
               _buildBlocoFormulario(
                 titulo: 'Dados Pessoais',
                 icone: Icons.person_outline,
@@ -345,7 +341,6 @@ class _EditarPerfilTelaState extends State<EditarPerfilTela> {
               ),
               const SizedBox(height: 20),
 
-              // --- SEÇÃO 2: ENDEREÇO RESIDENCIAL ---
               _buildBlocoFormulario(
                 titulo: 'Endereço Residencial',
                 icone: Icons.home_outlined,
@@ -372,6 +367,21 @@ class _EditarPerfilTelaState extends State<EditarPerfilTela> {
                       ],
                     ],
                   ),
+                  if (_regiaoIbge != null && _regiaoIbge!.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(Icons.map_outlined, size: 14, color: AppCores.textoSecundario(context)),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            'Região (IBGE): $_regiaoIbge',
+                            style: TextStyle(fontSize: 11.5, color: AppCores.textoSecundario(context)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 14),
                   Row(
                     children: [
@@ -418,7 +428,6 @@ class _EditarPerfilTelaState extends State<EditarPerfilTela> {
               ),
               const SizedBox(height: 20),
 
-              // --- SEÇÃO 3: PONTO NO MAPA ---
               _buildBlocoFormulario(
                 titulo: 'Ponto no Mapa para o Transporte',
                 icone: Icons.pin_drop_outlined,
@@ -466,7 +475,6 @@ class _EditarPerfilTelaState extends State<EditarPerfilTela> {
               ),
               const SizedBox(height: 30),
 
-              // --- BOTÃO DE SALVAR ALTERAÇÕES ---
               SizedBox(
                 width: double.infinity,
                 height: 50,

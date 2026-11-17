@@ -17,23 +17,17 @@ class ConfiguracoesTela extends StatefulWidget {
 }
 
 class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
-  // Notificações
+
   bool _notifPush = true;
   bool _notifEmbarque = true;
   bool _notifMensagens = true;
   bool _notifLembretesPagamento = true;
   bool _notifPromocoes = false;
 
-  // Privacidade e Localização
   bool _autenticacaoDuasEtapas = false;
   bool _compartilharLocalizacaoRota = true;
   bool _permitirGpsApenasUso = true;
 
-  /// Aplica a aparência na hora (sem botão de "salvar" separado): manda
-  /// direto pro PreferenciasProvider, que troca o tema do app inteiro,
-  /// persiste no Firestore e notifica — essa tela observa o provider
-  /// (context.watch), então o seletor reflete sozinho, sem cópia local que
-  /// pudesse ficar dessincronizada do valor de verdade.
   void _mudarTema(String tema) {
     final prefs = context.read<PreferenciasProvider>();
     prefs.salvar(tema: tema, tamanhoFonte: prefs.tamanhoFonte);
@@ -87,7 +81,6 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
             ),
             const SizedBox(height: 20),
 
-            // 1. APARÊNCIA
             _buildBloco(
               titulo: '1. Aparência',
               icone: Icons.palette_outlined,
@@ -118,7 +111,6 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
 
             const SizedBox(height: 20),
 
-            // 2. NOTIFICAÇÕES
             _buildBloco(
               titulo: '2. Notificações',
               icone: Icons.notifications_none_outlined,
@@ -169,7 +161,6 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
 
             const SizedBox(height: 20),
 
-            // 3. PRIVACIDADE E SEGURANÇA
             _buildBloco(
               titulo: '3. Privacidade e Segurança',
               icone: Icons.shield_outlined,
@@ -207,7 +198,6 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
 
             const SizedBox(height: 20),
 
-            // 4. LOCALIZAÇÃO
             _buildBloco(
               titulo: '4. Localização',
               icone: Icons.location_on_outlined,
@@ -234,7 +224,6 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
 
             const SizedBox(height: 20),
 
-            // 5. PAGAMENTOS
             _buildBloco(
               titulo: '5. Pagamentos',
               icone: Icons.credit_card_outlined,
@@ -261,7 +250,6 @@ class _ConfiguracoesTelaState extends State<ConfiguracoesTela> {
 
             const SizedBox(height: 20),
 
-            // 6. SUPORTE
             _buildBloco(
               titulo: '6. Suporte',
               icone: Icons.headset_mic_outlined,

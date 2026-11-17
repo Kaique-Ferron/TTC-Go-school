@@ -8,9 +8,6 @@ import '../theme/cores.dart';
 import 'avaliacao_media.dart';
 import 'foto_perfil_provider.dart';
 
-/// Modal exibido ao Responsável quando ele toca num motorista na aba
-/// Serviços — mostra foto de perfil, valor da mensalidade e quantas
-/// crianças o motorista já leva por período (manhã/tarde).
 class ModalDetalhesMotorista extends StatefulWidget {
   final Motorista motorista;
 
@@ -112,7 +109,6 @@ class _ModalDetalhesMotoristaState extends State<ModalDetalhesMotorista> {
               ),
               const Divider(height: 24),
 
-              // Foto de perfil + nome + veículo
               Row(
                 children: [
                   CircleAvatar(
@@ -160,7 +156,6 @@ class _ModalDetalhesMotoristaState extends State<ModalDetalhesMotorista> {
               ),
               const SizedBox(height: 20),
 
-              // Valor da mensalidade — destaque principal
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
@@ -211,7 +206,6 @@ class _ModalDetalhesMotoristaState extends State<ModalDetalhesMotorista> {
               ),
               const SizedBox(height: 14),
 
-              // Capacidade por período
               Row(
                 children: [
                   Expanded(

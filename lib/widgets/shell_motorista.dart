@@ -6,12 +6,10 @@ import '../telas/motorista/tela_financas_motorista.dart';
 import '../telas/motorista/tela_chamada.dart';
 import '../telas/motorista/tela_perfil_motorista.dart';
 import '../telas/motorista/tela_rota.dart';
+import '../telas/motorista/configuracoes_motorista_tela.dart';
+import '../telas/motorista/tela_notificacoes_motorista.dart';
 import 'logo_goschool.dart';
 
-/// Shell responsivo compartilhado pelas telas do Motorista (Painel, Finanças, ...).
-/// Em telas largas (Web com janela maximizada) mostra o menu lateral fixo;
-/// abaixo do breakpoint ele vira um Drawer com AppBar, pra não quebrar o
-/// layout quando o app roda em janelas estreitas ou no celular.
 class ShellMotorista extends StatelessWidget {
   final String itemSelecionado;
   final WidgetBuilder builder;
@@ -87,13 +85,12 @@ class _MenuMotorista extends StatelessWidget {
     } else if (destino == 'Meu Perfil') {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaPerfilMotorista()));
     } else if (destino == 'Painel Principal') {
-      // É a tela raiz (aberta direto no login) — só volta pra ela em vez
-      // de empurrar uma tela nova por cima.
+
       if (Navigator.canPop(context)) Navigator.pop(context);
-    } else if (destino == 'Notificações' || destino == 'Configurações') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$destino chega em breve.')),
-      );
+    } else if (destino == 'Configurações') {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const ConfiguracoesMotoristaTela()));
+    } else if (destino == 'Notificações') {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaNotificacoesMotorista()));
     }
   }
 
@@ -121,8 +118,6 @@ class _MenuMotorista extends StatelessWidget {
         ),
         Divider(height: 1, color: AppCores.borda(context)),
 
-        // Expanded + SingleChildScrollView (em vez de um Spacer no fim da
-        // Column) pra rolar os itens em vez de estourar em janelas baixas.
         Expanded(
           child: SingleChildScrollView(
             child: Column(
@@ -135,7 +130,7 @@ class _MenuMotorista extends StatelessWidget {
                 _buildMenuItem(context, Icons.person, 'Meu Perfil'),
                 _buildMenuItem(context, Icons.payments_outlined, 'Finanças'),
                 _buildMenuItem(context, Icons.chat_bubble_outline, 'Mensagens'),
-                _buildMenuItem(context, Icons.notifications_none, 'Notificações', badge: '3'),
+                _buildMenuItem(context, Icons.notifications_none, 'Notificações'),
                 _buildMenuItem(context, Icons.settings_outlined, 'Configurações'),
               ],
             ),
@@ -159,8 +154,7 @@ class _MenuMotorista extends StatelessWidget {
 
   Widget _buildMenuItem(BuildContext context, IconData icon, String title, {String? badge}) {
     final bool isSelected = title == itemSelecionado;
-    // tileColor (em vez de pintar a cor num Container externo) deixa o
-    // próprio ListTile cuidar do Material/ink splash corretamente.
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: ListTile(

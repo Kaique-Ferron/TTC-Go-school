@@ -143,7 +143,7 @@ class _TelaSelecaoPerfilState extends State<TelaSelecaoPerfil> {
           texto: 'Continuar como $_perfilSelecionado',
           cor: corPerfil,
           onPressed: () {
-            // Passa o perfil selecionado para a tela de formulário de cadastro
+
             Navigator.pushNamed(
               context,
               '/cadastro',

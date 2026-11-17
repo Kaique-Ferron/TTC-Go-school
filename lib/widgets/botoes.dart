@@ -63,7 +63,7 @@ class BotaoPrincipal extends StatelessWidget {
 }
 
 class SeletorPerfilTab extends StatelessWidget {
-  final String perfilSelecionado; // 'Responsável' ou 'Motorista'
+  final String perfilSelecionado;
   final ValueChanged<String> onChanged;
 
   const SeletorPerfilTab({
@@ -84,7 +84,7 @@ class SeletorPerfilTab extends StatelessWidget {
       padding: const EdgeInsets.all(4),
       child: Row(
         children: [
-          // Aba Responsável
+
           Expanded(
             child: GestureDetector(
               onTap: () => onChanged('Responsável'),
@@ -115,8 +115,7 @@ class SeletorPerfilTab extends StatelessWidget {
               ),
             ),
           ),
-          
-          // Aba Motorista (Laranja quando ativo)
+
           Expanded(
             child: GestureDetector(
               onTap: () => onChanged('Motorista'),

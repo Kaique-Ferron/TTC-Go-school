@@ -7,16 +7,9 @@ import '../../services/firestore_service.dart';
 import '../../theme/cores.dart';
 import '../../widgets/foto_perfil_provider.dart';
 
-/// Tela de contratação de um motorista pelo Responsável: escolhe o período,
-/// seleciona quais filhos vão usar o transporte, confere o resumo com o
-/// valor total e confirma. Grava a contratação em
-/// usuarios/{responsavelUid}/contratacoes (ver firestore/MIGRATIONS.md).
 class TelaContratacao extends StatefulWidget {
   final Motorista motorista;
 
-  /// Sobrescritas usadas em testes de widget (injeta um uid e um
-  /// FirestoreService fake em vez dos singletons reais). Em produção ficam
-  /// nulas e a tela usa AuthService/FirestoreService normalmente.
   @visibleForTesting
   final String? uidParaTeste;
   @visibleForTesting
@@ -45,10 +38,6 @@ class _TelaContratacaoState extends State<TelaContratacao> {
   FirestoreService get _servico =>
       widget.servicoParaTeste ?? FirestoreService.instance;
 
-  // Criado uma única vez em initState — se fosse recriado a cada build (ex.:
-  // ao marcar um filho ou trocar o período), o StreamBuilder reinterpretaria
-  // como uma troca de stream e voltaria a exibir o spinner de carregamento
-  // a cada toque, descartando a seleção visível momentaneamente.
   Stream<List<Filho>>? _filhosStream;
 
   @override
@@ -56,7 +45,7 @@ class _TelaContratacaoState extends State<TelaContratacao> {
     super.initState();
     final uid = _uid;
     if (uid != null) _filhosStream = _servico.filhosStream(uid);
-    // Pré-seleciona o único período disponível, se só tiver um.
+
     if (_temManha && !_temTarde) {
       _periodo = 'Manhã';
     } else if (_temTarde && !_temManha) {
@@ -89,19 +78,10 @@ class _TelaContratacaoState extends State<TelaContratacao> {
       final valorTotal =
           widget.motorista.valorMensalidade * filhosSelecionados.length;
       final meuUsuario = await _servico.usuarioStream(uid).first;
-      // lat/lng/endereço não fazem parte do model Usuario (são gravados à
-      // parte por MapaCasaTela/EditarPerfilTela) — lidos direto do
-      // documento aqui, só pra guardar uma cópia na contratação e o
-      // Motorista conseguir montar a rota sem precisar ler o documento
-      // completo do Responsável (que agora só o dono pode ler).
+
       final meuDocumento = await FirebaseFirestore.instance.collection('usuarios').doc(uid).get();
       final meusDados = meuDocumento.data();
 
-      // Localização da escola pra rota do motorista saber até onde ir
-      // depois de pegar as crianças (ver Filho.escolaLat/escolaLng) — se
-      // os filhos selecionados forem de escolas diferentes, usa a do
-      // primeiro que tiver localização marcada (simplificação: uma van
-      // normalmente atende uma escola só por período).
       final comEscolaMarcada = filhosSelecionados.where((f) => f.temLocalizacaoEscola);
       final filhoComEscolaMarcada = comEscolaMarcada.isEmpty ? null : comEscolaMarcada.first;
 
@@ -128,9 +108,6 @@ class _TelaContratacaoState extends State<TelaContratacao> {
         'contratadoEm': FieldValue.serverTimestamp(),
       });
 
-      // Libera esse responsável a ver a localização ao vivo desse motorista
-      // (ver firestore.rules > responsaveis_ativos) assim que ele iniciar
-      // uma corrida.
       await _servico.registrarResponsavelAtivo(widget.motorista.uid, uid);
 
       if (!mounted) return;
@@ -324,7 +301,6 @@ class _TelaContratacaoState extends State<TelaContratacao> {
                       ),
                     ),
 
-                    // Resumo + confirmar, fixo embaixo
                     Container(
                       padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
                       decoration: BoxDecoration(
@@ -550,9 +526,7 @@ class _TelaContratacaoState extends State<TelaContratacao> {
           width: selecionado ? 1.6 : 1,
         ),
       ),
-      // Material(transparent) entre o Container colorido e o CheckboxListTile
-      // pra o ink splash do toque pintar por cima da cor de fundo, em vez de
-      // ficar invisível atrás dela.
+
       child: Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(14),

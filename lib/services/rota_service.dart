@@ -4,21 +4,6 @@ import '../models/parada_rota.dart';
 import '../models/rota_otimizada.dart';
 import 'rota_real_service.dart';
 
-/// Calcula a melhor ordem de embarque das crianças e o trajeto entre elas.
-///
-/// A ORDEM das paradas é sempre calculada aqui dentro, sem nenhuma API
-/// externa — problema do caixeiro-viajante em cima da distância em linha
-/// reta entre coordenadas (fórmula de haversine): até 7 paradas testa
-/// todas as ordens possíveis (força bruta), mais que isso usa a
-/// heurística do vizinho mais próximo. Isso não precisa de mapa de ruas,
-/// só da posição dos pontos, então funciona sempre.
-///
-/// Já o DESENHO do trajeto no mapa — pra não cortar reto por cima de
-/// prédio, rio ou quarteirão inteiro — usa [RotaRealService] (OSRM,
-/// gratuito e sem chave). Se não conseguir buscar o trajeto real (sem
-/// internet, serviço fora do ar), cai de volta pro traçado em linha reta
-/// — a ordem das paradas continua certa de qualquer jeito, só o desenho
-/// fica reto.
 class RotaService {
   RotaService._();
   static final RotaService instance = RotaService._();
@@ -70,8 +55,6 @@ class RotaService {
     );
   }
 
-  /// Distância em linha reta entre dois pontos do globo (fórmula de
-  /// haversine), em quilômetros.
   double _distanciaKm(LatLng a, LatLng b) {
     final dLat = _paraRadianos(b.latitude - a.latitude);
     final dLng = _paraRadianos(b.longitude - a.longitude);
@@ -85,6 +68,26 @@ class RotaService {
   }
 
   double _paraRadianos(double graus) => graus * math.pi / 180;
+
+  /// Corta o trajeto no ponto mais próximo da posição atual, devolvendo só o
+  /// trecho que ainda falta percorrer — o trecho já passado "some" do mapa,
+  /// em vez de desenhar a linha inteira o tempo todo.
+  static List<LatLng> trajetoRestante(List<LatLng> trajeto, LatLng posicaoAtual) {
+    if (trajeto.length <= 1) return trajeto;
+
+    var indiceMaisProximo = 0;
+    var menorDistancia = double.infinity;
+    for (var i = 0; i < trajeto.length; i++) {
+      final dLat = trajeto[i].latitude - posicaoAtual.latitude;
+      final dLng = trajeto[i].longitude - posicaoAtual.longitude;
+      final distancia = dLat * dLat + dLng * dLng;
+      if (distancia < menorDistancia) {
+        menorDistancia = distancia;
+        indiceMaisProximo = i;
+      }
+    }
+    return trajeto.sublist(indiceMaisProximo);
+  }
 
   List<ParadaRota> _ordemPorForcaBruta(LatLng partida, List<ParadaRota> paradas) {
     List<ParadaRota>? melhorOrdem;

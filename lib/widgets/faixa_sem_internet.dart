@@ -2,13 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/conectividade_provider.dart';
 
-/// Faixa fixa no topo do app avisando quando o aparelho está sem
-/// internet — sem isso, telas que dependem de dados em tempo real
-/// (Firestore) ficam girando um spinner pra sempre, ou mostram dados
-/// desatualizados sem avisar, sem o usuário entender o motivo.
-///
-/// Uso: envolve o Navigator inteiro (ver GoSchoolApp.builder), então
-/// aparece em cima de qualquer tela, sem precisar adicionar em cada uma.
 class FaixaSemInternet extends StatelessWidget {
   final Widget child;
 

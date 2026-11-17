@@ -3,19 +3,20 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../theme/cores.dart';
 
-/// Camada do mapa com o ícone da van — desliza suavemente de uma posição
-/// pra outra em vez de saltar direto, no estilo Uber/99. A posição real
-/// chega "em saltos" (o GPS do motorista só reporta a cada ~15m de
-/// movimento, ver LocalizacaoService); essa camada só anima a transição
-/// visual entre um salto e o próximo.
-///
-/// Fica como um item dentro de `children:` do FlutterMap, ao lado do
-/// TileLayer e dos outros MarkerLayer — não precisa envolver o mapa
-/// inteiro, só essa camada anima a cada frame.
 class CamadaVanAnimada extends StatefulWidget {
   final LatLng posicao;
 
-  const CamadaVanAnimada({super.key, required this.posicao});
+  /// Quanto tempo o ícone leva pra deslizar da posição antiga pra nova.
+  /// Ideal deixar igual (ou um pouco menor) que o intervalo real entre
+  /// atualizações de localização, pra o movimento ficar contínuo em vez de
+  /// "andar e parar".
+  final Duration duration;
+
+  const CamadaVanAnimada({
+    super.key,
+    required this.posicao,
+    this.duration = const Duration(milliseconds: 900),
+  });
 
   @override
   State<CamadaVanAnimada> createState() => _CamadaVanAnimadaState();
@@ -31,16 +32,14 @@ class _CamadaVanAnimadaState extends State<CamadaVanAnimada> with SingleTickerPr
     super.initState();
     _origem = widget.posicao;
     _destino = widget.posicao;
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
+    _controller = AnimationController(vsync: this, duration: widget.duration);
   }
 
   @override
   void didUpdateWidget(CamadaVanAnimada oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.posicao != oldWidget.posicao) {
-      // Começa a nova animação de onde a anterior estava (mesmo que ainda
-      // não tivesse terminado), não do zero — evita um "pulinho" se duas
-      // atualizações de posição chegarem em menos de 900ms.
+
       _origem = _posicaoNoInstante(_controller.value);
       _destino = widget.posicao;
       _controller

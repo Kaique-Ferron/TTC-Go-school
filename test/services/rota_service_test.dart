@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:flutter_application_1/models/parada_rota.dart';
-import 'package:flutter_application_1/services/rota_service.dart';
+import 'package:goschool/models/parada_rota.dart';
+import 'package:goschool/services/rota_service.dart';
 
 void main() {
   final servico = RotaService.instance;

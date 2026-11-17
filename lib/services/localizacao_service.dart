@@ -2,40 +2,26 @@ import 'dart:async';
 import 'package:geolocator/geolocator.dart';
 import 'firestore_service.dart';
 
-/// Compartilhamento de localização ao vivo do Motorista — liga o GPS do
-/// aparelho a usuarios/{motoristaUid}/localizacao_ativa/atual enquanto a
-/// corrida estiver iniciada. Sem nenhuma API paga: é só o GPS do próprio
-/// celular (geolocator) + Firestore, igual ao app de 99/Uber mostra o
-/// entregador pro cliente.
-///
-/// É um singleton (uma instância pro app inteiro) — por isso guarda qual
-/// motoristaUid está sendo compartilhado (`_motoristaUidAtivo`), não só se
-/// tem uma assinatura ativa. Sem isso, trocar de conta (deslogar de um
-/// Motorista e logar em outro, no mesmo navegador, sem fechar a aba) deixa
-/// o GPS continuar atualizando a localização da conta ANTERIOR pra sempre,
-/// e a tela "Minhas Rotas" da conta NOVA mostra "corrida em andamento"
-/// mesmo sem ela ter apertado nada — ver [pararSeContaDiferente], chamado
-/// pelo AuthGate a cada troca de sessão.
 class LocalizacaoService {
   LocalizacaoService._();
   static final LocalizacaoService instance = LocalizacaoService._();
 
-  StreamSubscription<Position>? _assinatura;
+  // Atualização por tempo fixo (não por distância percorrida) — o responsável
+  // vê a posição do motorista renovar a cada 5 segundos, mesmo parado no
+  // trânsito, em vez de só quando ele anda 15 metros.
+  static const _intervaloAtualizacao = Duration(seconds: 5);
+
+  Timer? _timer;
   String? _motoristaUidAtivo;
 
-  bool get emAndamento => _assinatura != null;
+  bool get emAndamento => _timer != null;
 
-  /// Pede permissão de localização (se ainda não tiver) e começa a
-  /// reportar a posição pro Firestore a cada ~15 metros de movimento.
-  /// Retorna uma mensagem de erro amigável se não der pra começar, ou null
-  /// se deu tudo certo.
   Future<String?> iniciarCorrida(String motoristaUid) async {
-    // Defesa extra: se por algum motivo ainda tiver uma corrida de OUTRA
-    // conta rodando, para ela antes de começar uma nova.
-    if (_assinatura != null && _motoristaUidAtivo != motoristaUid) {
+
+    if (_timer != null && _motoristaUidAtivo != motoristaUid) {
       await finalizarCorrida(_motoristaUidAtivo!);
     }
-    if (_assinatura != null) return null; // já em andamento, pra essa mesma conta
+    if (_timer != null) return null;
 
     final servicoAtivo = await Geolocator.isLocationServiceEnabled();
     if (!servicoAtivo) return 'Ative o serviço de localização do dispositivo.';
@@ -49,49 +35,40 @@ class LocalizacaoService {
     }
 
     try {
-      final posicaoInicial = await Geolocator.getCurrentPosition();
-      await FirestoreService.instance.atualizarLocalizacaoAtiva(
-        motoristaUid,
-        lat: posicaoInicial.latitude,
-        lng: posicaoInicial.longitude,
-        emRota: true,
-      );
+      await _atualizarPosicao(motoristaUid);
     } catch (e) {
       return 'Não foi possível obter sua localização: $e';
     }
 
     _motoristaUidAtivo = motoristaUid;
-    _assinatura = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 15),
-    ).listen((posicao) {
-      FirestoreService.instance.atualizarLocalizacaoAtiva(
-        motoristaUid,
-        lat: posicao.latitude,
-        lng: posicao.longitude,
-        emRota: true,
-      );
-    });
+    _timer = Timer.periodic(_intervaloAtualizacao, (_) => _atualizarPosicao(motoristaUid));
 
     return null;
   }
 
+  Future<void> _atualizarPosicao(String motoristaUid) async {
+    final posicao = await Geolocator.getCurrentPosition();
+    await FirestoreService.instance.atualizarLocalizacaoAtiva(
+      motoristaUid,
+      lat: posicao.latitude,
+      lng: posicao.longitude,
+      emRota: true,
+    );
+  }
+
   Future<void> finalizarCorrida(String motoristaUid) async {
-    await _assinatura?.cancel();
-    _assinatura = null;
+    _timer?.cancel();
+    _timer = null;
     _motoristaUidAtivo = null;
     await FirestoreService.instance.pararLocalizacaoAtiva(motoristaUid);
   }
 
-  /// Chamado pelo AuthGate toda vez que a sessão muda (login, logout, troca
-  /// de conta). Se existe uma corrida ativa que NÃO é da conta atualmente
-  /// logada no aparelho, para o compartilhamento imediatamente — ninguém
-  /// decidiu continuar aquela corrida, só sobrou da sessão anterior.
   void pararSeContaDiferente(String? uidLogado) {
     final uidAtivo = _motoristaUidAtivo;
     if (uidAtivo == null || uidAtivo == uidLogado) return;
 
-    _assinatura?.cancel();
-    _assinatura = null;
+    _timer?.cancel();
+    _timer = null;
     _motoristaUidAtivo = null;
     FirestoreService.instance.pararLocalizacaoAtiva(uidAtivo).catchError((_) {});
   }

@@ -23,7 +23,9 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        // Mantido igual ao package_name já registrado em google-services.json —
+        // trocar isso sem registrar um novo app no Firebase quebra o build
+        // (o plugin google-services exige que bata com o google-services.json).
         applicationId = "com.example.flutter_application_1"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.

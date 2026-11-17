@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_application_1/models/usuario.dart';
+import 'package:goschool/models/usuario.dart';
 
 void main() {
   group('Usuario', () {

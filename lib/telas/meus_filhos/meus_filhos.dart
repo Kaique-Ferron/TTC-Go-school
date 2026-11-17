@@ -102,7 +102,6 @@ class MeusFilhosTela extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // Stream em tempo real do Firestore
             StreamBuilder<List<Filho>>(
               stream: FirestoreService.instance.filhosStream(uid),
               builder: (context, snapshot) {
@@ -170,7 +169,6 @@ class MeusFilhosTela extends StatelessWidget {
 
                     const SizedBox(height: 16),
 
-                    // Botão para Adicionar Filho
                     StreamBuilder<List<Filho>>(
                       stream: FirestoreService.instance.filhosStream(uid),
                       builder: (context, snapshotBotao) {
@@ -207,7 +205,6 @@ class MeusFilhosTela extends StatelessWidget {
 
                     const SizedBox(height: 24),
 
-                    // Banner Informativo
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -257,10 +254,7 @@ class MeusFilhosTela extends StatelessWidget {
 
   Widget _buildCardFilhoCustomizado(BuildContext context, String uid, Filho filho, int index) {
     final corAcento = AppCores.corFilho(index);
-    // Vermelho puro em cima do rosa quase-branco (shade50 a 50% alpha) fica
-    // com uma cor estranha e lavada sobre a superfície escura — usa um tom
-    // mais claro no escuro e monta o fundo/borda com o mesmo alpha-blend
-    // usado no resto do card em vez de um tom sólido fixo.
+
     final corExcluir = Theme.of(context).brightness == Brightness.dark ? Colors.red.shade300 : Colors.red;
 
     return Container(
@@ -276,8 +270,7 @@ class MeusFilhosTela extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Faixa colorida no topo — identifica cada filho de relance,
-          // consistente com a cor usada no avatar/ícones do CardFilho.
+
           Container(height: 5, color: corAcento),
 
           Padding(

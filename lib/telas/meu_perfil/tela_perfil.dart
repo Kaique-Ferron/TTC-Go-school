@@ -22,8 +22,6 @@ import 'mapa_casa_tela.dart';
 import '../configuracoes/configuracoes_tela.dart';
 import '../suporte/tela_suporte.dart';
 
-/// Tela de Perfil do Responsável — atualizada com o menu lateral (Drawer),
-/// layout responsivo e totalmente conectada ao Firestore em tempo real.
 class TelaPerfil extends StatelessWidget {
   const TelaPerfil({super.key});
 
@@ -93,7 +91,7 @@ class TelaPerfil extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppCores.fundo(context),
       appBar: AppBar(title: const Text('Meu Perfil')),
-      // Integrado com a sua NavbarResponsavel já existente
+
       drawer: const NavbarResponsavel(itemSelecionado: 'Meu Perfil'),
       bottomNavigationBar: const NavInferiorResponsavel(
         abaSelecionada: 'Perfil',
@@ -149,7 +147,6 @@ class TelaPerfil extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
 
-                  // Grid Responsivo (2 Colunas para telas largas / 1 Coluna para Mobile)
                   LayoutBuilder(
                     builder: (context, constraints) {
                       bool isWide = constraints.maxWidth > 850;
@@ -158,7 +155,7 @@ class TelaPerfil extends StatelessWidget {
                         direction: isWide ? Axis.horizontal : Axis.vertical,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // --- COLUNA ESQUERDA: DADOS PESSOAIS + MEUS FILHOS ---
+
                           Expanded(
                             flex: isWide ? 1 : 0,
                             child: Column(
@@ -184,7 +181,6 @@ class TelaPerfil extends StatelessWidget {
                           if (isWide) const SizedBox(width: 20),
                           if (!isWide) const SizedBox(height: 20),
 
-                          // --- COLUNA DIREITA: PAGAMENTO + ESTATÍSTICAS + CONFIGURAÇÕES ---
                           Expanded(
                             flex: isWide ? 1 : 0,
                             child: Column(
@@ -210,7 +206,6 @@ class TelaPerfil extends StatelessWidget {
     );
   }
 
-  // 1. Card de Dados Pessoais com Botão para Editar Cadastro
   Widget _buildCardDadosPessoais(
     BuildContext context,
     Map<String, dynamic>? dados,
@@ -402,7 +397,7 @@ class TelaPerfil extends StatelessWidget {
           const SizedBox(height: 16),
           const Divider(height: 1),
           const SizedBox(height: 12),
-          // Botão para Editar Cadastro e Perfil
+
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
@@ -439,9 +434,6 @@ class TelaPerfil extends StatelessWidget {
     );
   }
 
-  // Motorista selecionado — mostra o motorista contratado no momento (lido
-  // em tempo real da contratação ativa), ou um convite pra procurar um caso
-  // ainda não tenha contratado nenhum.
   Widget _buildSecaoMotoristaSelecionado(BuildContext context, String uid) {
     return StreamBuilder<Map<String, dynamic>?>(
       stream: FirestoreService.instance.contratacaoAtivaStream(uid),
@@ -625,7 +617,6 @@ class TelaPerfil extends StatelessWidget {
     );
   }
 
-  // 2. Seção Meus Filhos (Localizado logo abaixo dos dados do responsável)
   Widget _buildSecaoFilhos(BuildContext context, String uid) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -758,7 +749,6 @@ class TelaPerfil extends StatelessWidget {
     );
   }
 
-  // 3. Método de Pagamento
   Widget _buildSecaoPagamento(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -850,7 +840,6 @@ class TelaPerfil extends StatelessWidget {
     );
   }
 
-  // 4. Estatísticas Conectadas ao Firestore Stream
   Widget _buildSecaoEstatisticas(BuildContext context, String uid) {
     return SecaoCardWrapper(
       titulo: 'Estatísticas',
@@ -914,7 +903,6 @@ class TelaPerfil extends StatelessWidget {
     );
   }
 
-  // 5. Configurações
   Widget _buildSecaoConfiguracoes(BuildContext context) {
     return Container(
       decoration: BoxDecoration(

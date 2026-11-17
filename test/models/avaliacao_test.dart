@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_application_1/models/avaliacao_model.dart';
+import 'package:goschool/models/avaliacao_model.dart';
 
 void main() {
   group('Avaliacao', () {

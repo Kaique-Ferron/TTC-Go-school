@@ -11,6 +11,7 @@ import '../../widgets/shell_motorista.dart';
 import '../chat/tela_conversas.dart';
 import 'tela_chamada.dart';
 import 'tela_financas_motorista.dart';
+import 'tela_notificacoes_motorista.dart';
 import 'tela_perfil_motorista.dart';
 import 'tela_rota.dart';
 
@@ -82,10 +83,7 @@ class TelaMotorista extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Faixa em destaque (gradiente laranja) só no Painel
-              // Principal — pra ficar visualmente óbvio que essa é a tela
-              // de "painel do dia", bem diferente do Meu Perfil (fundo
-              // branco comum, de ficha cadastral).
+
               Container(
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(horizontal: isWide ? 28 : 18, vertical: isWide ? 24 : 18),
@@ -127,34 +125,12 @@ class TelaMotorista extends StatelessWidget {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Stack(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.notifications_none, color: Colors.white),
-                              onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Notificações chegam em breve.')),
-                              ),
-                            ),
-                            Positioned(
-                              right: 8,
-                              top: 8,
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                  color: Colors.red,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Text(
-                                  '3',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                        IconButton(
+                          icon: const Icon(Icons.notifications_none, color: Colors.white),
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const TelaNotificacoesMotorista()),
+                          ),
                         ),
                         const SizedBox(width: 12),
                         InkWell(
@@ -192,7 +168,6 @@ class TelaMotorista extends StatelessWidget {
               _buildAcoesRapidas(context, isWide),
               const SizedBox(height: 24),
 
-              // Agenda + Resumo da atividade
               Flex(
                 direction: isWide ? Axis.horizontal : Axis.vertical,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,10 +196,6 @@ class TelaMotorista extends StatelessWidget {
     );
   }
 
-  /// Card de status no topo do painel, no espírito do app de motorista do
-  /// Uber: mostra se o motorista está "Em rota" agora (reflete o GPS real
-  /// de [LocalizacaoService], ligado em "Minhas Rotas") e dá o atalho mais
-  /// importante da tela — continuar pra lá.
   Widget _buildCardStatus(BuildContext context, String rotasAtivas) {
     final emRota = LocalizacaoService.instance.emAndamento;
     final corStatus = emRota ? Colors.green : AppCores.laranjaMotorista;
@@ -283,8 +254,6 @@ class TelaMotorista extends StatelessWidget {
     );
   }
 
-  /// Linha de atalhos coloridos (estilo grade de ações do app do Uber
-  /// Driver) pras telas mais usadas pelo motorista, direto do painel.
   Widget _buildAcoesRapidas(BuildContext context, bool isWide) {
     final acoes = [
       (Icons.alt_route, 'Minhas Rotas', AppCores.laranjaMotorista, () => const TelaRota()),

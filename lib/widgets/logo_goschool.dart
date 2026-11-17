@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// Logo do GoSchool, sempre dentro de um selo circular branco — assim funciona
-/// igual sobre qualquer fundo (claro ou escuro) sem precisar de transparência
-/// na imagem (assets/logo.jpg tem fundo branco sólido mesmo). Se o arquivo
-/// ainda não existir no projeto, cai graciosamente para um logo em texto.
 class LogoGoSchool extends StatelessWidget {
   final double fontSize;
   final double imageHeight;
-  final bool corClara; // true = para uso sobre fundo escuro (ex: header com gradiente)
+  final bool corClara;
 
   const LogoGoSchool({
     super.key,
@@ -39,8 +35,6 @@ class LogoGoSchool extends StatelessWidget {
     );
   }
 
-  // Fallback (só usado se assets/logo.jpg não existir): monograma "GS",
-  // dimensionado pra caber dentro do selo circular sem transbordar.
   Widget _logoTexto() {
     return Text(
       'GS',

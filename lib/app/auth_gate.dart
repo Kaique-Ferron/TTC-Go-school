@@ -12,12 +12,6 @@ import '../telas/auth/login/login.dart';
 import '../telas/landpage/tela_inicio_responsavel.dart';
 import '../telas/motorista/tela_motorista.dart';
 
-/// Decide a tela inicial com base no estado de autenticação (via
-/// [SessaoProvider]) e no tipo de perfil do usuário: Responsável cai na
-/// aba "Início" (que por sua vez escolhe entre a landpage de busca e o
-/// painel de acompanhamento, ver [TelaInicioResponsavel]); Motorista cai no
-/// painel dele. Reage automaticamente a login/logout em qualquer parte do
-/// app.
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
 
@@ -27,9 +21,7 @@ class AuthGate extends StatelessWidget {
     if (!logado) {
       context.read<PreferenciasProvider>().escutarUsuario(null);
       NotificationService.sincronizarInscricao(null);
-      // Se a conta que acabou de deslogar tinha uma corrida ativa, para o
-      // compartilhamento de localização agora — ver comentário em
-      // LocalizacaoService.pararSeContaDiferente.
+
       LocalizacaoService.instance.pararSeContaDiferente(null);
       return const TelaLogin();
     }

@@ -4,7 +4,7 @@ import '../theme/cores.dart';
 import 'logo_goschool.dart';
 
 class NavbarResponsavel extends StatelessWidget {
-  final String itemSelecionado; // Ex: 'Meu Perfil', 'Meus filhos', 'Procurar Motorista', etc.
+  final String itemSelecionado;
 
   const NavbarResponsavel({
     super.key,
@@ -15,7 +15,7 @@ class NavbarResponsavel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    
+
     return Drawer(
       elevation: 0,
       child: SafeArea(
@@ -23,7 +23,6 @@ class NavbarResponsavel extends StatelessWidget {
           children: [
             const SizedBox(height: 20),
 
-            // Logo GoSchool com ícone da van
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(
@@ -47,7 +46,6 @@ class NavbarResponsavel extends StatelessWidget {
             ),
             const SizedBox(height: 30),
 
-            // Lista de Opções do Menu
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -100,7 +98,6 @@ class NavbarResponsavel extends StatelessWidget {
               ),
             ),
 
-            // Ilustração do Ônibus no Rodapé
             Container(
               height: 100,
               width: double.infinity,
@@ -172,7 +169,7 @@ class NavbarResponsavel extends StatelessWidget {
           ),
         ),
         onTap: () async {
-          Navigator.pop(context); // Fecha o Drawer
+          Navigator.pop(context);
 
           if (isSair) {
             await AuthService.instance.sair();
@@ -186,12 +183,7 @@ class NavbarResponsavel extends StatelessWidget {
                      rota == '/chat' ||
                      rota == '/inicio') {
             if (!isSelected) {
-              // pushReplacementNamed (não pushNamed): o Drawer troca de
-              // SEÇÃO, não deveria empilhar — igual à barra inferior
-              // (NavInferiorResponsavel). Com pushNamed, entrar em
-              // Configurações e tentar sair de novo pelo próprio Drawer só
-              // empilhava telas repetidas (e o botão voltar nunca "saía"
-              // de verdade, só desempilhava as repetidas uma por uma).
+
               Navigator.pushReplacementNamed(context, rota);
             }
           } else {

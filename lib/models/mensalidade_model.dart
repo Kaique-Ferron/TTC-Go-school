@@ -1,14 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// Representa o pagamento de um responsável ao motorista por um filho,
-/// exibido na tela de Finanças do Motorista.
 class Mensalidade {
   final String? id;
   final String responsavelNome;
   final String filhoNome;
   final double valor;
   final DateTime data;
-  final String status; // 'Pago' ou 'Pendente'
+  final String status;
 
   const Mensalidade({
     this.id,

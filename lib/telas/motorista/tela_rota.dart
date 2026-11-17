@@ -1,3 +1,4 @@
+
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -10,24 +11,14 @@ import '../../models/parada_rota.dart';
 import '../../models/rota_otimizada.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
+import '../../services/feriados_service.dart';
 import '../../services/localizacao_service.dart';
 import '../../services/rota_service.dart';
+import '../../models/feriado.dart';
 import '../../theme/cores.dart';
+import '../../widgets/camada_van_animada.dart';
+import '../../widgets/card_clima.dart';
 
-/// "Minhas Rotas" do Motorista: calcula a melhor ordem de embarque das
-/// crianças do período selecionado, partindo de onde o motorista estiver
-/// (ou da localização de casa já marcada). A ORDEM é sempre calculada
-/// 100% local (RotaService — caixeiro-viajante em cima da distância entre
-/// coordenadas), funciona sempre, sem chave e sem depender de internet. Já
-/// o DESENHO do trajeto nas ruas usa o OSRM (ver RotaRealService) —
-/// gratuito e sem chave, mas é um serviço de terceiros, não nosso código.
-/// Sem internet na hora, ou sem resposta do serviço, cai pro traçado em
-/// linha reta, mas a ordem das paradas continua certa de qualquer jeito.
-///
-/// O mapa é o elemento principal da tela (estilo Waze/GPS de navegação),
-/// não uma prévia pequena dentro de uma lista — os controles (corrida,
-/// período, lista de paradas) ficam flutuando por cima dele. Com a
-/// corrida iniciada, o mapa segue sua posição ao vivo automaticamente.
 class TelaRota extends StatefulWidget {
   const TelaRota({super.key});
 
@@ -36,6 +27,8 @@ class TelaRota extends StatefulWidget {
 }
 
 class _TelaRotaState extends State<TelaRota> {
+  static const LatLng _centroPadrao = LatLng(-23.5505, -46.6333);
+
   final MapController _mapController = MapController();
 
   String _periodo = DateTime.now().hour < 12 ? 'Manhã' : 'Tarde';
@@ -51,15 +44,22 @@ class _TelaRotaState extends State<TelaRota> {
   StreamSubscription<Position>? _assinaturaSeguir;
   bool _primeiroEnquadramentoFeito = false;
 
+  Feriado? _feriadoHoje;
+
   @override
   void initState() {
     super.initState();
-    // Se o motorista voltou pra essa tela com a corrida já em andamento
-    // (iniciada antes, navegou pra outro lugar e voltou), reflete o estado
-    // real em vez de assumir "parado" — e já volta a seguir a posição.
+
     _corridaAtiva = LocalizacaoService.instance.emAndamento;
     if (_corridaAtiva) _seguirPosicaoAoVivo();
     _carregarPartidaPadrao();
+    _verificarFeriado();
+  }
+
+  Future<void> _verificarFeriado() async {
+    final feriado = await FeriadosService.instance.feriadoDeHoje();
+    if (!mounted) return;
+    setState(() => _feriadoHoje = feriado);
   }
 
   @override
@@ -90,11 +90,6 @@ class _TelaRotaState extends State<TelaRota> {
     }
   }
 
-  /// Mantém a câmera do mapa centrada na posição atual do motorista
-  /// enquanto a corrida estiver em andamento — como num app de navegação
-  /// de verdade (Waze), em vez de um mapa estático que não acompanha o
-  /// movimento. Assinatura própria do GPS (independente da que
-  /// LocalizacaoService usa pra reportar a posição pro Firestore).
   void _seguirPosicaoAoVivo() {
     _assinaturaSeguir?.cancel();
     _assinaturaSeguir = Geolocator.getPositionStream(
@@ -106,8 +101,7 @@ class _TelaRotaState extends State<TelaRota> {
       try {
         _mapController.move(ponto, _mapController.camera.zoom < 15 ? 17 : _mapController.camera.zoom);
       } catch (_) {
-        // Mapa ainda não montou (primeiro frame) — ignora, o próximo
-        // reposicionamento resolve.
+
       }
     });
   }
@@ -117,12 +111,6 @@ class _TelaRotaState extends State<TelaRota> {
     _assinaturaSeguir = null;
   }
 
-  /// Usa a localização de casa já marcada (se houver — hoje só o
-  /// Responsável tem uma tela pra marcar isso, o Motorista não) como ponto
-  /// de partida padrão. Sem isso marcado, busca o GPS automaticamente —
-  /// sem essa segunda parte, quem nunca marcou casa nem apertou "Usar GPS"
-  /// manualmente abria a tela sem nenhum ponto de partida, e por isso sem
-  /// nenhum mapa pra mostrar.
   Future<void> _carregarPartidaPadrao() async {
     final uid = AuthService.instance.uidAtual;
     if (uid == null) return;
@@ -182,10 +170,6 @@ class _TelaRotaState extends State<TelaRota> {
       _primeiroEnquadramentoFeito = false;
     });
 
-    // Destino final: a escola marcada no cadastro de algum dos filhos
-    // dessas paradas (ver Filho.escolaLat/escolaLng e registrarContratacao)
-    // — sem isso, a rota só visita as casas e para por aí, sem saber pra
-    // onde ir depois.
     final paradaComEscola = comLocalizacao.where((p) => p.temLocalizacaoEscola);
     final destino = paradaComEscola.isEmpty ? null : paradaComEscola.first.posicaoEscola;
     final destinoLabel = paradaComEscola.isEmpty ? 'Escola' : paradaComEscola.first.escolaNome;
@@ -243,9 +227,7 @@ class _TelaRotaState extends State<TelaRota> {
 
           return Stack(
             children: [
-              // O MAPA é o elemento principal — ocupa a tela inteira, os
-              // controles ficam flutuando por cima dele (estilo Waze),
-              // não o contrário (mapa pequeno dentro de uma lista).
+
               Positioned.fill(child: _buildMapaPrincipal(context, paradas)),
 
               Positioned(
@@ -269,8 +251,6 @@ class _TelaRotaState extends State<TelaRota> {
     );
   }
 
-  /// Barra flutuante com o status/alternância da corrida e o seletor de
-  /// período, por cima do mapa.
   Widget _buildBarraSuperior(BuildContext context, String uid) {
     return Column(
       children: [
@@ -366,9 +346,6 @@ class _TelaRotaState extends State<TelaRota> {
     );
   }
 
-  /// O mapa cheio de tela — sempre visível, com o trajeto calculado (ou
-  /// só os pinos, antes de calcular) e um botão de recentralizar na sua
-  /// posição, igual qualquer app de navegação.
   Widget _buildMapaPrincipal(BuildContext context, List<ParadaMotorista> paradas) {
     final comLocalizacao = paradas.where((p) => p.temLocalizacao).toList();
     final rota = _rota;
@@ -396,16 +373,6 @@ class _TelaRotaState extends State<TelaRota> {
               ),
           ]
         : [
-            if (_partida != null)
-              Marker(
-                point: _partida!,
-                width: 36,
-                height: 36,
-                child: const CircleAvatar(
-                  backgroundColor: AppCores.laranjaMotorista,
-                  child: Icon(Icons.directions_bus, color: Colors.white, size: 16),
-                ),
-              ),
             for (final parada in comLocalizacao)
               Marker(
                 point: parada.posicao,
@@ -418,15 +385,18 @@ class _TelaRotaState extends State<TelaRota> {
               ),
           ];
 
-    // Linha com "brilho" por baixo (mais larga, translúcida) + linha
-    // principal com borda branca e pontas redondas por cima — estilo
-    // Google Maps/Uber/Waze, em vez de uma linha lisa de uma cor só.
+    // Só desenha o trecho do trajeto que ainda falta — o que já foi
+    // percorrido some do mapa conforme a posição atual avança.
+    final trajetoAFazer = (rota != null && _partida != null)
+        ? RotaService.trajetoRestante(rota.geometria, _partida!)
+        : rota?.geometria ?? const <LatLng>[];
+
     final trajetos = rota == null
         ? const <Polyline>[]
         : [
-            Polyline(points: rota.geometria, strokeWidth: 11, color: AppCores.laranjaMotorista.withValues(alpha: 0.25)),
+            Polyline(points: trajetoAFazer, strokeWidth: 11, color: AppCores.laranjaMotorista.withValues(alpha: 0.25)),
             Polyline(
-              points: rota.geometria,
+              points: trajetoAFazer,
               strokeWidth: 5,
               color: AppCores.laranjaMotorista,
               borderStrokeWidth: 2,
@@ -436,33 +406,18 @@ class _TelaRotaState extends State<TelaRota> {
             ),
           ];
 
-    if (pontos.isEmpty) {
-      return Container(
-        color: AppCores.superficie(context),
-        alignment: Alignment.center,
-        padding: const EdgeInsets.all(24),
-        child: Text(
-          'Defina seu ponto de partida pra ver o mapa.',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 13, color: AppCores.textoSecundario(context)),
-        ),
-      );
-    }
+    final semPontos = pontos.isEmpty;
+    final pontosParaExibir = semPontos ? const [_centroPadrao] : pontos;
 
-    // Só enquadra automaticamente a rota/pinos na primeira vez que esse
-    // conjunto de pontos aparece — depois disso, se a corrida estiver
-    // ativa, é o _seguirPosicaoAoVivo que manda na câmera (senão o mapa
-    // voltaria a se reenquadrar sozinho a cada rebuild, brigando com o
-    // usuário arrastando/dando zoom manualmente).
     if (!_primeiroEnquadramentoFeito) {
       _primeiroEnquadramentoFeito = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         try {
-          if (pontos.length > 1) {
-            _mapController.fitCamera(CameraFit.coordinates(coordinates: pontos, padding: const EdgeInsets.all(60)));
+          if (pontosParaExibir.length > 1) {
+            _mapController.fitCamera(CameraFit.coordinates(coordinates: pontosParaExibir, padding: const EdgeInsets.all(60)));
           } else {
-            _mapController.move(pontos.first, 16);
+            _mapController.move(pontosParaExibir.first, semPontos ? 11 : 16);
           }
         } catch (_) {}
       });
@@ -473,15 +428,44 @@ class _TelaRotaState extends State<TelaRota> {
         FlutterMap(
           mapController: _mapController,
           options: MapOptions(
-            initialCenter: pontos.first,
-            initialZoom: 15,
+            initialCenter: pontosParaExibir.first,
+            initialZoom: semPontos ? 11 : 15,
           ),
           children: [
             TileLayer(urlTemplate: MapaConfig.tileUrlTemplate, userAgentPackageName: 'com.example.flutter_application_1'),
             if (trajetos.isNotEmpty) PolylineLayer(polylines: trajetos),
             MarkerLayer(markers: marcadores),
+            if (_partida != null) CamadaVanAnimada(posicao: _partida!),
           ],
         ),
+        if (semPontos)
+          Positioned(
+            top: 14,
+            left: 14,
+            right: 14,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppCores.superficie(context),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10)],
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, size: 18, color: AppCores.laranjaMotorista),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _partida == null
+                          ? 'Sem ponto de partida ainda — toque no ícone de localização pra usar sua posição atual.'
+                          : 'Nenhuma criança no período "$_periodo" ainda. O mapa mostra sua posição por enquanto.',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppCores.textoPrincipal(context)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         Positioned(
           right: 14,
           bottom: 200,
@@ -492,9 +476,7 @@ class _TelaRotaState extends State<TelaRota> {
                 _buscandoPartida
                     ? null
                     : () async {
-                        // Sem corrida ativa, ninguém está atualizando sua
-                        // posição sozinho — busca o GPS de novo antes de
-                        // recentralizar.
+
                         if (!_corridaAtiva) await _usarLocalizacaoAtual();
                         if (_partida != null) _mapController.move(_partida!, 17);
                       },
@@ -516,8 +498,6 @@ class _TelaRotaState extends State<TelaRota> {
     );
   }
 
-  /// [icone] null mostra um spinner no lugar (botão "ocupado", ex.:
-  /// buscando o GPS de novo) — nesse caso [onTap] também deve ser null.
   Widget _botaoMapa(IconData? icone, VoidCallback? onTap) {
     return Material(
       color: Colors.white,
@@ -536,10 +516,6 @@ class _TelaRotaState extends State<TelaRota> {
     );
   }
 
-  /// Painel flutuante no fundo da tela (estilo Waze/Google Maps) com o
-  /// que precisa de ação — calcular a rota, ver erro, ver a ordem das
-  /// paradas — que o usuário pode arrastar pra cima pra ver mais, ou
-  /// deixar recolhido pra sobrar mais espaço pro mapa.
   Widget _buildPainelInferior(BuildContext context, String uid, List<ParadaMotorista> paradas) {
     return DraggableScrollableSheet(
       initialChildSize: 0.22,
@@ -564,6 +540,16 @@ class _TelaRotaState extends State<TelaRota> {
                   decoration: BoxDecoration(color: AppCores.borda(context), borderRadius: BorderRadius.circular(4)),
                 ),
               ),
+              if (_feriadoHoje != null) ...[
+                _buildAviso(
+                  context,
+                  '📅 Hoje é feriado nacional (${_feriadoHoje!.nome}) — pode não ter aula. Confirme com os responsáveis antes de sair.',
+                  cor: AppCores.ambar,
+                ),
+                const SizedBox(height: 10),
+              ],
+              CardClima(lat: _partida?.latitude, lng: _partida?.longitude),
+              const SizedBox(height: 10),
               if (paradas.isEmpty)
                 _buildAviso(context, 'Nenhuma criança no período "$_periodo" ainda.')
               else ...[

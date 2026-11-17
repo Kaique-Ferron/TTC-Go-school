@@ -81,14 +81,13 @@ class _ProcurarMotoristaTelaState extends State<ProcurarMotoristaTela> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Banner Superior
+
                 BannerBoasVindas(
                   temFilhos: temFilhos,
                   onCadastrarFilho: _abrirCadastrarFilho,
                 ),
                 if (!temFilhos) const SizedBox(height: 20),
 
-                // Grid Responsivo de Conteúdo
                 LayoutBuilder(
                   builder: (context, constraints) {
                     bool isWide = constraints.maxWidth > 950;
@@ -97,13 +96,13 @@ class _ProcurarMotoristaTelaState extends State<ProcurarMotoristaTela> {
                       direction: isWide ? Axis.horizontal : Axis.vertical,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // --- COLUNA PRINCIPAL: MOTORISTAS ---
+
                         Expanded(
                           flex: isWide ? 3 : 0,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Título e Seletor de Cidade
+
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -150,7 +149,6 @@ class _ProcurarMotoristaTelaState extends State<ProcurarMotoristaTela> {
                               ),
                               const SizedBox(height: 16),
 
-                              // Campo de Pesquisa e Filtros
                               Row(
                                 children: [
                                   Expanded(
@@ -191,8 +189,6 @@ class _ProcurarMotoristaTelaState extends State<ProcurarMotoristaTela> {
                               ),
                               const SizedBox(height: 20),
 
-                              // Cards dos Motoristas em Grid — dados reais do Firestore
-                              // (mesma fonte usada na aba Serviços).
                               StreamBuilder<List<Motorista>>(
                                 stream: FirestoreService.instance.motoristasStream(),
                                 builder: (context, snapshotMotoristas) {
@@ -262,7 +258,6 @@ class _ProcurarMotoristaTelaState extends State<ProcurarMotoristaTela> {
                         if (isWide) const SizedBox(width: 20),
                         if (!isWide) const SizedBox(height: 20),
 
-                        // --- COLUNA LATERAL: PASSO A PASSO ---
                         Expanded(
                           flex: isWide ? 1 : 0,
                           child: CardPassosCadastro(

@@ -1,7 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// Posição GPS ao vivo do motorista enquanto ele está com uma corrida
-/// iniciada — ver usuarios/{motoristaUid}/localizacao_ativa/atual.
 class LocalizacaoMotorista {
   final double lat;
   final double lng;

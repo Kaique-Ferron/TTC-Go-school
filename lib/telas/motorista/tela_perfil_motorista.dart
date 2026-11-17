@@ -8,10 +8,6 @@ import '../../theme/cores.dart';
 import '../../widgets/foto_perfil_provider.dart';
 import '../../widgets/shell_motorista.dart';
 
-/// "Meu Perfil" do Motorista — dados pessoais e veículo. Separada do
-/// Painel Principal (TelaMotorista): no Uber/99 Driver essas são telas
-/// diferentes, uma é o painel do dia a dia e a outra é a ficha do
-/// motorista; antes aqui as duas eram a mesma tela com dois nomes.
 class TelaPerfilMotorista extends StatelessWidget {
   const TelaPerfilMotorista({super.key});
 
@@ -342,10 +338,7 @@ class TelaPerfilMotorista extends StatelessWidget {
     String uid,
   ) async {
     final ImagePicker picker = ImagePicker();
-    // maxWidth/maxHeight/imageQuality baixos de propósito: a foto vai
-    // direto dentro do documento do Firestore (sem Firebase Storage, que
-    // exige o plano pago Blaze), então precisa ficar bem pequena pra caber
-    // no limite de 1MB por documento.
+
     final XFile? imagemSelecionada = await picker.pickImage(
       source: ImageSource.gallery,
       maxWidth: 240,

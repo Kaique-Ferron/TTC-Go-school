@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/cores.dart';
 
-/// Fundo decorativo da tela de chat — mesma ideia do "papel de parede" do
-/// WhatsApp (padrão repetido e bem sutil atrás das mensagens), só que com
-/// os ícones e as duas cores de marca do GoSchool (azul do Responsável,
-/// laranja do Motorista) em vez de doodles genéricos.
 class FundoChat extends StatelessWidget {
   const FundoChat({super.key});
 
@@ -52,9 +48,7 @@ class _PadraoGoSchool extends CustomPainter {
       y < size.height + _espacamento;
       y += _espacamento
     ) {
-      // Linhas alternadas deslocadas na horizontal — igual ao padrão em
-      // "tijolo" do papel de parede do WhatsApp, pra não ficar numa grade
-      // óbvia de linhas retas.
+
       final deslocamento = (linha.isEven) ? 0.0 : _espacamento / 2;
       var coluna = 0;
       for (

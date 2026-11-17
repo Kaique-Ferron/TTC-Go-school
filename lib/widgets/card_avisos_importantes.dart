@@ -6,9 +6,6 @@ import 'cartao_elevado.dart';
 class CardAvisosImportantes extends StatelessWidget {
   const CardAvisosImportantes({super.key});
 
-  // Lista completa (mockada) mostrada no popup "Ver todos" — as duas
-  // primeiras são as mesmas já exibidas no card, só com mais itens de
-  // histórico abaixo.
   static const _todosAvisos = [
     ('O motorista saiu para buscar a criança.', '07:32'),
     ('Previsão de chegada na escola: 08:15.', '07:20'),

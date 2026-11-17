@@ -40,7 +40,7 @@ class ModalInfoFilho extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Topo do Modal
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -58,7 +58,6 @@ class ModalInfoFilho extends StatelessWidget {
             ),
             const Divider(height: 24),
 
-            // Header do Filho (Foto, Nome, Badge, Idade)
             Row(
               children: [
                 const CircleAvatar(
@@ -100,7 +99,6 @@ class ModalInfoFilho extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // Cards de Dados (Grid 2x2)
             Row(
               children: [
                 Expanded(child: _buildBlocoInfo(context, 'ESCOLA', escola)),
@@ -118,10 +116,9 @@ class ModalInfoFilho extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Botões de Ação Grandes (Excluir e Editar)
             Row(
               children: [
-                // Botão Excluir
+
                 Expanded(
                   child: InkWell(
                     onTap: onExcluir,
@@ -149,7 +146,6 @@ class ModalInfoFilho extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
 
-                // Botão Editar
                 Expanded(
                   child: InkWell(
                     onTap: onEditar,

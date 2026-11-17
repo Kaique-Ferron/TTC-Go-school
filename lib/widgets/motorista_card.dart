@@ -3,14 +3,12 @@ import '../models/motorista_model.dart';
 import '../theme/cores.dart';
 import 'foto_perfil_provider.dart';
 
-/// Card reutilizável para exibir um motorista na lista de "Motoristas Disponíveis".
 class MotoristaCard extends StatelessWidget {
   final Motorista motorista;
   final VoidCallback? onTap;
 
   const MotoristaCard({super.key, required this.motorista, this.onTap});
 
-  // Estilos centralizados para facilitar a manutenção visual
   static const Color _primaryColor = Color(0xFF1D58E2);
   static const Color _backgroundColorAvatar = Color(0xFFE8EEFC);
 
@@ -40,7 +38,7 @@ class MotoristaCard extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                // Avatar do motorista
+
                 CircleAvatar(
                   radius: 28,
                   backgroundColor: _backgroundColorAvatar,
@@ -51,7 +49,6 @@ class MotoristaCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 16),
 
-                // Informações e detalhes
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,7 +104,6 @@ class MotoristaCard extends StatelessWidget {
                   ),
                 ),
 
-                // Ícone de navegação
                 Icon(
                   Icons.chevron_right,
                   color: AppCores.textoSecundario(context),
@@ -120,7 +116,6 @@ class MotoristaCard extends StatelessWidget {
     );
   }
 
-  /// Componente auxiliar estilizado para os detalhes do motorista
   Widget _buildDetailItem(
     BuildContext context,
     IconData icon,

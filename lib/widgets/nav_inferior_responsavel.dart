@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme/cores.dart';
 
-/// Barra de navegação inferior para as telas principais do Responsável
-/// (Meus Filhos, Início, Mensagens, Perfil) — navegação primária, no padrão
-/// de apps de transporte (Uber, 99), em vez de deixar tudo escondido no
-/// Drawer. Mensagens fica aqui (1 toque) em vez de só dentro do menu ☰.
 class NavInferiorResponsavel extends StatelessWidget {
-  final String abaSelecionada; // 'Meus Filhos', 'Início', 'Mensagens' ou 'Perfil'
+  final String abaSelecionada;
 
   const NavInferiorResponsavel({super.key, required this.abaSelecionada});
 

@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/cores.dart';
 
-/// Card com profundidade de verdade (gradiente sutil + sombra colorida),
-/// em vez do Container(color: superficie, border: Border.all(borda)) plano
-/// usado antes em quase toda tela do Responsável — mesma ideia do painel de
-/// design: elevação real, e opcionalmente uma tarja de cor na borda
-/// esquerda (`corAcento`) como um segundo jeito de marcar o card, sem
-/// pintar ele inteiro.
 class CartaoElevado extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -26,10 +20,6 @@ class CartaoElevado extends StatelessWidget {
     final escuro = Theme.of(context).brightness == Brightness.dark;
     final sombra = corSombra ?? AppCores.azulPrincipal;
 
-    // Border com cor diferente por lado (pra tarja de cor) não pode ter
-    // borderRadius — o Flutter rejeita essa combinação (quebra a pintura a
-    // cada frame). Por isso a tarja vira uma barrinha separada por cima
-    // (Stack), em vez de ser a borda esquerda do Container.
     final corpo = Container(
       padding: padding,
       decoration: BoxDecoration(

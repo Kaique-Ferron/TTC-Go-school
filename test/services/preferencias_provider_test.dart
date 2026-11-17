@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_application_1/services/preferencias_provider.dart';
+import 'package:goschool/services/preferencias_provider.dart';
 
 void main() {
   group('PreferenciasProvider', () {

@@ -3,13 +3,8 @@ import 'package:flutter/services.dart';
 import '../../theme/cores.dart';
 import 'tela_politica_privacidade.dart';
 
-/// Seção pra abrir direto quando a tela é aberta a partir de um link
-/// específico da tela de Configurações (em vez de sempre cair no topo).
 enum SecaoSuporte { nenhuma, faq, contato }
 
-/// Central de Suporte — reúne contato real (e-mail/telefone copiáveis) e
-/// perguntas frequentes de verdade sobre o que o app já faz hoje, em vez do
-/// SnackBar "Em breve!" que existia antes nos três links de Suporte.
 class TelaSuporte extends StatefulWidget {
   final SecaoSuporte abrirDireto;
 
@@ -67,7 +62,6 @@ class _TelaSuporteState extends State<TelaSuporte> {
             ),
             const SizedBox(height: 20),
 
-            // ===== Contato =====
             Container(
               key: _chaveContato,
               padding: const EdgeInsets.all(18),
@@ -121,7 +115,6 @@ class _TelaSuporteState extends State<TelaSuporte> {
 
             const SizedBox(height: 28),
 
-            // ===== FAQ =====
             Row(
               key: _chaveFaq,
               children: [

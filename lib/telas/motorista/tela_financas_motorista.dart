@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import '../../models/mensalidade_model.dart';
 import '../../repositories/mensalidade_repository.dart';
@@ -6,15 +7,8 @@ import '../../services/firestore_service.dart';
 import '../../theme/cores.dart';
 import '../../widgets/shell_motorista.dart';
 
-/// Tela de Finanças do Motorista — mostra as mensalidades que caem pra ele
-/// a cada mês, lidas em tempo real de usuarios/{uid}/mensalidades.
-/// Enquanto não há nenhum documento lá, oferece um botão pra semear os
-/// dados de exemplo (ver MensalidadeRepository + FirestoreService.semearMensalidadesMock
-/// e firestore/MIGRATIONS.md para o schema).
 class TelaFinancasMotorista extends StatefulWidget {
-  /// Sobrescritas usadas em testes de widget (injeta um uid e um
-  /// FirestoreService fake em vez dos singletons reais). Em produção ficam
-  /// nulas e a tela usa AuthService/FirestoreService normalmente.
+
   @visibleForTesting
   final String? uidParaTeste;
   @visibleForTesting
@@ -32,9 +26,6 @@ class _TelaFinancasMotoristaState extends State<TelaFinancasMotorista> {
 
   FirestoreService get _servico => widget.servicoParaTeste ?? FirestoreService.instance;
 
-  // Criado uma única vez — se fosse recriado a cada build (ex.: ao trocar o
-  // filtro Todos/Pagos/Pendentes), o StreamBuilder reinterpretaria como uma
-  // troca de stream e voltaria a exibir o spinner a cada toque.
   Stream<List<Mensalidade>>? _mensalidadesStream;
 
   @override

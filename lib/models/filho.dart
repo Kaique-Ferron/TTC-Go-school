@@ -8,10 +8,7 @@ class Filho {
   final String tipoSanguineo;
   final String alergias;
   final String status;
-  // Localização da escola marcada no mapa (ver CadastrarFilhoTela) — sem
-  // isso, a rota do motorista não tem como saber pra onde ir depois de
-  // pegar as crianças (o nome digitado sozinho não dá coordenada
-  // nenhuma). Nulos em cadastros feitos antes dessa funcionalidade existir.
+
   final double? escolaLat;
   final double? escolaLng;
 

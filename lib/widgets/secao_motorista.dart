@@ -30,7 +30,6 @@ class SecaoMotorista extends StatelessWidget {
         ),
         const SizedBox(height: 8),
 
-        // CNH
         CampoTextoCustomizado(
           controller: cnhController,
           hintText: 'Número da CNH (Cat. D/E com EAR)',
@@ -39,7 +38,6 @@ class SecaoMotorista extends StatelessWidget {
         ),
         const SizedBox(height: 10),
 
-        // Licença / Alvará Escolar
         CampoTextoCustomizado(
           controller: licencaController,
           hintText: 'Nº da Licença / Alvará de Transporte Escolar',
@@ -48,7 +46,6 @@ class SecaoMotorista extends StatelessWidget {
         ),
         const SizedBox(height: 10),
 
-        // Modelo do Veículo
         CampoTextoCustomizado(
           controller: veiculoController,
           hintText: 'Veículo (ex: Van Renault Master)',
@@ -57,7 +54,6 @@ class SecaoMotorista extends StatelessWidget {
         ),
         const SizedBox(height: 10),
 
-        // Placa do Veículo
         CampoTextoCustomizado(
           controller: placaController,
           hintText: 'Placa da Van / Ônibus (ex: ABC-1234)',

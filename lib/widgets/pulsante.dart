@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Envolve [child] com uma animação de pulsação contínua enquanto [ativo]
-/// for true — usado para chamar atenção para uma ação pendente (ex: "cadastre
-/// seu primeiro filho"). Quando [ativo] é false, renderiza [child] parado.
 class Pulsante extends StatefulWidget {
   final Widget child;
   final bool ativo;

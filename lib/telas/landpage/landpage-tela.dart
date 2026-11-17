@@ -25,9 +25,6 @@ class _LandpageTelaState extends State<LandpageTela> {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const ProcurarMotoristaTela()));
   }
 
-  // Ao clicar em "Encontrar uma Van": se o responsável ainda não cadastrou
-  // nenhum filho, manda ele cadastrar primeiro em vez de mostrar a lista
-  // de motoristas (não faz sentido contratar transporte sem um filho).
   Future<void> _aoClicarEncontrarVan() async {
     final uid = context.read<SessaoProvider>().uid;
     if (uid == null) {
@@ -58,7 +55,6 @@ class _LandpageTelaState extends State<LandpageTela> {
               const HeaderLandpage(),
               const SizedBox(height: 20),
 
-              // Seletor de abas em formato pill, centralizado
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Container(
@@ -107,7 +103,6 @@ class _LandpageTelaState extends State<LandpageTela> {
 
               const SizedBox(height: 24),
 
-              // Corpo dinâmico alterado pelo clique do botão ou menu
               Expanded(
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),

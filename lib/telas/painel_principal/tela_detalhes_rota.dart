@@ -5,19 +5,10 @@ import '../../config/mapa_config.dart';
 import '../../models/localizacao_motorista.dart';
 import '../../services/firestore_service.dart';
 import '../../services/rota_real_service.dart';
+import '../../services/rota_service.dart';
 import '../../theme/cores.dart';
 import '../../widgets/camada_van_animada.dart';
 
-/// Tela de detalhes da rota, aberta a partir do Painel Principal ("Ver
-/// detalhes" / card "Transporte em andamento") — mapa grande e de verdade
-/// interativo (dá pra arrastar/dar zoom, diferente da prévia pequena do
-/// card), com a van ao vivo se o motorista estiver com uma corrida ativa,
-/// e um botão pra recentralizar o mapa nela a qualquer momento.
-///
-/// De propósito só mostra DOIS pontos — a casa desse filho (ponto A) e a
-/// escola (ponto B) — nunca a rota completa da van com as outras crianças:
-/// o responsável não precisa (e não deve) ver o endereço de outras
-/// famílias, só o trecho que importa pra ele.
 class TelaDetalhesRota extends StatefulWidget {
   final String? motoristaUid;
   final String motoristaNome;
@@ -61,9 +52,6 @@ class _TelaDetalhesRotaState extends State<TelaDetalhesRota> {
     _carregarTrajeto();
   }
 
-  /// Busca o caminho real nas ruas entre a casa e a escola (ponto A ao
-  /// ponto B) — mesmo RotaRealService (OSRM) do motorista. Cai pra linha
-  /// reta se não conseguir (sem internet, serviço fora do ar).
   Future<void> _carregarTrajeto() async {
     if (!_temCasa || !_temEscola) return;
     final casa = LatLng(widget.latitude!, widget.longitude!);
@@ -198,6 +186,12 @@ class _TelaDetalhesRotaState extends State<TelaDetalhesRota> {
       ?posicaoVan,
     ];
 
+    // Só desenha o trecho do trajeto que ainda falta — some o que já foi
+    // percorrido conforme a van avança.
+    final trajetoExibido = (_trajetoCasaEscola != null && posicaoVan != null)
+        ? RotaService.trajetoRestante(_trajetoCasaEscola!, posicaoVan)
+        : _trajetoCasaEscola;
+
     return Stack(
       children: [
         FlutterMap(
@@ -210,19 +204,13 @@ class _TelaDetalhesRotaState extends State<TelaDetalhesRota> {
               urlTemplate: MapaConfig.tileUrlTemplate,
               userAgentPackageName: 'com.example.flutter_application_1',
             ),
-            // Só o trecho casa -> escola desse filho (ponto A ao ponto B);
-            // nunca a rota completa da van com as paradas de outras
-            // famílias — ver RotaRealService.calcularCaminho.
-            //
-            // Linha com "brilho" por baixo + linha principal com borda
-            // branca e pontas redondas por cima — estilo Google Maps/Uber,
-            // em vez de uma linha lisa de uma cor só.
-            if (_trajetoCasaEscola != null)
+
+            if (trajetoExibido != null)
               PolylineLayer(
                 polylines: [
-                  Polyline(points: _trajetoCasaEscola!, strokeWidth: 11, color: AppCores.azulPrincipal.withValues(alpha: 0.25)),
+                  Polyline(points: trajetoExibido, strokeWidth: 11, color: AppCores.azulPrincipal.withValues(alpha: 0.25)),
                   Polyline(
-                    points: _trajetoCasaEscola!,
+                    points: trajetoExibido,
                     strokeWidth: 5,
                     color: AppCores.azulPrincipal,
                     borderStrokeWidth: 2,
@@ -254,10 +242,9 @@ class _TelaDetalhesRotaState extends State<TelaDetalhesRota> {
                   ),
               ],
             ),
-            // Camada separada (fora do MarkerLayer de cima) pra poder
-            // animar só ela, deslizando suave entre posições em vez de
-            // saltar — ver CamadaVanAnimada.
-            if (posicaoVan != null) CamadaVanAnimada(posicao: posicaoVan),
+
+            if (posicaoVan != null)
+              CamadaVanAnimada(posicao: posicaoVan, duration: const Duration(milliseconds: 4500)),
           ],
         ),
         Positioned(
@@ -279,10 +266,7 @@ class _TelaDetalhesRotaState extends State<TelaDetalhesRota> {
             ),
           ),
         ),
-        // Botão "localizar motorista" — recentraliza o mapa na van sem
-        // precisar arrastar manualmente, igual o botão de "minha
-        // localização" de qualquer app de mapa. Só aparece quando há uma
-        // posição ao vivo de verdade pra ir.
+
         if (posicaoVan != null)
           Positioned(
             bottom: 14,
@@ -294,8 +278,7 @@ class _TelaDetalhesRotaState extends State<TelaDetalhesRota> {
               child: const Icon(Icons.directions_bus, color: Colors.white),
             ),
           ),
-        // Zoom explícito (+/-), além do beliscar/rolar o mouse padrão do
-        // mapa — pra deixar claro que dá pra aumentar e diminuir o zoom.
+
         Positioned(
           right: 14,
           bottom: posicaoVan != null ? 72 : 14,

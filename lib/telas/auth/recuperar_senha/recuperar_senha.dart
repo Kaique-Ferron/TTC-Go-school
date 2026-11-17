@@ -87,7 +87,6 @@ class _TelaRecuperarSenhaState extends State<TelaRecuperarSenha> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Seletor de Perfil
                   SeletorPerfilTab(
                     perfilSelecionado: _perfil,
                     onChanged: (novoPerfil) => setState(() => _perfil = novoPerfil),
@@ -107,7 +106,6 @@ class _TelaRecuperarSenhaState extends State<TelaRecuperarSenha> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Botão dinâmico na cor do perfil
                   BotaoPrincipal(
                     texto: 'Enviar link de recuperação',
                     icone: Icons.send_outlined,

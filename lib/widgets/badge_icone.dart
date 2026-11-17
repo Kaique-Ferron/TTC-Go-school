@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/cores.dart';
 
-/// Selo circular colorido por trás de um ícone — usado em títulos de card e
-/// linhas de lista no lugar do ícone "cru" (cinza, sem fundo) que era usado
-/// antes. Dá cor onde antes só tinha forma.
 class BadgeIcone extends StatelessWidget {
   final IconData icone;
   final Color cor;

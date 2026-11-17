@@ -2,11 +2,12 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/endereco.dart';
 
+// API de CEP (ViaCEP)
 class ViaCepService {
   static const String _baseUrl = 'https://viacep.com.br/ws';
 
   static Future<Endereco?> buscarCep(String cep) async {
-    // Remove caracteres não numéricos
+
     final cepLimpo = cep.replaceAll(RegExp(r'[^0-9]'), '');
 
     if (cepLimpo.length != 8) {

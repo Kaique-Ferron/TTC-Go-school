@@ -25,10 +25,7 @@ class CardFilho extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Os tons mais escuros da paleta de filhos (azulEscuro/laranjaEscuro)
-    // ficam quase invisíveis como ícone/texto num badge translúcido sobre
-    // superfície escura — corIconeLegivel troca pela variante clara só
-    // nesse caso (no tema claro devolve a cor original sem alteração).
+
     final corIcone = AppCores.corIconeLegivel(context, corAcento);
 
     return Container(

@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_application_1/services/auth_service.dart';
+import 'package:goschool/services/auth_service.dart';
 
 void main() {
   group('AuthService.descreverErro', () {

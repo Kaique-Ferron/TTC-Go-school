@@ -38,8 +38,7 @@ class _TelaLoginState extends State<TelaLogin> {
         email: _emailController.text.trim(),
         senha: _senhaController.text,
       );
-      // Login bem-sucedido: o AuthGate detecta a mudança de estado
-      // de autenticação e troca a tela automaticamente.
+
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -88,7 +87,6 @@ class _TelaLoginState extends State<TelaLogin> {
                   Text('Faça login para acessar sua conta', style: TextStyle(color: AppCores.textoSecundario(context), fontSize: 14)),
                   const SizedBox(height: 24),
 
-                  // Seletor de Perfil
                   SeletorPerfilTab(
                     perfilSelecionado: _perfil,
                     onChanged: (novoPerfil) => setState(() => _perfil = novoPerfil),
@@ -147,7 +145,6 @@ class _TelaLoginState extends State<TelaLogin> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Botão Entrar adaptativo à cor do perfil selecionado
                   BotaoPrincipal(
                     texto: 'Entrar',
                     icone: Icons.login,

@@ -7,11 +7,6 @@ import 'tela_chat.dart';
 
 final _regexLink = RegExp(r'https?://\S+');
 
-/// Lista de contatos pra começar uma conversa — motoristas já contratados
-/// (lado do Responsável) ou responsáveis que já contrataram (lado do
-/// Motorista). Tocar num contato abre o chat direto. Sem Scaffold próprio
-/// pra poder ser usada tanto dentro de [TelaNovoChat] quanto embutida direto
-/// no estado vazio de [TelaConversas] (sem precisar de uma tela extra).
 class ListaContatos extends StatelessWidget {
   final String meuUid;
   final String meuNome;
@@ -106,12 +101,6 @@ class ListaContatos extends StatelessWidget {
   }
 }
 
-/// Mostra o erro de carregar os contatos — na maioria das vezes é o
-/// Firestore pedindo pra criar um índice de collection group pela primeira
-/// vez. O texto do próprio Firestore já vem com o link pronto, só que como
-/// texto corrido; aqui ele fica selecionável e tem um botão que copia só o
-/// link direto pra área de transferência (resolvendo a dor de "não dá pra
-/// copiar da tela do app").
 class _ErroContatos extends StatelessWidget {
   final String erro;
 
@@ -166,8 +155,6 @@ class _ErroContatos extends StatelessWidget {
   }
 }
 
-/// Tela própria em volta de [ListaContatos], usada quando o usuário já tem
-/// conversas e quer começar mais uma (ícone "Nova conversa" na AppBar).
 class TelaNovoChat extends StatelessWidget {
   final String titulo;
   final String meuUid;

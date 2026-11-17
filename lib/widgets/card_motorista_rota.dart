@@ -2,14 +2,6 @@ import 'package:flutter/material.dart';
 import '../theme/cores.dart';
 import 'avaliacao_media.dart';
 
-/// Card do motorista contratado, no Painel Principal do Responsável.
-///
-/// Antes a nota/total de avaliações e o "Em rota" vinham fixos no código
-/// (sempre 4,9 de 32 avaliações, sempre "em rota" mesmo sem rastreamento
-/// real). Agora a nota reaproveita o [AvaliacaoMedia] (calculado de verdade
-/// em cima da subcoleção de avaliações, igual à busca de motoristas) e o
-/// selo mostra só o que é verdade: que esse motorista está contratado —
-/// não existe (ainda) rastreamento ao vivo da van pra dizer "em rota".
 class CardMotoristaRota extends StatelessWidget {
   final String motoristaUid;
   final String nomeMotorista;

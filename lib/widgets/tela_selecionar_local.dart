@@ -5,11 +5,6 @@ import 'package:latlong2/latlong.dart';
 import '../config/mapa_config.dart';
 import '../theme/cores.dart';
 
-/// Tela genérica pra marcar um ponto no mapa — ao contrário de
-/// MapaCasaTela (que já salva direto em usuarios/{uid}.casa_lat/lng), essa
-/// aqui só devolve a coordenada escolhida via Navigator.pop(context,
-/// LatLng(...)); quem chamou decide onde guardar (ex.: a localização da
-/// escola de um filho, em usuarios/{uid}/filhos/{filhoId}).
 class TelaSelecionarLocal extends StatefulWidget {
   final String titulo;
   final String dica;
@@ -29,7 +24,7 @@ class TelaSelecionarLocal extends StatefulWidget {
 }
 
 class _TelaSelecionarLocalState extends State<TelaSelecionarLocal> {
-  static const LatLng _centroPadrao = LatLng(-23.5505, -46.6333); // São Paulo
+  static const LatLng _centroPadrao = LatLng(-23.5505, -46.6333);
 
   final MapController _mapController = MapController();
   LatLng? _posicao;

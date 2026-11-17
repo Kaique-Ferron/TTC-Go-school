@@ -15,8 +15,6 @@ class Motorista {
   final String veiculo;
   final String placa;
 
-  // Dados mockados (ainda não vêm do Firestore) usados na tela de detalhes
-  // que o Responsável vê ao selecionar o motorista.
   final double valorMensalidade;
   final int criancasManha;
   final int criancasTarde;
@@ -42,7 +40,6 @@ class Motorista {
     this.criancasTarde = 0,
   });
 
-  // Converte os dados vindos do Firestore (Map) para o objeto Motorista
   factory Motorista.fromMap(Map<String, dynamic> map) {
     return Motorista(
       uid: map['uid'] ?? '',
@@ -63,7 +60,6 @@ class Motorista {
     );
   }
 
-  // Converte o objeto Motorista para salvar no Firestore
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,
@@ -84,10 +80,6 @@ class Motorista {
     };
   }
 
-  /// Converte um documento real de `usuarios` (tipoPerfil: 'motorista') em
-  /// Motorista para exibição na aba Serviços — esse documento não tem
-  /// 'corridas'/'tempo' (estatísticas que ainda não são rastreadas), então
-  /// ficam vazios e a UI esconde essa linha quando não há dado.
   factory Motorista.fromUsuarioMap(Map<String, dynamic> map) {
     final veiculo = (map['veiculo'] as String?) ?? '';
     final placa = (map['placa'] as String?) ?? '';
@@ -95,9 +87,6 @@ class Motorista {
     final nome = (map['nome'] as String?) ?? '';
     final fotoPerfil = (map['fotoPerfil'] as String?) ?? '';
 
-    // Mensalidade e capacidade por período ainda não existem no Firestore —
-    // gera uma variação mockada, porém estável (mesmo motorista sempre com
-    // os mesmos valores), derivada do nome, só pra não ficar tudo idêntico.
     final semente = nome.isEmpty ? 0 : nome.codeUnits.fold<int>(0, (soma, c) => soma + c);
 
     return Motorista(

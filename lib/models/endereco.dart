@@ -5,6 +5,7 @@ class Endereco {
   final String bairro;
   final String localidade;
   final String uf;
+  final String ibge;
   final bool erro;
 
   Endereco({
@@ -14,10 +15,10 @@ class Endereco {
     required this.bairro,
     required this.localidade,
     required this.uf,
+    this.ibge = '',
     this.erro = false,
   });
 
-  // Converte o JSON retornado pela API ViaCEP para o objeto Dart
   factory Endereco.fromJson(Map<String, dynamic> json) {
     if (json['erro'] == true || json['erro'] == 'true') {
       return Endereco(
@@ -38,6 +39,7 @@ class Endereco {
       bairro: json['bairro'] ?? '',
       localidade: json['localidade'] ?? '',
       uf: json['uf'] ?? '',
+      ibge: json['ibge'] ?? '',
       erro: false,
     );
   }

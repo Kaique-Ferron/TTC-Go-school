@@ -11,9 +11,6 @@ import '../../widgets/modal_detalhes_motorista.dart';
 import '../../widgets/motorista_card.dart';
 import '../meu_perfil/mapa_casa_tela.dart';
 
-// ============================================================================
-// CONTEÚDO DA ABA 0: INÍCIO (Com o botão que muda o front inteiro)
-// ============================================================================
 class AbaInicio extends StatelessWidget {
   final VoidCallback aoClicarEncontrar;
 
@@ -51,7 +48,6 @@ class AbaInicio extends StatelessWidget {
           ),
           const SizedBox(height: 26),
 
-          // Botão que dispara a troca para a ListView de motoristas
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFFFC107),
@@ -66,17 +62,14 @@ class AbaInicio extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Card com a localização da casa cadastrada (ou convite pra definir)
           const _CardLocalizacaoCasa(),
 
           const SizedBox(height: 24),
 
-          // Cartão com o mapa real (OpenStreetMap, sem chave de API)
           const _MapaTrajeto(),
 
           const SizedBox(height: 28),
 
-          // Mini estatísticas de confiança
           Container(
             padding: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
@@ -119,9 +112,6 @@ class AbaInicio extends StatelessWidget {
   }
 }
 
-// ============================================================================
-// CARD DE LOCALIZAÇÃO DA CASA — atualiza em tempo real via StreamBuilder.
-// ============================================================================
 class _CardLocalizacaoCasa extends StatelessWidget {
   const _CardLocalizacaoCasa();
 
@@ -192,10 +182,6 @@ class _CardLocalizacaoCasa extends StatelessWidget {
   }
 }
 
-// ============================================================================
-// MAPA REAL (OpenStreetMap via flutter_map — gratuito, sem chave de API)
-// Mostra o trajeto ilustrativo entre a casa do responsável e a escola.
-// ============================================================================
 class _MapaTrajeto extends StatelessWidget {
   const _MapaTrajeto();
 
@@ -215,8 +201,7 @@ class _MapaTrajeto extends StatelessWidget {
         final dados = snapshot.data?.data();
         final casaLat = (dados?['casa_lat'] as num?)?.toDouble();
         final casaLng = (dados?['casa_lng'] as num?)?.toDouble();
-        // Usa a localização real da casa quando o responsável já a definiu;
-        // senão, mantém a posição ilustrativa como exemplo.
+
         final casa = (casaLat != null && casaLng != null) ? LatLng(casaLat, casaLng) : _casaPadrao;
 
         return ClipRRect(
@@ -226,8 +211,7 @@ class _MapaTrajeto extends StatelessWidget {
             width: double.infinity,
             child: Stack(
               children: [
-                // Mapa clicável: toca em qualquer ponto pra abrir a tela cheia,
-                // interativa, de verdade (marcar/mover a casa, zoom, GPS).
+
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () => Navigator.push(
@@ -243,8 +227,7 @@ class _MapaTrajeto extends StatelessWidget {
                       ),
                       children: [
                         TileLayer(
-                          // Tiles do Mapbox (estilo "streets") — visual bem mais limpo que o
-                          // OSM puro. Token público, gratuito até 50 mil carregamentos/mês.
+
                           urlTemplate: MapaConfig.tileUrlTemplate,
                           userAgentPackageName: 'com.example.flutter_application_1',
                         ),
@@ -326,9 +309,6 @@ class _MapaTrajeto extends StatelessWidget {
   }
 }
 
-// ============================================================================
-// CONTEÚDO DA ABA 1: SERVIÇOS (ListView Completa dos Motoristas)
-// ============================================================================
 class AbaMotoristas extends StatelessWidget {
   const AbaMotoristas({super.key});
 

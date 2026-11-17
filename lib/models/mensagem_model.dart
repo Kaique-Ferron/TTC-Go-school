@@ -1,7 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// Uma mensagem dentro de uma conversa entre Responsável e Motorista.
-/// Caminho: conversas/{conversaId}/mensagens/{mensagemId}.
 class Mensagem {
   final String id;
   final String remetenteUid;

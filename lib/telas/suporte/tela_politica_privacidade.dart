@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/cores.dart';
 
-/// Política de Privacidade — conteúdo real (não um placeholder "em breve"),
-/// fundamentado na LGPD e nas demais leis brasileiras relevantes pra um app
-/// que lida com dados de crianças (filhos dos Responsáveis) e localização.
 class TelaPoliticaPrivacidade extends StatelessWidget {
   const TelaPoliticaPrivacidade({super.key});
 

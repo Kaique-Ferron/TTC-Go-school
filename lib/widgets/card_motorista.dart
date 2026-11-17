@@ -4,9 +4,6 @@ import '../theme/cores.dart';
 import 'avaliacao_media.dart';
 import 'foto_perfil_provider.dart';
 
-/// Card de um motorista real (vindo do Firestore) na tela de "Procurar
-/// Motorista". Mostra só dados que realmente existem no cadastro — nada de
-/// "escolas atendidas" ou "total de avaliações" mockados.
 class CardMotorista extends StatelessWidget {
   final Motorista motorista;
   final bool temFilhoCadastrado;
@@ -48,7 +45,7 @@ class CardMotorista extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Cabeçalho: Foto, Nome, Selo Verificado e Avaliação
+
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -144,7 +141,6 @@ class CardMotorista extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Botão Bloqueado ou Desbloqueado conforme posse de filho cadastrado
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(

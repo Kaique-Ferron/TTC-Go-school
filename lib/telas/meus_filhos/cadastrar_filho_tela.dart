@@ -30,7 +30,6 @@ class _CadastrarFilhoTelaState extends State<CadastrarFilhoTela> {
   late TextEditingController _tipoSanguineoController;
   late TextEditingController _alergiasController;
 
-  // Controllers de Endereço
   late TextEditingController _cepController;
   late TextEditingController _enderecoController;
   late TextEditingController _numeroController;
@@ -46,54 +45,43 @@ class _CadastrarFilhoTelaState extends State<CadastrarFilhoTela> {
   double? _escolaLng;
   bool _escolaLocalizacaoAutomatica = false;
 
-  // Sugestões reais de escolas de São Paulo, por zona, já com coordenada
-  // aproximada (centro do bairro onde cada uma fica) — ao escolher uma
-  // sugestão, a localização é marcada sozinha (ver _selecionarEscola),
-  // sem precisar arrastar o pino no mapa manualmente. Como não há uma API
-  // de geocodificação por trás (esse projeto não usa nenhuma paga), são
-  // coordenadas aproximadas de bairro, não o portão exato da escola — por
-  // isso o botão "marcar no mapa" continua disponível pra ajustar fino, e
-  // pra qualquer escola digitada que não esteja nessa lista.
   static const Map<String, LatLng> _escolasComLocalizacao = {
-    // Zona Norte
+
     'ETEC Parque da Juventude (Santana)': LatLng(-23.5055, -46.6283),
     'ETEC Mandaqui': LatLng(-23.4653, -46.6386),
     'ETEC Albert Einstein (Casa Verde)': LatLng(-23.5091, -46.6646),
     'Escola Estadual Deputado Pedro Costa (Vila Isolina Mazzei)': LatLng(-23.4989, -46.6615),
     'EMEFM Prof. Derville Allegretti': LatLng(-23.5035, -46.6250),
     'EMEFM Vereador Antonio Sampaio (Santana)': LatLng(-23.5035, -46.6250),
-    // Zona Leste
+
     'Instituto Federal de São Paulo (IFSP) – Campus São Miguel Paulista': LatLng(-23.4989, -46.4461),
     'ETEC Zona Leste': LatLng(-23.4989, -46.4461),
     'ETEC Itaquera': LatLng(-23.5370, -46.4478),
     'ETEC São Mateus': LatLng(-23.6010, -46.4580),
     'ETEC Vila Formosa': LatLng(-23.5651, -46.5380),
     'EMEF José Bonifácio (Cidade Patriarca)': LatLng(-23.5280, -46.4280),
-    // Zona Sul
+
     'ETEC de São Paulo (ETESP)': LatLng(-23.5420, -46.6080),
     'ETEC Zona Sul': LatLng(-23.6460, -46.6430),
     'ETEC Getúlio Vargas (Ipiranga)': LatLng(-23.5920, -46.6020),
     'ETEC de Heliópolis': LatLng(-23.6020, -46.6020),
     'ETEC Takashi Morita (Santo Amaro)': LatLng(-23.6560, -46.7050),
     'EMEF Manoel de Paiva (Jardim Vila Mariana)': LatLng(-23.5890, -46.6350),
-    // Zona Oeste
+
     'ETEC Prof. Basílides de Godoy (Lapa)': LatLng(-23.5250, -46.7000),
     'ETEC Fernando Prestes': LatLng(-23.5270, -46.6650),
     'ETEC Jaguaré': LatLng(-23.5560, -46.7340),
     'EMEI Santos Dumont (Perdizes)': LatLng(-23.5370, -46.6780),
-    // Centro
+
     'ETEC São Paulo (Bom Retiro)': LatLng(-23.5280, -46.6350),
     'ETEC Carlos de Campos (Brás)': LatLng(-23.5440, -46.6080),
-    // Particulares tradicionais
+
     'Colégio Pentágono': LatLng(-23.6010, -46.7230),
     'Colégio Bandeirantes': LatLng(-23.5190, -46.7130),
     'Colégio Santa Cruz': LatLng(-23.5520, -46.7110),
     'SENAI Suíço-Brasileira': LatLng(-23.5280, -46.7280),
   };
 
-  // Mais algumas sem coordenada confiável o suficiente pra marcar sozinho
-  // (nome genérico, muitas unidades) — ainda aparecem como sugestão de
-  // texto, só não preenchem o mapa automaticamente.
   static const List<String> _escolasSemLocalizacaoConhecida = [
     'EMEI Dilernando Dias dos Santos',
     'Colégio Objetivo',
@@ -107,10 +95,7 @@ class _CadastrarFilhoTelaState extends State<CadastrarFilhoTela> {
 
   void _selecionarEscola(String nomeEscola) {
     _escolaController.text = nomeEscola;
-    // Só preenche sozinho quando a escola escolhida tem coordenada
-    // conhecida — nunca APAGA uma localização já marcada (manualmente ou
-    // de uma edição anterior) só porque a sugestão escolhida não tem
-    // coordenada na lista.
+
     final coordenada = _escolasComLocalizacao[nomeEscola];
     if (coordenada == null) return;
     setState(() {
@@ -263,11 +248,6 @@ class _CadastrarFilhoTelaState extends State<CadastrarFilhoTela> {
         if (filhoId != null) {
           await colecaoFilhos.doc(filhoId).update(dadosParaSalvar);
 
-          // Repassa a localização da escola pra qualquer contratação ativa
-          // que já inclua esse filho especificamente — sem isso, quem
-          // marcasse/corrigisse a escola DEPOIS de já ter contratado o
-          // motorista continuava vendo "nenhuma criança tem a escola
-          // marcada" pra sempre (ver sincronizarEscolaDoFilhoNasContratacoes).
           if (_escolaLat != null && _escolaLng != null) {
             await FirestoreService.instance.sincronizarEscolaDoFilhoNasContratacoes(
               uid,
@@ -319,7 +299,7 @@ class _CadastrarFilhoTelaState extends State<CadastrarFilhoTela> {
           key: _formKey,
           child: Column(
             children: [
-              // 1. Dados Pessoais
+
               _buildBlocoWrapper(
                 titulo: 'Dados Pessoais',
                 icone: Icons.child_care_outlined,
@@ -349,7 +329,6 @@ class _CadastrarFilhoTelaState extends State<CadastrarFilhoTela> {
 
               const SizedBox(height: 20),
 
-              // 2. Informações Escolares com Autocomplete e SeletorTurno
               _buildBlocoWrapper(
                 titulo: 'Informações Escolares',
                 icone: Icons.school_outlined,
@@ -379,10 +358,6 @@ class _CadastrarFilhoTelaState extends State<CadastrarFilhoTela> {
                   ),
                   const SizedBox(height: 10),
 
-                  // Localização da escola no mapa — sem isso, a rota do
-                  // motorista não tem como saber pra onde ir depois de
-                  // pegar as crianças (o nome digitado sozinho não vira
-                  // coordenada nenhuma).
                   InkWell(
                     borderRadius: BorderRadius.circular(10),
                     onTap: () async {
@@ -437,7 +412,6 @@ class _CadastrarFilhoTelaState extends State<CadastrarFilhoTela> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Widget Modular para Seleção de Turno
                   SeletorTurno(
                     turnoSelecionado: _turnoSelecionado,
                     onTurnoSelecionado: (novoTurno) {
@@ -447,7 +421,6 @@ class _CadastrarFilhoTelaState extends State<CadastrarFilhoTela> {
 
                   const SizedBox(height: 16),
 
-                  // Seleção de Horários com TimePicker
                   Row(
                     children: [
                       Expanded(
@@ -476,7 +449,6 @@ class _CadastrarFilhoTelaState extends State<CadastrarFilhoTela> {
 
               const SizedBox(height: 20),
 
-              // 3. Endereço da Criança com Componente SecaoEnderecoForm
               _buildBlocoWrapper(
                 titulo: 'Endereço de Embarque / Casa',
                 icone: Icons.home_outlined,
@@ -518,7 +490,6 @@ class _CadastrarFilhoTelaState extends State<CadastrarFilhoTela> {
 
               const SizedBox(height: 20),
 
-              // 4. Saúde e Observações
               _buildBlocoWrapper(
                 titulo: 'Saúde e Observações (Opcional)',
                 icone: Icons.health_and_safety_outlined,
@@ -540,7 +511,6 @@ class _CadastrarFilhoTelaState extends State<CadastrarFilhoTela> {
 
               const SizedBox(height: 30),
 
-              // Botão de Gravar
               SizedBox(
                 width: double.infinity,
                 height: 50,

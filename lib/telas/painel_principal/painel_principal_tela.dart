@@ -13,6 +13,7 @@ import '../../widgets/card_acompanhar_rota.dart';
 import '../../widgets/card_status_filho.dart';
 import '../../widgets/card_motorista_rota.dart';
 import '../../widgets/card_avisos_importantes.dart';
+import '../../widgets/card_clima.dart';
 import '../../widgets/logo_goschool.dart';
 import '../chat/tela_chat.dart';
 import 'tela_detalhes_rota.dart';
@@ -81,7 +82,6 @@ class PainelPrincipalTela extends StatelessWidget {
         ],
       ),
 
-      // BOTÃO DE 3 RISCOS / PONTIHNOS HABILITADO
       drawer: const NavbarResponsavel(itemSelecionado: 'Início'),
       bottomNavigationBar: const NavInferiorResponsavel(
         abaSelecionada: 'Início',
@@ -107,11 +107,7 @@ class PainelPrincipalTela extends StatelessWidget {
               final String idadeEAno = filhos.isNotEmpty
                   ? filhos.first.idadeEAno
                   : '8 anos • 3º ano';
-              // Pega a escola do primeiro filho que TEM localização marcada
-              // — não necessariamente o primeiro da lista (se tiver mais
-              // de um filho cadastrado, o com escola marcada pode ser o
-              // segundo, terceiro etc.). Olhar só filhos.first ignorava a
-              // escola de qualquer filho que não fosse o primeiro.
+
               final filhoComEscola = filhos.where((f) => f.temLocalizacaoEscola);
               final escolaFilho = filhoComEscola.isNotEmpty ? filhoComEscola.first.escola : (filhos.isNotEmpty ? filhos.first.escola : '');
               final double? escolaLat = filhoComEscola.isNotEmpty ? filhoComEscola.first.escolaLat : null;
@@ -129,7 +125,7 @@ class PainelPrincipalTela extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Saudação com o nome real lido do Firebase
+
                     Text(
                       'Olá, $nomeResponsavel! 👋',
                       style: TextStyle(
@@ -145,13 +141,11 @@ class PainelPrincipalTela extends StatelessWidget {
                         color: AppCores.textoSecundario(context),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
 
-                    // 1, 2 e 4. Transporte em andamento + mapa + card do
-                    // motorista — os três precisam saber qual motorista
-                    // está contratado (pra abrir os detalhes certos e
-                    // acompanhar a localização ao vivo dele), por isso
-                    // compartilham o mesmo StreamBuilder da contratação.
+                    CardClima(lat: casaLat, lng: casaLng),
+                    const SizedBox(height: 16),
+
                     StreamBuilder<Map<String, dynamic>?>(
                       stream: FirestoreService.instance.contratacaoAtivaStream(uid),
                       builder: (context, snapshotContratacao) {
@@ -165,30 +159,16 @@ class PainelPrincipalTela extends StatelessWidget {
                           if (placa.isNotEmpty) 'Placa: $placa',
                         ].join(' • ');
 
-                        // Autorreparo: garante que a permissão de ver a
-                        // localização ao vivo desse motorista existe, mesmo
-                        // pra contratações feitas antes dessa funcionalidade
-                        // existir (ver registrarResponsavelAtivo).
                         if (motoristaUid != null && motoristaUid.isNotEmpty) {
                           FirestoreService.instance.registrarResponsavelAtivo(motoristaUid, uid).catchError((_) {});
                         }
 
-                        // Autorreparo: copia a localização de casa atual
-                        // pra dentro das contratações ativas, mesmo pra quem
-                        // já tinha a casa marcada ANTES da sincronização
-                        // existir (ver autoSincronizarLocalizacaoNasContratacoes)
-                        // — sem isso, a parada dele continuava aparecendo
-                        // "sem localização" pro Motorista pra sempre.
                         if (casaLat != null && casaLng != null) {
                           FirestoreService.instance
                               .autoSincronizarLocalizacaoNasContratacoes(uid, lat: casaLat, lng: casaLng, endereco: casaEndereco)
                               .catchError((_) {});
                         }
 
-                        // Autorreparo: mesma coisa, mas pra escola — por
-                        // filho (não "a primeira escola da família"),
-                        // porque filhos diferentes podem ter motoristas
-                        // diferentes (ver autoSincronizarEscolasNasContratacoes).
                         FirestoreService.instance
                             .autoSincronizarEscolasNasContratacoes(uid, filhos)
                             .catchError((_) {});
@@ -215,11 +195,10 @@ class PainelPrincipalTela extends StatelessWidget {
 
                         return Column(
                           children: [
-                            // 1. Card Transporte em Andamento
+
                             CardTransporteAndamento(onTap: abrirDetalhes),
                             const SizedBox(height: 16),
 
-                            // 2. Card Acompanhar Rota (com mapa real + van ao vivo)
                             CardAcompanharRota(
                               latitude: casaLat,
                               longitude: casaLng,
@@ -231,11 +210,9 @@ class PainelPrincipalTela extends StatelessWidget {
                             ),
                             const SizedBox(height: 16),
 
-                            // 3. Card Status do Filho
                             CardStatusFilho(nomeFilho: nomeFilho, idadeEAno: idadeEAno),
                             const SizedBox(height: 16),
 
-                            // 4. Card Motorista contratado
                             if (contratacao != null)
                               CardMotoristaRota(
                                 motoristaUid: motoristaUid!,
@@ -268,7 +245,6 @@ class PainelPrincipalTela extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
 
-                    // 5. Avisos Importantes
                     const CardAvisosImportantes(),
                   ],
                 ),

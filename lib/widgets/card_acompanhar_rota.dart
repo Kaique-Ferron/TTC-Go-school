@@ -6,22 +6,9 @@ import '../models/localizacao_motorista.dart';
 import '../services/firestore_service.dart';
 import '../theme/cores.dart';
 import 'badge_icone.dart';
+import 'camada_van_animada.dart';
 import 'cartao_elevado.dart';
 
-/// Card "Acompanhar rota" do Painel Principal do Responsável.
-///
-/// Antes mostrava um mapa falso: uma única imagem estática de um tile do
-/// OpenStreetMap de um lugar fixo qualquer (nada a ver com o endereço do
-/// usuário), com "próxima parada"/horários escritos direto no código.
-/// Agora é um mapa real (flutter_map), centrado na localização de casa que
-/// o próprio responsável marcou em "Editar Perfil" — e os textos vêm dos
-/// dados reais (endereço, escola e horário do filho).
-///
-/// Quando o motorista contratado está com uma corrida em andamento (ver
-/// "Minhas Rotas" > Iniciar corrida), a van aparece se mexendo ao vivo no
-/// mapa — igual no 99/Uber — lendo usuarios/{motoristaUid}/
-/// localizacao_ativa/atual (ver LocalizacaoService). Sem corrida ativa,
-/// mostra só o ponto de embarque/desembarque reais.
 class CardAcompanharRota extends StatelessWidget {
   final double? latitude;
   final double? longitude;
@@ -50,7 +37,7 @@ class CardAcompanharRota extends StatelessWidget {
       corAcento: AppCores.azulPrincipal,
       child: Column(
         children: [
-          // Cabeçalho
+
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -81,14 +68,9 @@ class CardAcompanharRota extends StatelessWidget {
           ),
           const SizedBox(height: 14),
 
-          // Mapa real, centrado na casa do responsável (se já marcada em
-          // "Editar Perfil" > "Ponto no Mapa para o Transporte") — e na van
-          // ao vivo, se o motorista estiver com uma corrida em andamento.
           InkWell(
             borderRadius: BorderRadius.circular(16),
-            // O mapa aqui é só uma prévia (sem interação própria); tocar em
-            // qualquer parte dele abre o mapa de verdade, grande e com zoom
-            // — em "Ver detalhes" (ver TelaDetalhesRota).
+
             onTap: onVerDetalhes,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
@@ -112,8 +94,6 @@ class CardAcompanharRota extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Trajeto: casa -> escola, com o horário combinado real (sem
-          // etapas/minutos inventados, já que não há rastreamento ao vivo).
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -195,23 +175,10 @@ class CardAcompanharRota extends StatelessWidget {
                     alignment: Alignment.topCenter,
                     child: const Icon(Icons.location_on, color: Colors.red, size: 36),
                   ),
-                if (posicaoVan != null)
-                  Marker(
-                    point: posicaoVan,
-                    width: 34,
-                    height: 34,
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        color: AppCores.azulPrincipal,
-                        shape: BoxShape.circle,
-                        boxShadow: [BoxShadow(color: Color(0x991D58E2), blurRadius: 8)],
-                      ),
-                      alignment: Alignment.center,
-                      child: const Icon(Icons.directions_bus, color: Colors.white, size: 18),
-                    ),
-                  ),
               ],
             ),
+            if (posicaoVan != null)
+              CamadaVanAnimada(posicao: posicaoVan, duration: const Duration(milliseconds: 4500)),
           ],
         ),
         if (endereco.isNotEmpty)
@@ -304,8 +271,6 @@ class CardAcompanharRota extends StatelessWidget {
   }
 }
 
-/// Selo "Ao vivo" mostrado quando a van do motorista está se mexendo de
-/// verdade no mapa (corrida iniciada em "Minhas Rotas").
 class _PillAoVivo extends StatelessWidget {
   const _PillAoVivo();
 

@@ -6,7 +6,6 @@ import '../../widgets/dialog_avaliar_motorista.dart';
 import '../../widgets/foto_perfil_provider.dart';
 import '../../widgets/fundo_chat.dart';
 
-/// Thread de mensagens de uma conversa entre Responsável e Motorista.
 class TelaChat extends StatefulWidget {
   final String conversaId;
   final String meuUid;
@@ -42,10 +41,7 @@ class _TelaChatState extends State<TelaChat> {
         setState(() => _souMotorista = usuario?.tipoPerfil == 'motorista');
     });
     if (widget.outroUid.isNotEmpty) {
-      // Só o próprio usuário lê seu documento completo (ver firestore.rules)
-      // — então essa busca falha por permissão quando o outro participante
-      // não sou eu mesmo. catchError evita exceção não tratada; o avatar
-      // simplesmente cai no fallback (ícone de pessoa).
+
       FirestoreService.instance.usuarioStream(widget.outroUid).first.then((
         usuario,
       ) {

@@ -65,7 +65,6 @@ class _SecaoEnderecoState extends State<SecaoEndereco> {
         ),
         const SizedBox(height: 8),
 
-        // Campo CEP com indicador visual de busca
         Container(
           decoration: BoxDecoration(
             color: const Color(0xFFAFBFCF).withValues(alpha: 0.08),

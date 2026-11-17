@@ -6,14 +6,12 @@ class AuthService {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  /// Emite true/false conforme o usuário está autenticado ou não.
   Stream<bool> get logado =>
       _auth.authStateChanges().map((usuario) => usuario != null);
 
   String? get uidAtual => _auth.currentUser?.uid;
   String? get emailAtual => _auth.currentUser?.email;
 
-  /// Cria a conta no Firebase Auth e retorna o uid do novo usuário.
   Future<String> cadastrar({required String email, required String senha}) async {
     final credencial = await _auth.createUserWithEmailAndPassword(
       email: email,
@@ -34,8 +32,6 @@ class AuthService {
     await _auth.signOut();
   }
 
-  /// Converte erros do Firebase em mensagens amigáveis para exibir ao usuário.
-  /// Estático: não depende de _auth, então pode ser testado sem inicializar o Firebase.
   static String descreverErro(Object erro) {
     if (erro is FirebaseAuthException) {
       switch (erro.code) {

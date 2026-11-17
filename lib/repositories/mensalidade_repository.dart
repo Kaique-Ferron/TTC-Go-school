@@ -1,9 +1,5 @@
 import '../models/mensalidade_model.dart';
 
-/// Dados de exemplo (mock) usados para semear `usuarios/{uid}/mensalidades`
-/// no Firestore — ver FirestoreService.semearMensalidadesMock e
-/// firestore/MIGRATIONS.md. A tela de Finanças lê do Firestore de verdade;
-/// isso aqui só alimenta o botão "Carregar dados de exemplo".
 class MensalidadeRepository {
   static List<Mensalidade> obterMensalidades() {
     final hoje = DateTime.now();

@@ -5,10 +5,12 @@
 // 'flutter create' template.
 
 // The application's name. By default this is also the title of the Flutter window.
-PRODUCT_NAME = flutter_application_1
+PRODUCT_NAME = GoSchool
 
 // The application's bundle identifier
+// Mantido igual ao app já registrado no Firebase (ver android/app/google-services.json);
+// trocar isso exigiria registrar um novo app no Firebase Console.
 PRODUCT_BUNDLE_IDENTIFIER = com.example.flutterApplication1
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 com.example. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 GoSchool. All rights reserved.
