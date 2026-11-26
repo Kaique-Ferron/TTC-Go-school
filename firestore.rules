@@ -88,9 +88,22 @@ service cloud.firestore {
       // libera esse responsável a ler a localização ao vivo do motorista
       // logo abaixo. Gravado pelo próprio responsável no momento da
       // contratação (registrarContratacao).
+      //
+      // FALHA CORRIGIDA: a regra antiga só checava "está escrevendo no
+      // próprio slot?", sem checar se existia contratação nenhuma — ou
+      // seja, qualquer usuário logado conseguia chamar isso direto pelo
+      // SDK (sem passar pela tela de Contratação) e se liberar pra ler a
+      // localização ao vivo e avaliar QUALQUER motorista, mesmo sem nunca
+      // ter contratado. Agora exige uma contratação Ativo de verdade —
+      // possível porque registrarContratacao grava com id do documento =
+      // motoristaUid (uid aqui, do match de fora), o mesmo truque já usado
+      // nesse próprio bloco.
       match /responsaveis_ativos/{responsavelUid} {
         allow read: if isOwner(uid) || isOwner(responsavelUid);
-        allow write: if isOwner(responsavelUid);
+        allow create, update: if isOwner(responsavelUid)
+          && exists(/databases/$(database)/documents/usuarios/$(responsavelUid)/contratacoes/$(uid))
+          && get(/databases/$(database)/documents/usuarios/$(responsavelUid)/contratacoes/$(uid)).data.status == 'Ativo';
+        allow delete: if isOwner(responsavelUid);
       }
 
       // ---- usuarios/{uid}/localizacao_ativa/atual — posição GPS do

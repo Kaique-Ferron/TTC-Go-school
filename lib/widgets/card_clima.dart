@@ -29,7 +29,17 @@ class _CardClimaState extends State<CardClima> {
   @override
   void didUpdateWidget(CardClima oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.lat != widget.lat || oldWidget.lng != widget.lng) _carregar();
+    if (_mudouDeVerdade(oldWidget.lat, widget.lat) || _mudouDeVerdade(oldWidget.lng, widget.lng)) {
+      _carregar();
+    }
+  }
+
+  // Ignora tremor de GPS: só considera "mudou de posição" quando anda mais
+  // de ~1km. Sem isso, toda atualização de localização ao vivo (a cada
+  // poucos metros) recarregava o clima de novo.
+  bool _mudouDeVerdade(double? a, double? b) {
+    if (a == null || b == null) return a != b;
+    return (a - b).abs() > 0.01;
   }
 
   Future<void> _carregar() async {

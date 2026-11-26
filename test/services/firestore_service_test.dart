@@ -233,17 +233,49 @@ void main() {
 
       final paradas = await FirestoreService.comInstancia(db).paradasRotaStream('motorista1').first;
 
-      expect(paradas.single.temLocalizacaoEscola, isTrue);
-      expect(paradas.single.escolaNome, 'Escola Teste');
-      expect(paradas.single.posicaoEscola.latitude, -23.6);
+      expect(paradas.single.escolas, hasLength(1));
+      expect(paradas.single.escolas.single.nome, 'Escola Teste');
+      expect(paradas.single.escolas.single.lat, -23.6);
     });
 
-    test('contratação sem escola marcada deixa temLocalizacaoEscola falso', () async {
+    test('contratação sem escola marcada deixa a lista de escolas vazia', () async {
       await criarContratacao('resp1', motoristaUid: 'motorista1', periodo: 'Manhã', filhosNomes: ['Ana'], lat: -23.5, lng: -46.6);
 
       final paradas = await FirestoreService.comInstancia(db).paradasRotaStream('motorista1').first;
 
-      expect(paradas.single.temLocalizacaoEscola, isFalse);
+      expect(paradas.single.escolas, isEmpty);
+    });
+
+    test('duas contratações do mesmo responsável/período com escolas diferentes mantêm as duas (não só a primeira)', () async {
+      await db.collection('usuarios').doc('resp1').collection('contratacoes').add({
+        'motoristaUid': 'motorista1',
+        'responsavelNome': 'Resp resp1',
+        'responsavelLat': -23.5,
+        'responsavelLng': -46.6,
+        'filhosNomes': ['Ana'],
+        'periodo': 'Manhã',
+        'status': 'Ativo',
+        'escolas': [
+          {'nome': 'Escola A', 'lat': -23.6, 'lng': -46.7},
+        ],
+      });
+      await db.collection('usuarios').doc('resp1').collection('contratacoes').add({
+        'motoristaUid': 'motorista1',
+        'responsavelNome': 'Resp resp1',
+        'responsavelLat': -23.5,
+        'responsavelLng': -46.6,
+        'filhosNomes': ['Bia'],
+        'periodo': 'Manhã',
+        'status': 'Ativo',
+        'escolas': [
+          {'nome': 'Escola B', 'lat': -23.7, 'lng': -46.8},
+        ],
+      });
+
+      final paradas = await FirestoreService.comInstancia(db).paradasRotaStream('motorista1').first;
+
+      expect(paradas, hasLength(1)); // mesma casa — uma parada só
+      expect(paradas.single.escolas.map((e) => e.nome).toSet(), {'Escola A', 'Escola B'});
     });
   });
 

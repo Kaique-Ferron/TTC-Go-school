@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import '../../models/escola_rota.dart';
 import '../../models/filho.dart';
 import '../../models/motorista_model.dart';
 import '../../services/auth_service.dart';
@@ -82,8 +83,14 @@ class _TelaContratacaoState extends State<TelaContratacao> {
       final meuDocumento = await FirebaseFirestore.instance.collection('usuarios').doc(uid).get();
       final meusDados = meuDocumento.data();
 
-      final comEscolaMarcada = filhosSelecionados.where((f) => f.temLocalizacaoEscola);
-      final filhoComEscolaMarcada = comEscolaMarcada.isEmpty ? null : comEscolaMarcada.first;
+      // Todas as escolas distintas entre os filhos selecionados, não só a
+      // do primeiro — um responsável pode ter filhos em escolas diferentes
+      // na mesma contratação, e a rota do motorista precisa visitar todas.
+      final escolasDistintas = <String, EscolaRota>{};
+      for (final f in filhosSelecionados.where((f) => f.temLocalizacaoEscola)) {
+        escolasDistintas[f.escola] = EscolaRota(nome: f.escola, lat: f.escolaLat!, lng: f.escolaLng!);
+      }
+      final listaEscolas = escolasDistintas.values.toList();
 
       await _servico.registrarContratacao(uid, {
         'motoristaUid': widget.motorista.uid,
@@ -96,9 +103,11 @@ class _TelaContratacaoState extends State<TelaContratacao> {
         'responsavelEndereco': (meusDados?['casa_endereco'] as String?)?.trim().isNotEmpty == true
             ? meusDados!['casa_endereco']
             : (meusDados?['endereco'] as String?) ?? '',
-        'escolaNome': filhoComEscolaMarcada?.escola ?? '',
-        'escolaLat': filhoComEscolaMarcada?.escolaLat,
-        'escolaLng': filhoComEscolaMarcada?.escolaLng,
+        'escolas': listaEscolas.map((e) => e.toMap()).toList(),
+        // Campos singulares mantidos só por compatibilidade (primeira escola).
+        'escolaNome': listaEscolas.isNotEmpty ? listaEscolas.first.nome : '',
+        'escolaLat': listaEscolas.isNotEmpty ? listaEscolas.first.lat : null,
+        'escolaLng': listaEscolas.isNotEmpty ? listaEscolas.first.lng : null,
         'filhosIds': filhosSelecionados.map((f) => f.id).toList(),
         'filhosNomes': filhosSelecionados.map((f) => f.nome).toList(),
         'periodo': _periodo,

@@ -1,4 +1,5 @@
 import 'package:latlong2/latlong.dart';
+import 'escola_rota.dart';
 
 class ParadaMotorista {
   final String responsavelUid;
@@ -9,9 +10,7 @@ class ParadaMotorista {
   final List<String> filhosNomes;
   final String periodo;
 
-  final String escolaNome;
-  final double? escolaLat;
-  final double? escolaLng;
+  final List<EscolaRota> escolas;
 
   const ParadaMotorista({
     required this.responsavelUid,
@@ -21,14 +20,10 @@ class ParadaMotorista {
     required this.lng,
     required this.filhosNomes,
     required this.periodo,
-    this.escolaNome = '',
-    this.escolaLat,
-    this.escolaLng,
+    this.escolas = const [],
   });
 
   bool get temLocalizacao => lat != null && lng != null;
-  bool get temLocalizacaoEscola => escolaLat != null && escolaLng != null;
 
   LatLng get posicao => LatLng(lat!, lng!);
-  LatLng get posicaoEscola => LatLng(escolaLat!, escolaLng!);
 }

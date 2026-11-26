@@ -52,18 +52,34 @@ void main() {
     test('inclui o destino no fim da ordem quando informado', () async {
       const partida = LatLng(0, 0);
       const parada = ParadaRota(id: 'a', label: 'Casa A', posicao: LatLng(0, 1));
-      const destino = LatLng(0, 2);
+      const destino = ParadaRota(id: 'escola_Teste', label: 'Escola Teste', posicao: LatLng(0, 2));
 
       final resultado = await servico.calcular(
         partida: partida,
         paradas: const [parada],
-        destino: destino,
-        destinoLabel: 'Escola Teste',
+        destinos: const [destino],
       );
 
       expect(resultado, isNotNull);
-      expect(resultado!.ordemParadas.last.id, 'destino');
+      expect(resultado!.ordemParadas.last.id, 'escola_Teste');
       expect(resultado.ordemParadas.last.label, 'Escola Teste');
+    });
+
+    test('visita mais de uma escola quando há destinos diferentes', () async {
+      const partida = LatLng(0, 0);
+      const parada = ParadaRota(id: 'a', label: 'Casa A', posicao: LatLng(0, 1));
+      const escolaPerto = ParadaRota(id: 'escola_perto', label: 'Escola Perto', posicao: LatLng(0, 2));
+      const escolaLonge = ParadaRota(id: 'escola_longe', label: 'Escola Longe', posicao: LatLng(0, 4));
+
+      final resultado = await servico.calcular(
+        partida: partida,
+        paradas: const [parada],
+        destinos: const [escolaLonge, escolaPerto], // fora de ordem de propósito
+      );
+
+      expect(resultado, isNotNull);
+      final idsFinais = resultado!.ordemParadas.map((p) => p.id).toList();
+      expect(idsFinais, ['a', 'escola_perto', 'escola_longe']);
     });
 
     test('funciona com mais de 7 paradas (usa o caminho do vizinho mais próximo)', () async {

@@ -11,11 +11,15 @@ class RotaService {
   static const double _raioTerraKm = 6371.0;
   static const double _velocidadeMediaKmH = 28.0;
 
+  /// [destinos] é a lista de escolas a visitar no fim da rota — pode ter
+  /// mais de uma quando crianças de responsáveis diferentes (ou do mesmo
+  /// responsável) vão pra escolas diferentes nesse período. Reaproveita o
+  /// mesmo vizinho-mais-próximo já usado pras paradas de embarque, só que
+  /// partindo da última casa visitada em vez da partida do motorista.
   Future<RotaOtimizada?> calcular({
     required LatLng partida,
     required List<ParadaRota> paradas,
-    LatLng? destino,
-    String destinoLabel = 'Escola',
+    List<ParadaRota> destinos = const [],
   }) async {
     if (paradas.isEmpty) return null;
 
@@ -23,11 +27,10 @@ class RotaService {
         ? _ordemPorForcaBruta(partida, paradas)
         : _ordemPorVizinhoMaisProximo(partida, paradas);
 
-    final ordemParadas = [
-      ...ordem,
-      if (destino != null) ParadaRota(id: 'destino', label: destinoLabel, posicao: destino),
-    ];
-    final pontos = [partida, ...ordem.map((p) => p.posicao), ?destino];
+    final ordemDestinos = destinos.length <= 1 ? destinos : _ordemPorVizinhoMaisProximo(ordem.last.posicao, destinos);
+
+    final ordemParadas = [...ordem, ...ordemDestinos];
+    final pontos = [partida, ...ordem.map((p) => p.posicao), ...ordemDestinos.map((p) => p.posicao)];
 
     final caminhoReal = await RotaRealService.instance.calcularCaminho(pontos);
     if (caminhoReal != null) {

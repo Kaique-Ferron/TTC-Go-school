@@ -4,6 +4,7 @@ import '../models/avaliacao_model.dart';
 import '../models/contato_chat.dart';
 import '../models/conversa_model.dart';
 import '../models/crianca_rota.dart';
+import '../models/escola_rota.dart';
 import '../models/filho.dart';
 import '../models/localizacao_motorista.dart';
 import '../models/mensagem_model.dart';
@@ -112,7 +113,14 @@ class FirestoreService {
   }
 
   Future<void> registrarContratacao(String responsavelUid, Map<String, dynamic> dados) {
-    return _usuarios.doc(responsavelUid).collection('contratacoes').add(dados);
+    // Id do documento = motoristaUid (determinístico, igual ao padrão já
+    // usado em responsaveis_ativos) — é o que permite a regra do Firestore
+    // confirmar com exists()/get() que existe mesmo uma contratação Ativo
+    // antes de liberar localização ao vivo e avaliação (ver firestore.rules).
+    // Contratar o mesmo motorista de novo atualiza esse registro único, em
+    // vez de criar um documento separado — a própria tela de contratação já
+    // trata "já é o motorista atual" como uma coisa só.
+    return _usuarios.doc(responsavelUid).collection('contratacoes').doc(dados['motoristaUid'] as String).set(dados);
   }
 
   Future<void> sincronizarLocalizacaoNasContratacoes(
@@ -139,6 +147,24 @@ class FirestoreService {
     await lote.commit();
   }
 
+  // Lê, pra cada filhoId, a escola marcada nele agora (não o que já estava
+  // gravado na contratação) e monta a lista de escolas distintas — é assim
+  // que uma contratação com filhos em escolas diferentes guarda todas, não
+  // só a primeira.
+  Future<List<EscolaRota>> _escolasDosFilhos(String responsavelUid, List<dynamic> filhosIds) async {
+    final escolas = <String, EscolaRota>{};
+    for (final filhoId in filhosIds) {
+      final doc = await _filhos(responsavelUid).doc(filhoId as String).get();
+      final dados = doc.data();
+      final lat = (dados?['escolaLat'] as num?)?.toDouble();
+      final lng = (dados?['escolaLng'] as num?)?.toDouble();
+      if (lat == null || lng == null) continue;
+      final nome = (dados?['escola'] as String?) ?? '';
+      escolas[nome.isNotEmpty ? nome : '$lat,$lng'] = EscolaRota(nome: nome, lat: lat, lng: lng);
+    }
+    return escolas.values.toList();
+  }
+
   Future<void> sincronizarEscolaDoFilhoNasContratacoes(
     String responsavelUid,
     String filhoId, {
@@ -154,15 +180,18 @@ class FirestoreService {
         .get();
     if (contratacoesAtivas.docs.isEmpty) return;
 
-    final lote = _db.batch();
     for (final doc in contratacoesAtivas.docs) {
-      lote.update(doc.reference, {
-        'escolaNome': escolaNome,
-        'escolaLat': lat,
-        'escolaLng': lng,
+      final filhosIds = (doc.data()['filhosIds'] as List?) ?? const [];
+      final escolas = await _escolasDosFilhos(responsavelUid, filhosIds);
+      await doc.reference.update({
+        'escolas': escolas.map((e) => e.toMap()).toList(),
+        // Campos singulares mantidos só por compatibilidade com quem ainda
+        // os lê (contratações antigas, telas que mostram uma escola só).
+        'escolaNome': escolas.isNotEmpty ? escolas.first.nome : '',
+        'escolaLat': escolas.isNotEmpty ? escolas.first.lat : null,
+        'escolaLng': escolas.isNotEmpty ? escolas.first.lng : null,
       });
     }
-    await lote.commit();
   }
 
   final Set<String> _escolaSincronizada = {};
@@ -313,6 +342,27 @@ class FirestoreService {
         final filhosNomes = (dados['filhosNomes'] as List?)?.cast<String>() ?? [];
         final existente = paradasPorChave[chave];
 
+        // Suporta tanto o campo novo ("escolas", lista) quanto contratações
+        // antigas que só tinham o campo singular (escolaNome/Lat/Lng).
+        final escolasDoc = (dados['escolas'] as List?)
+                ?.map((e) => EscolaRota.fromMap(Map<String, dynamic>.from(e as Map)))
+                .toList() ??
+            const <EscolaRota>[];
+        final escolaLatAntiga = (dados['escolaLat'] as num?)?.toDouble();
+        final escolaLngAntiga = (dados['escolaLng'] as num?)?.toDouble();
+        final escolasDesteDoc = escolasDoc.isNotEmpty
+            ? escolasDoc
+            : (escolaLatAntiga != null && escolaLngAntiga != null)
+                ? [EscolaRota(nome: (dados['escolaNome'] as String?) ?? '', lat: escolaLatAntiga, lng: escolaLngAntiga)]
+                : const <EscolaRota>[];
+
+        // Une com o que já tinha pra essa parada (vários responsáveis do
+        // mesmo período podem ir pra escolas diferentes) — dedup por nome.
+        final escolasUnidas = <String, EscolaRota>{
+          for (final e in existente?.escolas ?? const <EscolaRota>[]) e.nome: e,
+          for (final e in escolasDesteDoc) e.nome: e,
+        };
+
         paradasPorChave[chave] = ParadaMotorista(
           responsavelUid: responsavelUid,
           responsavelNome: (dados['responsavelNome'] as String?) ?? '',
@@ -321,9 +371,7 @@ class FirestoreService {
           lng: (dados['responsavelLng'] as num?)?.toDouble(),
           periodo: periodo,
           filhosNomes: [...?existente?.filhosNomes, ...filhosNomes],
-          escolaNome: existente?.escolaNome.isNotEmpty == true ? existente!.escolaNome : (dados['escolaNome'] as String?) ?? '',
-          escolaLat: existente?.escolaLat ?? (dados['escolaLat'] as num?)?.toDouble(),
-          escolaLng: existente?.escolaLng ?? (dados['escolaLng'] as num?)?.toDouble(),
+          escolas: escolasUnidas.values.toList(),
         );
       }
       return paradasPorChave.values.toList();

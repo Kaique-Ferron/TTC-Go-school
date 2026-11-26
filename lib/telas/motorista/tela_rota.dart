@@ -6,6 +6,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import '../../config/mapa_config.dart';
+import '../../models/escola_rota.dart';
 import '../../models/parada_motorista.dart';
 import '../../models/parada_rota.dart';
 import '../../models/rota_otimizada.dart';
@@ -170,17 +171,25 @@ class _TelaRotaState extends State<TelaRota> {
       _primeiroEnquadramentoFeito = false;
     });
 
-    final paradaComEscola = comLocalizacao.where((p) => p.temLocalizacaoEscola);
-    final destino = paradaComEscola.isEmpty ? null : paradaComEscola.first.posicaoEscola;
-    final destinoLabel = paradaComEscola.isEmpty ? 'Escola' : paradaComEscola.first.escolaNome;
+    // Todas as escolas distintas entre as paradas desse período — antes só
+    // pegava a primeira que encontrasse, então crianças de outra escola
+    // nunca apareciam no destino da rota.
+    final escolasDistintas = <String, EscolaRota>{};
+    for (final p in comLocalizacao) {
+      for (final e in p.escolas) {
+        escolasDistintas[e.nome.isNotEmpty ? e.nome : '${e.lat},${e.lng}'] = e;
+      }
+    }
+    final destinos = escolasDistintas.values
+        .map((e) => ParadaRota(id: 'escola_${e.nome}', label: e.nome.isEmpty ? 'Escola' : e.nome, posicao: LatLng(e.lat, e.lng)))
+        .toList();
 
     final resultado = await RotaService.instance.calcular(
       partida: _partida!,
       paradas: comLocalizacao
           .map((p) => ParadaRota(id: p.responsavelUid, label: p.responsavelNome, posicao: p.posicao))
           .toList(),
-      destino: destino,
-      destinoLabel: destinoLabel.isEmpty ? 'Escola' : destinoLabel,
+      destinos: destinos,
     );
 
     if (!mounted) return;
@@ -189,7 +198,7 @@ class _TelaRotaState extends State<TelaRota> {
       _rota = resultado;
       if (resultado == null) {
         _erro = 'Não foi possível calcular a rota agora. Tente de novo em instantes.';
-      } else if (destino == null) {
+      } else if (destinos.isEmpty) {
         _erro = 'Nenhuma criança desse período tem a localização da escola marcada — a rota termina na última casa. Peça aos responsáveis pra marcar em "Meus Filhos".';
       }
     });
@@ -361,7 +370,7 @@ class _TelaRotaState extends State<TelaRota> {
                 point: rota.ordemParadas[i].posicao,
                 width: 32,
                 height: 32,
-                child: rota.ordemParadas[i].id == 'destino'
+                child: rota.ordemParadas[i].id.startsWith('escola_')
                     ? const CircleAvatar(
                         backgroundColor: AppCores.azulPrincipal,
                         child: Icon(Icons.school, color: Colors.white, size: 16),

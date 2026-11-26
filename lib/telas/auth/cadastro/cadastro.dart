@@ -94,22 +94,30 @@ class _TelaCadastroState extends State<TelaCadastro> {
         veiculo: _veiculoController.text.trim(),
       );
 
-      await FirestoreService.instance.salvarUsuario(uid, usuario);
-
       final enderecoParaGeocodificar = [
         if (usuario.rua.isNotEmpty) usuario.numero.isNotEmpty ? '${usuario.rua}, ${usuario.numero}' : usuario.rua,
         if (usuario.bairro.isNotEmpty) usuario.bairro,
         if (usuario.cep.isNotEmpty) usuario.cep,
         'Brasil',
       ].join(', ');
-      if (usuario.rua.isNotEmpty || usuario.cep.isNotEmpty) {
-        final coordenada = await GeocodificacaoService.instance.geocodificar(enderecoParaGeocodificar);
-        if (coordenada != null) {
-          await FirestoreService.instance.atualizarUsuario(uid, {
-            'casa_lat': coordenada.latitude,
-            'casa_lng': coordenada.longitude,
-          });
-        }
+
+      // Dispara os dois ao mesmo tempo — a geocodificação não depende do
+      // Firestore ter terminado de gravar, só precisa que o doc já exista
+      // antes do atualizarUsuario lá embaixo (por isso espera salvarUsuario
+      // primeiro, mas a espera da geocodificação já vem "de graça" porque
+      // ela rodou em paralelo enquanto isso).
+      final salvarFuture = FirestoreService.instance.salvarUsuario(uid, usuario);
+      final geocodificarFuture = (usuario.rua.isNotEmpty || usuario.cep.isNotEmpty)
+          ? GeocodificacaoService.instance.geocodificar(enderecoParaGeocodificar)
+          : null;
+
+      await salvarFuture;
+      final coordenada = geocodificarFuture != null ? await geocodificarFuture : null;
+      if (coordenada != null) {
+        await FirestoreService.instance.atualizarUsuario(uid, {
+          'casa_lat': coordenada.latitude,
+          'casa_lng': coordenada.longitude,
+        });
       }
 
       if (!mounted) return;
